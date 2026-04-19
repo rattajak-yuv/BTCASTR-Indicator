@@ -16,7 +16,7 @@ st.markdown("""
 .block-container {
     padding-top: 1.2rem;
     padding-bottom: 2rem;
-    max-width: 1400px;
+    max-width: 1450px;
 }
 .metric-card {
     background-color: #111827;
@@ -55,6 +55,7 @@ def load_data():
     df["date"] = pd.to_datetime(df["date"])
     return df
 
+
 def classify_regime(score):
     if score >= 3.0:
         return "strong_bull"
@@ -66,6 +67,7 @@ def classify_regime(score):
         return "bear"
     return "crash_risk"
 
+
 def regime_color(regime):
     mapping = {
         "strong_bull": "#22c55e",
@@ -76,48 +78,12 @@ def regime_color(regime):
     }
     return mapping.get(regime, "#94a3b8")
 
-def next_turning_points(df_future, top_n=8):
-    x = df_future[["date", "astro_momentum"]].copy().reset_index(drop=True)
-    turning = []
-
-    for i in range(1, len(x) - 1):
-        prev_val = x.loc[i - 1, "astro_momentum"]
-        curr_val = x.loc[i, "astro_momentum"]
-        next_val = x.loc[i + 1, "astro_momentum"]
-
-        # local top
-        if curr_val > prev_val and curr_val > next_val:
-            turning.append({
-                "date": x.loc[i, "date"],
-                "astro_momentum": curr_val,
-                "type": "local_top"
-            })
-
-        # local bottom
-        if curr_val < prev_val and curr_val < next_val:
-            turning.append({
-                "date": x.loc[i, "date"],
-                "astro_momentum": curr_val,
-                "type": "local_bottom"
-            })
-
-    if not turning:
-        return pd.DataFrame(columns=["date", "astro_momentum", "type"])
-
-    tdf = pd.DataFrame(turning)
-    tdf["abs_score"] = tdf["astro_momentum"].abs()
-    tdf = tdf.sort_values(["date"]).copy()
-
-    # keep strongest points among upcoming windows
-    tdf = tdf.sort_values("abs_score", ascending=False).head(top_n)
-    tdf = tdf.sort_values("date").reset_index(drop=True)
-    return tdf[["date", "astro_momentum", "type"]]
 
 def add_regime_backgrounds(fig, dates, scores, row, col):
-    regimes = [classify_regime(v) for v in scores]
     if len(dates) == 0:
         return fig
 
+    regimes = [classify_regime(v) for v in scores]
     start_idx = 0
     current_regime = regimes[0]
 
@@ -146,6 +112,49 @@ def add_regime_backgrounds(fig, dates, scores, row, col):
     )
     return fig
 
+
+def next_turning_points(df_future, signal_col="astro_momentum_smooth", top_n=10, threshold=1.5):
+    x = df_future[["date", signal_col]].copy().dropna().reset_index(drop=True)
+    turning = []
+
+    if len(x) < 3:
+        return pd.DataFrame(columns=["date", signal_col, "type"])
+
+    for i in range(1, len(x) - 1):
+        prev_val = x.loc[i - 1, signal_col]
+        curr_val = x.loc[i, signal_col]
+        next_val = x.loc[i + 1, signal_col]
+
+        if curr_val > prev_val and curr_val > next_val and abs(curr_val) >= threshold:
+            turning.append({
+                "date": x.loc[i, "date"],
+                signal_col: curr_val,
+                "type": "local_top"
+            })
+
+        if curr_val < prev_val and curr_val < next_val and abs(curr_val) >= threshold:
+            turning.append({
+                "date": x.loc[i, "date"],
+                signal_col: curr_val,
+                "type": "local_bottom"
+            })
+
+    if not turning:
+        return pd.DataFrame(columns=["date", signal_col, "type"])
+
+    tdf = pd.DataFrame(turning)
+    tdf["abs_score"] = tdf[signal_col].abs()
+    tdf = tdf.sort_values("abs_score", ascending=False).head(top_n)
+    tdf = tdf.sort_values("date").reset_index(drop=True)
+    return tdf[["date", signal_col, "type"]]
+
+
+def fmt_pct(x):
+    if pd.isna(x):
+        return "N/A"
+    return f"{x:.2%}"
+
+
 # -----------------------------
 # LOAD
 # -----------------------------
@@ -162,12 +171,12 @@ required_cols = [
     "date",
     "price",
     "astro_momentum",
+    "astro_momentum_smooth",
     "expansion_score",
     "contraction_score",
     "narrative_score",
     "trigger_score",
 ]
-
 missing = [c for c in required_cols if c not in df.columns]
 if missing:
     st.error(f"ไฟล์ข้อมูลขาดคอลัมน์: {missing}")
@@ -178,71 +187,119 @@ if price_df.empty:
     st.error("ยังไม่มีข้อมูลราคา BTC ที่ใช้งานได้")
     st.stop()
 
+last_price_date = price_df["date"].max()
+latest_price_row = price_df.iloc[-1]
+
 # -----------------------------
-# SIDEBAR
+# SIDEBAR CONTROLS
 # -----------------------------
 st.sidebar.header("Controls")
 
-min_date = price_df["date"].min().date()
-max_date = price_df["date"].max().date()
-
-default_start = max(min_date, (price_df["date"].max() - pd.Timedelta(days=365 * 4)).date())
-default_end = max_date
-
 quick_range = st.sidebar.selectbox(
-    "Quick Range",
+    "Historical Price Range",
     ["4Y", "3Y", "2Y", "1Y", "6M", "3M", "All"],
     index=0
 )
 
-if quick_range == "All":
-    start_date = min_date
-elif quick_range == "4Y":
-    start_date = max(min_date, (price_df["date"].max() - pd.Timedelta(days=365 * 4)).date())
-elif quick_range == "3Y":
-    start_date = max(min_date, (price_df["date"].max() - pd.Timedelta(days=365 * 3)).date())
-elif quick_range == "2Y":
-    start_date = max(min_date, (price_df["date"].max() - pd.Timedelta(days=365 * 2)).date())
-elif quick_range == "1Y":
-    start_date = max(min_date, (price_df["date"].max() - pd.Timedelta(days=365)).date())
-elif quick_range == "6M":
-    start_date = max(min_date, (price_df["date"].max() - pd.Timedelta(days=183)).date())
-else:
-    start_date = max(min_date, (price_df["date"].max() - pd.Timedelta(days=92)).date())
+indicator_options = {
+    "Astro Momentum (Raw)": "astro_momentum",
+    "Astro Momentum (Smooth)": "astro_momentum_smooth",
+    "Expansion Score": "expansion_score",
+    "Contraction Score": "contraction_score",
+    "Narrative Score": "narrative_score",
+    "Trigger Score": "trigger_score",
+}
 
-end_date = default_end
+indicator_label = st.sidebar.selectbox(
+    "Astro Indicator",
+    list(indicator_options.keys()),
+    index=1
+)
+indicator_col = indicator_options[indicator_label]
+
+forecast_options = {
+    "30 days (near)": 30,
+    "90 days (near-medium)": 90,
+    "180 days (medium)": 180,
+    "365 days (long)": 365,
+    "730 days (very long)": 730,
+    "Max available": None,
+}
+forecast_label = st.sidebar.selectbox(
+    "Forecast Horizon",
+    list(forecast_options.keys()),
+    index=2
+)
+forecast_days = forecast_options[forecast_label]
 
 custom_dates = st.sidebar.checkbox("Use custom dates", value=False)
-
-if custom_dates:
-    start_date = st.sidebar.date_input("Start date", value=default_start, min_value=min_date, max_value=max_date)
-    end_date = st.sidebar.date_input("End date", value=default_end, min_value=min_date, max_value=max_date)
-
 show_turning_markers = st.sidebar.checkbox("Show turning markers", value=True)
 show_regime_background = st.sidebar.checkbox("Show regime background", value=True)
 
-view = df[
-    (df["date"].dt.date >= start_date) &
-    (df["date"].dt.date <= end_date)
+min_price_date = price_df["date"].min().date()
+max_price_date = last_price_date.date()
+
+if quick_range == "All":
+    hist_start = min_price_date
+elif quick_range == "4Y":
+    hist_start = max(min_price_date, (last_price_date - pd.Timedelta(days=365 * 4)).date())
+elif quick_range == "3Y":
+    hist_start = max(min_price_date, (last_price_date - pd.Timedelta(days=365 * 3)).date())
+elif quick_range == "2Y":
+    hist_start = max(min_price_date, (last_price_date - pd.Timedelta(days=365 * 2)).date())
+elif quick_range == "1Y":
+    hist_start = max(min_price_date, (last_price_date - pd.Timedelta(days=365)).date())
+elif quick_range == "6M":
+    hist_start = max(min_price_date, (last_price_date - pd.Timedelta(days=183)).date())
+else:
+    hist_start = max(min_price_date, (last_price_date - pd.Timedelta(days=92)).date())
+
+hist_end = max_price_date
+
+if custom_dates:
+    hist_start = st.sidebar.date_input("Start date", value=hist_start, min_value=min_price_date, max_value=max_price_date)
+    hist_end = st.sidebar.date_input("End date", value=hist_end, min_value=min_price_date, max_value=max_price_date)
+
+# historical chart range
+hist_view = df[
+    (df["date"].dt.date >= hist_start) &
+    (df["date"].dt.date <= hist_end)
 ].copy()
 
-chart_df = view.dropna(subset=["price"]).copy()
-
-if chart_df.empty:
+hist_price_view = hist_view.dropna(subset=["price"]).copy()
+if hist_price_view.empty:
     st.warning("ช่วงวันที่ที่เลือกยังไม่มีข้อมูลราคา")
     st.stop()
 
-latest = chart_df.iloc[-1]
+# future range for astro panel
+future_view = df[df["date"] > last_price_date].copy()
+
+if forecast_days is not None:
+    future_cutoff = last_price_date + pd.Timedelta(days=forecast_days)
+    future_view = future_view[future_view["date"] <= future_cutoff].copy()
+
+# combined astro view: historical + future
+astro_hist = hist_view.copy()
+astro_future = future_view.copy()
+
+astro_combined = pd.concat([astro_hist, astro_future], ignore_index=True)
+
+# latest values
+latest = df[df["date"] == last_price_date].iloc[-1]
 latest_score = float(latest["astro_momentum"])
 latest_regime = classify_regime(latest_score)
 
-future_df = df[df["date"] > chart_df["date"].max()].copy()
-turning_df = next_turning_points(future_df, top_n=8)
-
 next_turning_text = "N/A"
+turning_df = next_turning_points(future_view, signal_col=indicator_col, top_n=10, threshold=1.5)
 if not turning_df.empty:
     next_turn = turning_df.iloc[0]
-    next_turn_text = f"{next_turn['date'].date()} ({next_turn['type']})"
+    next_turning_text = f"{next_turn['date'].date()} ({next_turn['type']})"
+
+# backtest summary if available
+strategy_total_return = latest["strategy_total_return"] if "strategy_total_return" in df.columns else None
+strategy_max_dd = latest["strategy_max_drawdown"] if "strategy_max_drawdown" in df.columns else None
+buy_hold_total_return = latest["buy_hold_total_return"] if "buy_hold_total_return" in df.columns else None
+buy_hold_max_dd = latest["buy_hold_max_drawdown"] if "buy_hold_max_drawdown" in df.columns else None
 
 # -----------------------------
 # TOP METRICS
@@ -253,17 +310,19 @@ with m1:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Latest BTC Price</div>
-        <div class="metric-value">${latest["price"]:,.0f}</div>
+        <div class="metric-value">${latest_price_row["price"]:,.0f}</div>
         <div class="metric-sub">Yahoo Finance (BTC-USD)</div>
     </div>
     """, unsafe_allow_html=True)
 
 with m2:
+    current_indicator_value = latest[indicator_col] if indicator_col in latest.index else None
+    show_val = "N/A" if pd.isna(current_indicator_value) else f"{current_indicator_value:.2f}"
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Latest Astro Momentum</div>
-        <div class="metric-value">{latest_score:.2f}</div>
-        <div class="metric-sub">Expansion - Contraction + Narrative/Trigger</div>
+        <div class="metric-label">Selected Astro Indicator</div>
+        <div class="metric-value">{show_val}</div>
+        <div class="metric-sub">{indicator_label}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -272,7 +331,7 @@ with m3:
     <div class="metric-card">
         <div class="metric-label">Current Regime</div>
         <div class="metric-value" style="color:{regime_color(latest_regime)};">{latest_regime}</div>
-        <div class="metric-sub">Based on latest astro score</div>
+        <div class="metric-sub">Based on latest astro momentum</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -280,12 +339,29 @@ with m4:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Next Turning Window</div>
-        <div class="metric-value" style="font-size:1.1rem;">{next_turn_text}</div>
-        <div class="metric-sub">Future local top / bottom from astro series</div>
+        <div class="metric-value" style="font-size:1.1rem;">{next_turning_text}</div>
+        <div class="metric-sub">Using {indicator_label}</div>
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<div class='small-note'>Price source: Yahoo Finance (BTC-USD) | Astro source: First Transaction natal chart + daily transit scoring</div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='small-note'>Price source: Yahoo Finance (BTC-USD) | "
+    "Astro source: First Transaction natal chart + daily transit scoring | "
+    "Future chart uses precomputed astro data already stored in your CSV</div>",
+    unsafe_allow_html=True
+)
+
+# optional backtest cards
+if "strategy_total_return" in df.columns:
+    b1, b2, b3, b4 = st.columns(4)
+    with b1:
+        st.metric("Strategy Total Return", fmt_pct(strategy_total_return))
+    with b2:
+        st.metric("Strategy Max Drawdown", fmt_pct(strategy_max_dd))
+    with b3:
+        st.metric("Buy & Hold Return", fmt_pct(buy_hold_total_return))
+    with b4:
+        st.metric("Buy & Hold Max Drawdown", fmt_pct(buy_hold_max_dd))
 
 # -----------------------------
 # MAIN CHART
@@ -295,23 +371,26 @@ fig = make_subplots(
     cols=1,
     shared_xaxes=True,
     vertical_spacing=0.06,
-    row_heights=[0.65, 0.35],
-    subplot_titles=("BTC Price", "Astro Momentum")
+    row_heights=[0.60, 0.40],
+    subplot_titles=("BTC Price", f"{indicator_label} (Historical + Future Forecast)")
 )
 
-if show_regime_background:
+# regime background on astro panel only, using combined astro data
+if show_regime_background and not astro_combined.empty:
+    astro_bg_df = astro_combined.dropna(subset=[indicator_col]).copy()
     fig = add_regime_backgrounds(
         fig,
-        chart_df["date"].reset_index(drop=True),
-        chart_df["astro_momentum"].reset_index(drop=True),
+        astro_bg_df["date"].reset_index(drop=True),
+        astro_bg_df["astro_momentum"].reset_index(drop=True),
         row=2,
         col=1
     )
 
+# price panel = historical only
 fig.add_trace(
     go.Scatter(
-        x=chart_df["date"],
-        y=chart_df["price"],
+        x=hist_price_view["date"],
+        y=hist_price_view["price"],
         mode="lines",
         name="BTC Price",
         line=dict(color="#3b82f6", width=2),
@@ -321,20 +400,38 @@ fig.add_trace(
     col=1
 )
 
+# astro historical line
+astro_hist_valid = astro_hist.dropna(subset=[indicator_col]).copy()
 fig.add_trace(
     go.Scatter(
-        x=chart_df["date"],
-        y=chart_df["astro_momentum"],
+        x=astro_hist_valid["date"],
+        y=astro_hist_valid[indicator_col],
         mode="lines",
-        name="Astro Momentum",
+        name=f"{indicator_label} (history)",
         line=dict(color="#93c5fd", width=2),
-        hovertemplate="Date=%{x}<br>Astro=%{y:.2f}<extra></extra>",
+        hovertemplate="Date=%{x}<br>Value=%{y:.2f}<extra></extra>",
     ),
     row=2,
     col=1
 )
 
-# Baseline for momentum
+# astro future line (dashed)
+astro_future_valid = astro_future.dropna(subset=[indicator_col]).copy()
+if not astro_future_valid.empty:
+    fig.add_trace(
+        go.Scatter(
+            x=astro_future_valid["date"],
+            y=astro_future_valid[indicator_col],
+            mode="lines",
+            name=f"{indicator_label} (future)",
+            line=dict(color="#f59e0b", width=2, dash="dash"),
+            hovertemplate="Date=%{x}<br>Future=%{y:.2f}<extra></extra>",
+        ),
+        row=2,
+        col=1
+    )
+
+# baseline for astro panel
 fig.add_hline(
     y=0,
     line_dash="dash",
@@ -344,87 +441,101 @@ fig.add_hline(
     col=1
 )
 
-# Turning markers
+# vertical line at last price date
+fig.add_vline(
+    x=last_price_date,
+    line_dash="dot",
+    line_color="#e5e7eb",
+    line_width=1,
+    row=1,
+    col=1
+)
+fig.add_vline(
+    x=last_price_date,
+    line_dash="dot",
+    line_color="#e5e7eb",
+    line_width=1,
+    row=2,
+    col=1
+)
+
+# turning markers on future astro only
 if show_turning_markers and not turning_df.empty:
-    future_turning_in_range = turning_df[
-        (turning_df["date"] >= chart_df["date"].min()) &
-        (turning_df["date"] <= chart_df["date"].max())
-    ].copy()
+    tops = turning_df[turning_df["type"] == "local_top"]
+    bottoms = turning_df[turning_df["type"] == "local_bottom"]
 
-    if not future_turning_in_range.empty:
-        tops = future_turning_in_range[future_turning_in_range["type"] == "local_top"]
-        bottoms = future_turning_in_range[future_turning_in_range["type"] == "local_bottom"]
+    if not tops.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=tops["date"],
+                y=tops[indicator_col],
+                mode="markers",
+                name="Future Top",
+                marker=dict(color="#ef4444", size=10, symbol="triangle-up"),
+                hovertemplate="Date=%{x}<br>Top=%{y:.2f}<extra></extra>",
+            ),
+            row=2,
+            col=1
+        )
 
-        if not tops.empty:
-            fig.add_trace(
-                go.Scatter(
-                    x=tops["date"],
-                    y=tops["astro_momentum"],
-                    mode="markers",
-                    name="Turning Top",
-                    marker=dict(color="#ef4444", size=9, symbol="triangle-up"),
-                    hovertemplate="Date=%{x}<br>Top=%{y:.2f}<extra></extra>",
-                ),
-                row=2,
-                col=1
-            )
-
-        if not bottoms.empty:
-            fig.add_trace(
-                go.Scatter(
-                    x=bottoms["date"],
-                    y=bottoms["astro_momentum"],
-                    mode="markers",
-                    name="Turning Bottom",
-                    marker=dict(color="#22c55e", size=9, symbol="triangle-down"),
-                    hovertemplate="Date=%{x}<br>Bottom=%{y:.2f}<extra></extra>",
-                ),
-                row=2,
-                col=1
-            )
+    if not bottoms.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=bottoms["date"],
+                y=bottoms[indicator_col],
+                mode="markers",
+                name="Future Bottom",
+                marker=dict(color="#22c55e", size=10, symbol="triangle-down"),
+                hovertemplate="Date=%{x}<br>Bottom=%{y:.2f}<extra></extra>",
+            ),
+            row=2,
+            col=1
+        )
 
 fig.update_layout(
-    height=850,
+    height=900,
     template="plotly_dark",
     margin=dict(l=40, r=40, t=60, b=40),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     xaxis2=dict(title="Date"),
     yaxis=dict(title="BTC Price (USD)"),
-    yaxis2=dict(title="Astro Momentum"),
+    yaxis2=dict(title=indicator_label),
 )
 
 st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------------
-# DETAIL PANELS
+# TABLES
 # -----------------------------
 left, right = st.columns([1.15, 0.85])
 
 with left:
-    st.subheader("Latest 30 Days")
-    latest_table = chart_df[[
+    st.subheader("Latest 30 Rows")
+    cols_to_show = [
         "date",
         "price",
         "astro_momentum",
+        "astro_momentum_smooth",
         "expansion_score",
         "contraction_score",
         "narrative_score",
         "trigger_score",
-    ]].tail(30).copy()
+    ]
+    cols_to_show = [c for c in cols_to_show if c in df.columns]
 
+    latest_table = df[cols_to_show].dropna(subset=["price"]).tail(30).copy()
     latest_table["regime"] = latest_table["astro_momentum"].apply(classify_regime)
     latest_table["date"] = latest_table["date"].dt.date
-
     st.dataframe(latest_table, use_container_width=True)
 
 with right:
     st.subheader("Upcoming Turning Dates")
     if turning_df.empty:
-        st.info("ยังไม่พบ future turning points")
+        st.info("ยังไม่พบ turning points ใน horizon ที่เลือก")
     else:
         show_turning = turning_df.copy()
         show_turning["date"] = show_turning["date"].dt.date
-        show_turning["regime_hint"] = show_turning["astro_momentum"].apply(classify_regime)
+        show_turning["regime_hint"] = show_turning[indicator_col].apply(classify_regime)
         st.dataframe(show_turning, use_container_width=True)
 
 # -----------------------------

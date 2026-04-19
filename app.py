@@ -14,36 +14,55 @@ st.set_page_config(
 st.markdown("""
 <style>
 .block-container {
-    padding-top: 1.2rem;
+    padding-top: 1rem;
     padding-bottom: 2rem;
-    max-width: 1450px;
+    max-width: 1500px;
 }
 .metric-card {
     background-color: #111827;
     padding: 16px 18px;
     border-radius: 14px;
     border: 1px solid #1f2937;
-    min-height: 150px;
+    min-height: 145px;
 }
 .metric-label {
     color: #9ca3af;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     margin-bottom: 6px;
 }
 .metric-value {
     color: white;
-    font-size: 1.7rem;
+    font-size: 1.55rem;
     font-weight: 700;
+    line-height: 1.2;
     word-break: break-word;
 }
 .metric-sub {
     color: #60a5fa;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     margin-top: 4px;
 }
 .small-note {
     color: #9ca3af;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
+}
+.explain-box {
+    background-color: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.explain-title {
+    color: white;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.explain-text {
+    color: #cbd5e1;
+    font-size: 0.92rem;
+    line-height: 1.5;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -57,7 +76,6 @@ def load_data():
     df["date"] = pd.to_datetime(df["date"])
     return df
 
-
 def classify_regime(score):
     if score >= 3.0:
         return "strong_bull"
@@ -69,7 +87,6 @@ def classify_regime(score):
         return "bear"
     return "crash_risk"
 
-
 def regime_color(regime):
     mapping = {
         "strong_bull": "#22c55e",
@@ -80,6 +97,15 @@ def regime_color(regime):
     }
     return mapping.get(regime, "#94a3b8")
 
+def signal_color(signal):
+    mapping = {
+        "strong_buy": "#22c55e",
+        "buy": "#84cc16",
+        "neutral": "#94a3af",
+        "sell": "#f59e0b",
+        "strong_sell": "#ef4444",
+    }
+    return mapping.get(signal, "#94a3af")
 
 def add_regime_backgrounds(fig, dates, scores, row, col):
     if len(dates) == 0:
@@ -113,7 +139,6 @@ def add_regime_backgrounds(fig, dates, scores, row, col):
         col=col,
     )
     return fig
-
 
 def next_turning_points(df_future, signal_col="astro_momentum_smooth", top_n=10, threshold=1.5):
     x = df_future[["date", signal_col]].copy().dropna().reset_index(drop=True)
@@ -150,35 +175,20 @@ def next_turning_points(df_future, signal_col="astro_momentum_smooth", top_n=10,
     tdf = tdf.sort_values("date").reset_index(drop=True)
     return tdf[["date", signal_col, "type"]]
 
-
 def fmt_pct(x):
     if pd.isna(x):
         return "N/A"
     return f"{x:.2%}"
-
 
 def fmt_money(x):
     if pd.isna(x):
         return "N/A"
     return f"${x:,.0f}"
 
-
 def fmt_num(x):
     if pd.isna(x):
         return "N/A"
     return f"{x:.2f}"
-
-
-def signal_color(signal):
-    mapping = {
-        "strong_buy": "#22c55e",
-        "buy": "#84cc16",
-        "neutral": "#94a3af",
-        "sell": "#f59e0b",
-        "strong_sell": "#ef4444",
-    }
-    return mapping.get(signal, "#94a3af")
-
 
 # -----------------------------
 # LOAD
@@ -216,7 +226,7 @@ last_price_date = price_df["date"].max()
 latest_price_row = price_df.iloc[-1]
 
 # -----------------------------
-# SIDEBAR CONTROLS
+# SIDEBAR
 # -----------------------------
 st.sidebar.header("Controls")
 
@@ -260,6 +270,11 @@ custom_dates = st.sidebar.checkbox("Use custom dates", value=False)
 show_turning_markers = st.sidebar.checkbox("Show turning markers", value=True)
 show_regime_background = st.sidebar.checkbox("Show regime background", value=True)
 show_signal_markers = st.sidebar.checkbox("Show buy/sell markers", value=True)
+
+st.sidebar.markdown("---")
+show_price_panel = st.sidebar.checkbox("Show price panel", value=True)
+show_astro_panel = st.sidebar.checkbox("Show astro panel", value=True)
+show_backtest_panel = st.sidebar.checkbox("Show backtest panel", value=True)
 
 min_price_date = price_df["date"].min().date()
 max_price_date = last_price_date.date()
@@ -307,6 +322,7 @@ astro_combined = pd.concat([astro_hist, astro_future], ignore_index=True)
 latest = df[df["date"] == last_price_date].iloc[-1]
 latest_score = float(latest["astro_momentum"])
 latest_regime = classify_regime(latest_score)
+current_signal = latest["signal"] if "signal" in latest.index else "N/A"
 
 turning_df = next_turning_points(future_view, signal_col=indicator_col, top_n=10, threshold=1.5)
 next_turning_text = "N/A"
@@ -314,17 +330,17 @@ if not turning_df.empty:
     next_turn = turning_df.iloc[0]
     next_turning_text = f"{next_turn['date'].date()} ({next_turn['type']})"
 
-# current signal
-current_signal = latest["signal"] if "signal" in latest.index else "N/A"
-
-# backtest summary
 strategy_total_return = latest["strategy_total_return"] if "strategy_total_return" in df.columns else None
 strategy_max_dd = latest["strategy_max_drawdown"] if "strategy_max_drawdown" in df.columns else None
 buy_hold_total_return = latest["buy_hold_total_return"] if "buy_hold_total_return" in df.columns else None
 buy_hold_max_dd = latest["buy_hold_max_drawdown"] if "buy_hold_max_drawdown" in df.columns else None
 
+strategy_beats = False
+if pd.notna(strategy_total_return) and pd.notna(buy_hold_total_return):
+    strategy_beats = strategy_total_return > buy_hold_total_return
+
 # -----------------------------
-# TOP METRICS
+# TOP CARDS
 # -----------------------------
 m1, m2, m3, m4, m5 = st.columns(5)
 
@@ -381,7 +397,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Backtest metrics
+# -----------------------------
+# BACKTEST SUMMARY
+# -----------------------------
 if "strategy_total_return" in df.columns:
     b1, b2, b3, b4 = st.columns(4)
     with b1:
@@ -393,10 +411,29 @@ if "strategy_total_return" in df.columns:
     with b4:
         st.metric("Buy & Hold Max Drawdown", fmt_pct(buy_hold_max_dd))
 
+# explanation box
+if "strategy_total_return" in df.columns:
+    compare_text = "Strategy is currently outperforming Buy & Hold." if strategy_beats else "Strategy is currently underperforming Buy & Hold."
+    st.markdown(f"""
+    <div class="explain-box">
+        <div class="explain-title">How to read the Backtest panel</div>
+        <div class="explain-text">
+        Green line = Strategy Equity (if you follow the astro signal).<br>
+        White dashed line = Buy & Hold Equity (if you simply hold BTC).<br>
+        If the green line stays above the white dashed line, the strategy is beating Buy & Hold.<br>
+        If the green line stays below it, the strategy is lagging Buy & Hold.<br><br>
+        <b>Current interpretation:</b> {compare_text}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 # -----------------------------
 # SIGNAL MARKERS
 # -----------------------------
 signal_markers = pd.DataFrame()
+buy_markers = pd.DataFrame()
+sell_markers = pd.DataFrame()
+
 if "signal" in hist_price_view.columns:
     signal_markers = hist_price_view[["date", "price", "signal"]].copy()
     signal_markers["prev_signal"] = signal_markers["signal"].shift(1)
@@ -404,174 +441,205 @@ if "signal" in hist_price_view.columns:
 
     buy_markers = signal_markers[signal_markers["signal"].isin(["buy", "strong_buy"])].copy()
     sell_markers = signal_markers[signal_markers["signal"].isin(["sell", "strong_sell"])].copy()
-else:
-    buy_markers = pd.DataFrame()
-    sell_markers = pd.DataFrame()
 
 # -----------------------------
-# MAIN CHART
+# CHART PANEL SELECTION
 # -----------------------------
+panel_titles = []
+row_heights = []
+rows = 0
+
+if show_price_panel:
+    rows += 1
+    panel_titles.append("BTC Price")
+    row_heights.append(0.45)
+
+if show_astro_panel:
+    rows += 1
+    panel_titles.append(f"{indicator_label} (Historical + Future Forecast)")
+    row_heights.append(0.30)
+
+if show_backtest_panel:
+    rows += 1
+    panel_titles.append("Strategy vs Buy & Hold")
+    row_heights.append(0.25)
+
+if rows == 0:
+    st.warning("กรุณาเลือกอย่างน้อย 1 panel ใน sidebar")
+    st.stop()
+
+# normalize row heights
+total_h = sum(row_heights)
+row_heights = [x / total_h for x in row_heights]
+
 fig = make_subplots(
-    rows=3,
+    rows=rows,
     cols=1,
     shared_xaxes=True,
     vertical_spacing=0.05,
-    row_heights=[0.48, 0.27, 0.25],
-    subplot_titles=(
-        "BTC Price",
-        f"{indicator_label} (Historical + Future Forecast)",
-        "Backtest Equity Curve"
-    )
+    row_heights=row_heights,
+    subplot_titles=tuple(panel_titles)
 )
 
-# regime background on astro panel
-if show_regime_background and not astro_combined.empty:
-    astro_bg_df = astro_combined.dropna(subset=["astro_momentum"]).copy()
-    fig = add_regime_backgrounds(
-        fig,
-        astro_bg_df["date"].reset_index(drop=True),
-        astro_bg_df["astro_momentum"].reset_index(drop=True),
-        row=2,
-        col=1
-    )
+current_row = 1
 
-# PRICE LINE
-fig.add_trace(
-    go.Scatter(
-        x=hist_price_view["date"],
-        y=hist_price_view["price"],
-        mode="lines",
-        name="BTC Price",
-        line=dict(color="#3b82f6", width=2),
-        hovertemplate="Date=%{x}<br>Price=$%{y:,.0f}<extra></extra>",
-    ),
-    row=1,
-    col=1
-)
-
-# BUY/SELL MARKERS
-if show_signal_markers and not buy_markers.empty:
+# -----------------------------
+# PRICE PANEL
+# -----------------------------
+if show_price_panel:
     fig.add_trace(
         go.Scatter(
-            x=buy_markers["date"],
-            y=buy_markers["price"],
-            mode="markers",
-            name="Buy Signal",
-            marker=dict(color="#22c55e", size=10, symbol="triangle-up"),
-            hovertemplate="Date=%{x}<br>Buy at $%{y:,.0f}<extra></extra>",
-        ),
-        row=1,
-        col=1
-    )
-
-if show_signal_markers and not sell_markers.empty:
-    fig.add_trace(
-        go.Scatter(
-            x=sell_markers["date"],
-            y=sell_markers["price"],
-            mode="markers",
-            name="Sell Signal",
-            marker=dict(color="#ef4444", size=10, symbol="triangle-down"),
-            hovertemplate="Date=%{x}<br>Sell at $%{y:,.0f}<extra></extra>",
-        ),
-        row=1,
-        col=1
-    )
-
-# ASTRO HISTORICAL
-astro_hist_valid = astro_hist.dropna(subset=[indicator_col]).copy()
-fig.add_trace(
-    go.Scatter(
-        x=astro_hist_valid["date"],
-        y=astro_hist_valid[indicator_col],
-        mode="lines",
-        name=f"{indicator_label} (history)",
-        line=dict(color="#93c5fd", width=2),
-        hovertemplate="Date=%{x}<br>Value=%{y:.2f}<extra></extra>",
-    ),
-    row=2,
-    col=1
-)
-
-# ASTRO FUTURE
-astro_future_valid = astro_future.dropna(subset=[indicator_col]).copy()
-if not astro_future_valid.empty:
-    fig.add_trace(
-        go.Scatter(
-            x=astro_future_valid["date"],
-            y=astro_future_valid[indicator_col],
+            x=hist_price_view["date"],
+            y=hist_price_view["price"],
             mode="lines",
-            name=f"{indicator_label} (future)",
-            line=dict(color="#f59e0b", width=2, dash="dash"),
-            hovertemplate="Date=%{x}<br>Future=%{y:.2f}<extra></extra>",
+            name="BTC Price",
+            line=dict(color="#3b82f6", width=2),
+            hovertemplate="Date=%{x}<br>Price=$%{y:,.0f}<extra></extra>",
         ),
-        row=2,
+        row=current_row,
         col=1
     )
 
-# Astro baseline
-fig.add_hline(
-    y=0,
-    line_dash="dash",
-    line_color="#94a3b8",
-    line_width=1,
-    row=2,
-    col=1
-)
-
-# Last price date separator
-fig.add_vline(
-    x=last_price_date,
-    line_dash="dot",
-    line_color="#e5e7eb",
-    line_width=1,
-    row=1,
-    col=1
-)
-fig.add_vline(
-    x=last_price_date,
-    line_dash="dot",
-    line_color="#e5e7eb",
-    line_width=1,
-    row=2,
-    col=1
-)
-
-# Future turning markers
-if show_turning_markers and not turning_df.empty:
-    tops = turning_df[turning_df["type"] == "local_top"]
-    bottoms = turning_df[turning_df["type"] == "local_bottom"]
-
-    if not tops.empty:
+    if show_signal_markers and not buy_markers.empty:
         fig.add_trace(
             go.Scatter(
-                x=tops["date"],
-                y=tops[indicator_col],
+                x=buy_markers["date"],
+                y=buy_markers["price"],
                 mode="markers",
-                name="Future Top",
-                marker=dict(color="#ef4444", size=10, symbol="triangle-up"),
-                hovertemplate="Date=%{x}<br>Top=%{y:.2f}<extra></extra>",
+                name="Buy Signal",
+                marker=dict(color="#22c55e", size=9, symbol="triangle-up"),
+                hovertemplate="Date=%{x}<br>Buy at $%{y:,.0f}<extra></extra>",
             ),
-            row=2,
+            row=current_row,
             col=1
         )
 
-    if not bottoms.empty:
+    if show_signal_markers and not sell_markers.empty:
         fig.add_trace(
             go.Scatter(
-                x=bottoms["date"],
-                y=bottoms[indicator_col],
+                x=sell_markers["date"],
+                y=sell_markers["price"],
                 mode="markers",
-                name="Future Bottom",
-                marker=dict(color="#22c55e", size=10, symbol="triangle-down"),
-                hovertemplate="Date=%{x}<br>Bottom=%{y:.2f}<extra></extra>",
+                name="Sell Signal",
+                marker=dict(color="#ef4444", size=9, symbol="triangle-down"),
+                hovertemplate="Date=%{x}<br>Sell at $%{y:,.0f}<extra></extra>",
             ),
-            row=2,
+            row=current_row,
             col=1
         )
 
+    fig.add_vline(
+        x=last_price_date,
+        line_dash="dot",
+        line_color="#e5e7eb",
+        line_width=1,
+        row=current_row,
+        col=1
+    )
+
+    fig.update_yaxes(title_text="BTC Price (USD)", row=current_row, col=1)
+    current_row += 1
+
+# -----------------------------
+# ASTRO PANEL
+# -----------------------------
+if show_astro_panel:
+    if show_regime_background and not astro_combined.empty:
+        astro_bg_df = astro_combined.dropna(subset=["astro_momentum"]).copy()
+        fig = add_regime_backgrounds(
+            fig,
+            astro_bg_df["date"].reset_index(drop=True),
+            astro_bg_df["astro_momentum"].reset_index(drop=True),
+            row=current_row,
+            col=1
+        )
+
+    astro_hist_valid = astro_hist.dropna(subset=[indicator_col]).copy()
+    fig.add_trace(
+        go.Scatter(
+            x=astro_hist_valid["date"],
+            y=astro_hist_valid[indicator_col],
+            mode="lines",
+            name=f"{indicator_label} (history)",
+            line=dict(color="#93c5fd", width=2),
+            hovertemplate="Date=%{x}<br>Value=%{y:.2f}<extra></extra>",
+        ),
+        row=current_row,
+        col=1
+    )
+
+    astro_future_valid = astro_future.dropna(subset=[indicator_col]).copy()
+    if not astro_future_valid.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=astro_future_valid["date"],
+                y=astro_future_valid[indicator_col],
+                mode="lines",
+                name=f"{indicator_label} (future)",
+                line=dict(color="#f59e0b", width=2, dash="dash"),
+                hovertemplate="Date=%{x}<br>Future=%{y:.2f}<extra></extra>",
+            ),
+            row=current_row,
+            col=1
+        )
+
+    fig.add_hline(
+        y=0,
+        line_dash="dash",
+        line_color="#94a3b8",
+        line_width=1,
+        row=current_row,
+        col=1
+    )
+
+    fig.add_vline(
+        x=last_price_date,
+        line_dash="dot",
+        line_color="#e5e7eb",
+        line_width=1,
+        row=current_row,
+        col=1
+    )
+
+    if show_turning_markers and not turning_df.empty:
+        tops = turning_df[turning_df["type"] == "local_top"]
+        bottoms = turning_df[turning_df["type"] == "local_bottom"]
+
+        if not tops.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=tops["date"],
+                    y=tops[indicator_col],
+                    mode="markers",
+                    name="Future Top",
+                    marker=dict(color="#ef4444", size=9, symbol="triangle-up"),
+                    hovertemplate="Date=%{x}<br>Top=%{y:.2f}<extra></extra>",
+                ),
+                row=current_row,
+                col=1
+            )
+
+        if not bottoms.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=bottoms["date"],
+                    y=bottoms[indicator_col],
+                    mode="markers",
+                    name="Future Bottom",
+                    marker=dict(color="#22c55e", size=9, symbol="triangle-down"),
+                    hovertemplate="Date=%{x}<br>Bottom=%{y:.2f}<extra></extra>",
+                ),
+                row=current_row,
+                col=1
+            )
+
+    fig.update_yaxes(title_text=indicator_label, row=current_row, col=1)
+    current_row += 1
+
+# -----------------------------
 # BACKTEST PANEL
-if "strategy_equity" in hist_view.columns and "buy_hold_equity" in hist_view.columns:
+# -----------------------------
+if show_backtest_panel and "strategy_equity" in hist_view.columns and "buy_hold_equity" in hist_view.columns:
     bt_df = hist_view.dropna(subset=["strategy_equity", "buy_hold_equity"]).copy()
 
     fig.add_trace(
@@ -583,7 +651,7 @@ if "strategy_equity" in hist_view.columns and "buy_hold_equity" in hist_view.col
             line=dict(color="#22c55e", width=2),
             hovertemplate="Date=%{x}<br>Strategy=%{y:.2f}<extra></extra>",
         ),
-        row=3,
+        row=current_row,
         col=1
     )
 
@@ -593,23 +661,31 @@ if "strategy_equity" in hist_view.columns and "buy_hold_equity" in hist_view.col
             y=bt_df["buy_hold_equity"],
             mode="lines",
             name="Buy & Hold Equity",
-            line=dict(color="#94a3b8", width=2, dash="dash"),
-            hovertemplate="Date=%{x}<br>BuyHold=%{y:.2f}<extra></extra>",
+            line=dict(color="#e5e7eb", width=2, dash="dash"),
+            hovertemplate="Date=%{x}<br>Buy & Hold=%{y:.2f}<extra></extra>",
         ),
-        row=3,
+        row=current_row,
         col=1
     )
+
+    fig.update_yaxes(title_text="Equity", row=current_row, col=1)
+    current_row += 1
 
 fig.update_layout(
     height=1100,
     template="plotly_dark",
     margin=dict(l=40, r=40, t=60, b=40),
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-    xaxis3=dict(title="Date"),
-    yaxis=dict(title="BTC Price (USD)"),
-    yaxis2=dict(title=indicator_label),
-    yaxis3=dict(title="Equity"),
+    legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="left",
+        x=0,
+        bgcolor="rgba(0,0,0,0)"
+    ),
 )
+
+fig.update_xaxes(title_text="Date", row=rows, col=1)
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -647,9 +723,6 @@ with right:
         show_turning["regime_hint"] = show_turning[indicator_col].apply(classify_regime)
         st.dataframe(show_turning, use_container_width=True)
 
-# -----------------------------
-# SIGNAL CHANGE TABLE
-# -----------------------------
 st.subheader("Recent Signal Changes")
 if signal_markers.empty:
     st.info("ยังไม่พบ signal changes ในช่วงที่เลือก")
@@ -658,9 +731,6 @@ else:
     signal_table["date"] = pd.to_datetime(signal_table["date"]).dt.date
     st.dataframe(signal_table, use_container_width=True)
 
-# -----------------------------
-# REGIME GUIDE
-# -----------------------------
 st.subheader("Regime Guide")
 guide = pd.DataFrame([
     {"score_range": ">= 3.0", "regime": "strong_bull", "meaning": "แรงขยายตัวสูงมาก"},

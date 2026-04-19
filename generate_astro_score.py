@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import pandas as pd
 import swisseph as swe
 import os
-import requests
+import yfinance as yf
 
 # -------------------------
 # CONFIG
@@ -127,44 +127,35 @@ def aspect_score(transit_planet_name, transit_lon, target_name, target_lon):
 
 def fetch_btc_price_history():
     """
-    ใช้ CoinGecko market_chart/range แบบแบ่งเป็นช่วง ๆ
-    เพราะทำงานได้เสถียรกว่า days=max ในหลาย environment
+    ดึงราคา BTC-USD จาก Yahoo Finance ผ่าน yfinance
+    หมายเหตุ: ข้อมูลจะเริ่มจากช่วงที่ Yahoo มีข้อมูล ไม่ได้ย้อนไปถึง 2009 แบบเต็มทุกวัน
     """
-    start_ts = int(datetime(2009, 1, 12, tzinfo=timezone.utc).timestamp())
-    end_ts = int(datetime.now(timezone.utc).timestamp())
+    btc = yf.download(
+        "BTC-USD",
+        start="2014-01-01",
+        end=(datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d"),
+        interval="1d",
+        auto_adjust=False,
+        progress=False,
+    )
 
-    # แบ่งเป็น chunk ละ 365 วัน
-    chunk_seconds = 365 * 24 * 60 * 60
-    all_rows = []
+    if btc is None or btc.empty:
+        raise ValueError("Yahoo Finance returned empty BTC price data")
 
-    current_from = start_ts
-    while current_from < end_ts:
-        current_to = min(current_from + chunk_seconds, end_ts)
+    btc = btc.reset_index()
 
-        url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range"
-        params = {
-            "vs_currency": "usd",
-            "from": current_from,
-            "to": current_to,
-        }
+    # รองรับชื่อคอลัมน์จาก yfinance
+    if "Date" not in btc.columns:
+        raise ValueError(f"Unexpected Yahoo Finance format: {btc.columns.tolist()}")
 
-        response = requests.get(url, params=params, timeout=60)
-        response.raise_for_status()
-        data = response.json()
+    if "Close" not in btc.columns:
+        raise ValueError(f"Yahoo Finance data missing Close column: {btc.columns.tolist()}")
 
-        if "prices" not in data:
-            raise ValueError(f"CoinGecko response missing 'prices': {data}")
+    price_df = btc[["Date", "Close"]].copy()
+    price_df.columns = ["date", "price"]
+    price_df["date"] = pd.to_datetime(price_df["date"]).dt.normalize()
 
-        for item in data["prices"]:
-            ts_ms, price = item
-            all_rows.append((ts_ms, price))
-
-        current_from = current_to + 1
-
-    df = pd.DataFrame(all_rows, columns=["timestamp", "price"])
-    df["date"] = pd.to_datetime(df["timestamp"], unit="ms").dt.normalize()
-    df = df.groupby("date", as_index=False)["price"].last()
-    return df
+    return price_df
 
 
 # Natal chart

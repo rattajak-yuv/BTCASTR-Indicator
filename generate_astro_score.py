@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import pandas as pd
 import swisseph as swe
 import os
+import requests
 
 # -------------------------
 # CONFIG
@@ -71,23 +72,29 @@ MAX_ORB_BY_PLANET = {
     "Sun": 1.5,
 }
 
+
 def julday(dt):
-    return swe.julday(dt.year, dt.month, dt.day, dt.hour + dt.minute/60 + dt.second/3600)
+    return swe.julday(dt.year, dt.month, dt.day, dt.hour + dt.minute / 60 + dt.second / 3600)
+
 
 def norm360(x):
     return x % 360
+
 
 def angle_diff(a, b):
     d = abs(norm360(a) - norm360(b))
     return min(d, 360 - d)
 
+
 def get_planet_lon(jd, planet_id):
     xx, _ = swe.calc_ut(jd, planet_id, swe.FLG_SIDEREAL)
     return xx[0]
 
+
 def get_houses(jd, lat, lon):
     cusps, ascmc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
     return cusps, ascmc
+
 
 def classify_regime(score):
     if score >= 3.0:
@@ -99,6 +106,7 @@ def classify_regime(score):
     elif score > -3.0:
         return "bear"
     return "crash_risk"
+
 
 def aspect_score(transit_planet_name, transit_lon, target_name, target_lon):
     base_planet_weight = PLANET_WEIGHTS.get(transit_planet_name, 0.0)
@@ -115,6 +123,49 @@ def aspect_score(transit_planet_name, transit_lon, target_name, target_lon):
             if score > best:
                 best = score
     return best
+
+
+def fetch_btc_price_history():
+    """
+    ใช้ CoinGecko market_chart/range แบบแบ่งเป็นช่วง ๆ
+    เพราะทำงานได้เสถียรกว่า days=max ในหลาย environment
+    """
+    start_ts = int(datetime(2009, 1, 12, tzinfo=timezone.utc).timestamp())
+    end_ts = int(datetime.now(timezone.utc).timestamp())
+
+    # แบ่งเป็น chunk ละ 365 วัน
+    chunk_seconds = 365 * 24 * 60 * 60
+    all_rows = []
+
+    current_from = start_ts
+    while current_from < end_ts:
+        current_to = min(current_from + chunk_seconds, end_ts)
+
+        url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range"
+        params = {
+            "vs_currency": "usd",
+            "from": current_from,
+            "to": current_to,
+        }
+
+        response = requests.get(url, params=params, timeout=60)
+        response.raise_for_status()
+        data = response.json()
+
+        if "prices" not in data:
+            raise ValueError(f"CoinGecko response missing 'prices': {data}")
+
+        for item in data["prices"]:
+            ts_ms, price = item
+            all_rows.append((ts_ms, price))
+
+        current_from = current_to + 1
+
+    df = pd.DataFrame(all_rows, columns=["timestamp", "price"])
+    df["date"] = pd.to_datetime(df["timestamp"], unit="ms").dt.normalize()
+    df = df.groupby("date", as_index=False)["price"].last()
+    return df
+
 
 # Natal chart
 natal_jd = julday(NATAL_DT)
@@ -169,7 +220,15 @@ while cur <= END_DATE:
 
     cur += timedelta(days=1)
 
-df = pd.DataFrame(rows)
+astro_df = pd.DataFrame(rows)
+astro_df["date"] = pd.to_datetime(astro_df["date"])
+
+# ดึงราคามารวม
+price_df = fetch_btc_price_history()
+
+# merge
+df = astro_df.merge(price_df, on="date", how="left")
+
 os.makedirs("data", exist_ok=True)
 df.to_csv("data/bitcoin_astro_daily_score.csv", index=False)
 print("Saved: data/bitcoin_astro_daily_score.csv")

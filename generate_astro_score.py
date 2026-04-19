@@ -3,6 +3,7 @@ import pandas as pd
 import swisseph as swe
 import os
 import yfinance as yf
+import numpy as np
 
 # -------------------------
 # CONFIG
@@ -126,10 +127,6 @@ def aspect_score(transit_planet_name, transit_lon, target_name, target_lon):
 
 
 def fetch_btc_price_history():
-    """
-    ดึงราคา BTC-USD จาก Yahoo Finance ผ่าน yfinance
-    หมายเหตุ: ข้อมูลจะเริ่มจากช่วงที่ Yahoo มีข้อมูล ไม่ได้ย้อนไปถึง 2009 แบบเต็มทุกวัน
-    """
     btc = yf.download(
         "BTC-USD",
         start="2014-01-01",
@@ -144,7 +141,6 @@ def fetch_btc_price_history():
 
     btc = btc.reset_index()
 
-    # รองรับชื่อคอลัมน์จาก yfinance
     if "Date" not in btc.columns:
         raise ValueError(f"Unexpected Yahoo Finance format: {btc.columns.tolist()}")
 
@@ -154,11 +150,34 @@ def fetch_btc_price_history():
     price_df = btc[["Date", "Close"]].copy()
     price_df.columns = ["date", "price"]
     price_df["date"] = pd.to_datetime(price_df["date"]).dt.normalize()
-
     return price_df
 
 
-# Natal chart
+def get_signal(score):
+    if score >= 3.0:
+        return "strong_buy"
+    elif score >= 1.5:
+        return "buy"
+    elif score <= -3.0:
+        return "strong_sell"
+    elif score <= -1.5:
+        return "sell"
+    return "neutral"
+
+
+def get_position(score):
+    # simple long-only regime model
+    # 1 = long BTC, 0 = out of market
+    if score >= 1.5:
+        return 1
+    if score <= -1.5:
+        return 0
+    return np.nan
+
+
+# -------------------------
+# NATAL CHART
+# -------------------------
 natal_jd = julday(NATAL_DT)
 _, natal_ascmc = get_houses(natal_jd, LAT, LON)
 
@@ -168,6 +187,9 @@ for name, pid in PLANETS.items():
 natal["Asc"] = natal_ascmc[0]
 natal["MC"] = natal_ascmc[1]
 
+# -------------------------
+# DAILY ASTRO ENGINE
+# -------------------------
 rows = []
 cur = START_DATE
 
@@ -214,12 +236,75 @@ while cur <= END_DATE:
 astro_df = pd.DataFrame(rows)
 astro_df["date"] = pd.to_datetime(astro_df["date"])
 
-# ดึงราคามารวม
+# -------------------------
+# SMOOTH / SIGNAL LAYER
+# -------------------------
+astro_df["astro_momentum_smooth"] = astro_df["astro_momentum"].ewm(span=5, adjust=False).mean()
+astro_df["signal"] = astro_df["astro_momentum_smooth"].apply(get_signal)
+astro_df["position_raw"] = astro_df["astro_momentum_smooth"].apply(get_position)
+astro_df["position"] = astro_df["position_raw"].ffill().fillna(0)
+
+# -------------------------
+# PRICE DATA
+# -------------------------
 price_df = fetch_btc_price_history()
 
-# merge
+# -------------------------
+# MERGE
+# -------------------------
 df = astro_df.merge(price_df, on="date", how="left")
 
+# -------------------------
+# BACKTEST LAYER
+# -------------------------
+df["price_return"] = df["price"].pct_change()
+
+# use yesterday's signal to avoid look-ahead bias
+df["position_shifted"] = df["position"].shift(1).fillna(0)
+
+# strategy return
+df["strategy_return"] = df["price_return"] * df["position_shifted"]
+
+# equity curves
+df["buy_hold_equity"] = (1 + df["price_return"].fillna(0)).cumprod()
+df["strategy_equity"] = (1 + df["strategy_return"].fillna(0)).cumprod()
+
+# drawdowns
+df["buy_hold_peak"] = df["buy_hold_equity"].cummax()
+df["strategy_peak"] = df["strategy_equity"].cummax()
+
+df["buy_hold_drawdown"] = (df["buy_hold_equity"] / df["buy_hold_peak"]) - 1
+df["strategy_drawdown"] = (df["strategy_equity"] / df["strategy_peak"]) - 1
+
+# rolling hints
+df["signal_strength"] = df["astro_momentum_smooth"].abs()
+
+# summary stats repeated for easier dashboard use
+valid_strategy = df["strategy_return"].dropna()
+valid_bh = df["price_return"].dropna()
+
+if len(valid_strategy) > 0:
+    strategy_total_return = df["strategy_equity"].dropna().iloc[-1] - 1
+    strategy_max_dd = df["strategy_drawdown"].min()
+else:
+    strategy_total_return = np.nan
+    strategy_max_dd = np.nan
+
+if len(valid_bh) > 0:
+    buy_hold_total_return = df["buy_hold_equity"].dropna().iloc[-1] - 1
+    buy_hold_max_dd = df["buy_hold_drawdown"].min()
+else:
+    buy_hold_total_return = np.nan
+    buy_hold_max_dd = np.nan
+
+df["strategy_total_return"] = strategy_total_return
+df["strategy_max_drawdown"] = strategy_max_dd
+df["buy_hold_total_return"] = buy_hold_total_return
+df["buy_hold_max_drawdown"] = buy_hold_max_dd
+
+# save
 os.makedirs("data", exist_ok=True)
 df.to_csv("data/bitcoin_astro_daily_score.csv", index=False)
 print("Saved: data/bitcoin_astro_daily_score.csv")
+print(f"Strategy total return: {strategy_total_return:.2%}" if pd.notna(strategy_total_return) else "Strategy total return: N/A")
+print(f"Strategy max drawdown: {strategy_max_dd:.2%}" if pd.notna(strategy_max_dd) else "Strategy max drawdown: N/A")

@@ -13,7 +13,7 @@ LAT = 34.1070
 LON = -118.0570
 
 START_DATE = datetime(2009, 1, 12, tzinfo=timezone.utc)
-END_DATE = datetime(2030, 12, 31, tzinfo=timezone.utc)
+END_DATE = datetime(2035, 12, 31, tzinfo=timezone.utc)
 
 swe.set_sid_mode(swe.SIDM_LAHIRI)
 

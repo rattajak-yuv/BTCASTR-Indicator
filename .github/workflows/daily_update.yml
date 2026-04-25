@@ -27,10 +27,13 @@ jobs:
       - name: Generate astro score
         run: python generate_astro_score.py
 
+      - name: Optimize model
+        run: python optimize_model.py
+
       - name: Commit updated CSV
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/bitcoin_astro_daily_score.csv
+          git add data/bitcoin_astro_daily_score.csv data/model_optimization_results.csv
           git diff --staged --quiet || git commit -m "daily data update"
           git push

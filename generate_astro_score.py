@@ -368,17 +368,27 @@ btc = yf.download(
     auto_adjust=True
 )
 
+if btc is None or btc.empty:
+    raise ValueError("Yahoo Finance returned empty BTC data")
+
+# Fix yfinance MultiIndex columns if present
+if isinstance(btc.columns, pd.MultiIndex):
+    btc.columns = btc.columns.get_level_values(0)
+
 btc = btc.reset_index()
 
-btc["date"] = pd.to_datetime(
-    btc["Date"]
-).dt.date
+if "Date" not in btc.columns:
+    raise ValueError(f"Unexpected yfinance columns: {btc.columns.tolist()}")
 
-btc = btc.rename(
-    columns={"Close": "price"}
-)
+if "Close" not in btc.columns:
+    raise ValueError(f"Missing Close column from yfinance: {btc.columns.tolist()}")
 
-btc = btc[["date", "price"]]
+btc["date"] = pd.to_datetime(btc["Date"]).dt.date
+btc["price"] = pd.to_numeric(btc["Close"], errors="coerce")
+
+btc = btc[["date", "price"]].dropna(subset=["price"])
+
+df["date"] = pd.to_datetime(df["date"]).dt.date
 
 df = df.merge(
     btc,

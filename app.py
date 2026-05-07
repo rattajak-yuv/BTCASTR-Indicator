@@ -701,3 +701,273 @@ with t2:
         {"score_range": "< -3.0", "regime": "crash_risk", "meaning": "เสี่ยงแรง"},
     ])
     st.dataframe(guide, use_container_width=True)
+
+# =========================================================
+# RAW ASTRO ASPECT EXPLORER
+# =========================================================
+
+st.header("Raw Astro Aspect Explorer")
+
+@st.cache_data(ttl=3600)
+def load_raw_aspects():
+    raw = pd.read_csv("data/astro_aspects_raw.csv")
+    raw["date"] = pd.to_datetime(raw["date"])
+    return raw
+
+try:
+    raw_aspects = load_raw_aspects()
+except Exception as e:
+    st.error("โหลดไฟล์ data/astro_aspects_raw.csv ไม่สำเร็จ")
+    st.code(str(e))
+    st.stop()
+
+st.markdown("""
+<div class="explain-box">
+    <div class="explain-title">What this panel shows</div>
+    <div class="explain-text">
+    ตารางนี้แสดงว่าในแต่ละวัน ดาวจรดวงไหนไปกระทบดวงกำเนิด Bitcoin อย่างไร เช่น
+    Jupiter trine Natal Sun, Saturn square Asc, Uranus opposition MC เป็นต้น<br><br>
+    นี่คือชั้น “Raw Intelligence” ของระบบ ใช้ตรวจสอบว่า Astro Score มาจากดาวอะไร มุมอะไร และแรงแค่ไหน
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# -----------------------------
+# FILTERS
+# -----------------------------
+f1, f2, f3, f4 = st.columns(4)
+
+with f1:
+    raw_start = st.date_input(
+        "Raw aspect start date",
+        value=last_price_date.date() - pd.Timedelta(days=30),
+        key="raw_start"
+    )
+
+with f2:
+    raw_end = st.date_input(
+        "Raw aspect end date",
+        value=last_price_date.date(),
+        key="raw_end"
+    )
+
+with f3:
+    planet_filter = st.multiselect(
+        "Transit Planet",
+        sorted(raw_aspects["transit_planet"].dropna().unique().tolist()),
+        default=[]
+    )
+
+with f4:
+    source_filter = st.multiselect(
+        "Source",
+        sorted(raw_aspects["source"].dropna().unique().tolist()),
+        default=[]
+    )
+
+f5, f6, f7, f8 = st.columns(4)
+
+with f5:
+    aspect_filter = st.multiselect(
+        "Aspect",
+        sorted(raw_aspects["aspect"].dropna().unique().tolist()),
+        default=[]
+    )
+
+with f6:
+    target_filter = st.multiselect(
+        "Target",
+        sorted(raw_aspects["target"].dropna().unique().tolist()),
+        default=[]
+    )
+
+with f7:
+    score_type = st.selectbox(
+        "Score Type",
+        [
+            "bullish",
+            "bearish",
+            "reversal",
+            "volatility",
+            "compression",
+            "trend_start",
+            "trend_end",
+        ],
+        index=0
+    )
+
+with f8:
+    min_abs_score = st.number_input(
+        "Min absolute score",
+        min_value=0.0,
+        max_value=10.0,
+        value=0.1,
+        step=0.1
+    )
+
+raw_view = raw_aspects[
+    (raw_aspects["date"].dt.date >= raw_start) &
+    (raw_aspects["date"].dt.date <= raw_end)
+].copy()
+
+if planet_filter:
+    raw_view = raw_view[raw_view["transit_planet"].isin(planet_filter)]
+
+if source_filter:
+    raw_view = raw_view[raw_view["source"].isin(source_filter)]
+
+if aspect_filter:
+    raw_view = raw_view[raw_view["aspect"].isin(aspect_filter)]
+
+if target_filter:
+    raw_view = raw_view[raw_view["target"].isin(target_filter)]
+
+raw_view["selected_score"] = raw_view[score_type].fillna(0)
+
+raw_view = raw_view[raw_view["selected_score"].abs() >= min_abs_score].copy()
+
+# -----------------------------
+# SUMMARY CARDS
+# -----------------------------
+if raw_view.empty:
+    st.info("ไม่พบ raw aspects ตาม filter ที่เลือก")
+else:
+    total_score = raw_view["selected_score"].sum()
+    max_score = raw_view["selected_score"].max()
+    aspect_count = len(raw_view)
+    top_planet = (
+        raw_view.groupby("transit_planet")["selected_score"]
+        .sum()
+        .sort_values(ascending=False)
+        .index[0]
+    )
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric("Aspect Count", f"{aspect_count:,}")
+    c2.metric(f"Total {score_type} Score", f"{total_score:.2f}")
+    c3.metric("Max Single Score", f"{max_score:.2f}")
+    c4.metric("Top Contributing Planet", top_planet)
+
+    # -----------------------------
+    # PLANET IMPACT BAR CHART
+    # -----------------------------
+    st.subheader("Planet Impact Ranking")
+
+    planet_impact = (
+        raw_view.groupby("transit_planet")[score_type]
+        .sum()
+        .reset_index()
+        .sort_values(score_type, ascending=False)
+    )
+
+    fig_planet = go.Figure()
+    fig_planet.add_trace(
+        go.Bar(
+            x=planet_impact["transit_planet"],
+            y=planet_impact[score_type],
+            marker_color="#60a5fa",
+            name=f"{score_type} score"
+        )
+    )
+
+    fig_planet.update_layout(
+        template="plotly_dark",
+        height=420,
+        title=f"Planet Contribution — {score_type}",
+        xaxis_title="Transit Planet",
+        yaxis_title=f"{score_type} score",
+        margin=dict(l=40, r=40, t=60, b=40),
+    )
+
+    st.plotly_chart(fig_planet, use_container_width=True)
+
+    # -----------------------------
+    # DAILY HEATMAP STYLE BAR
+    # -----------------------------
+    st.subheader("Daily Raw Score Contribution")
+
+    daily_impact = (
+        raw_view.groupby("date")[score_type]
+        .sum()
+        .reset_index()
+        .sort_values("date")
+    )
+
+    fig_daily = go.Figure()
+    fig_daily.add_trace(
+        go.Bar(
+            x=daily_impact["date"],
+            y=daily_impact[score_type],
+            marker_color="#f59e0b",
+            name=f"Daily {score_type}"
+        )
+    )
+
+    fig_daily.update_layout(
+        template="plotly_dark",
+        height=420,
+        title=f"Daily {score_type} Contribution",
+        xaxis_title="Date",
+        yaxis_title=f"{score_type} score",
+        margin=dict(l=40, r=40, t=60, b=40),
+    )
+
+    st.plotly_chart(fig_daily, use_container_width=True)
+
+    # -----------------------------
+    # ASPECT TABLE
+    # -----------------------------
+    st.subheader("Raw Aspect Table")
+
+    show_cols = [
+        "date",
+        "source",
+        "rule_name",
+        "transit_planet",
+        "target",
+        "aspect",
+        "orb",
+        "orb_factor",
+        "aspect_weight",
+        "target_weight",
+        "multiplier",
+        "bullish",
+        "bearish",
+        "reversal",
+        "volatility",
+        "compression",
+        "trend_start",
+        "trend_end",
+    ]
+
+    show_cols = [c for c in show_cols if c in raw_view.columns]
+
+    table = raw_view[show_cols].copy()
+    table["date"] = table["date"].dt.date
+
+    score_cols = [
+        "orb",
+        "orb_factor",
+        "aspect_weight",
+        "target_weight",
+        "multiplier",
+        "bullish",
+        "bearish",
+        "reversal",
+        "volatility",
+        "compression",
+        "trend_start",
+        "trend_end",
+    ]
+
+    for c in score_cols:
+        if c in table.columns:
+            table[c] = pd.to_numeric(table[c], errors="coerce").round(4)
+
+    table = table.sort_values(
+        by=[score_type],
+        ascending=False
+    ) if score_type in table.columns else table
+
+    st.dataframe(table, use_container_width=True, height=520)

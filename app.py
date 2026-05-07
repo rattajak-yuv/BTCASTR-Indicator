@@ -971,3 +971,290 @@ else:
     ) if score_type in table.columns else table
 
     st.dataframe(table, use_container_width=True, height=520)
+
+# =========================================================
+# REGIME HEATMAP + CYCLE PHASE MAP
+# =========================================================
+
+st.header("Regime Heatmap & Cycle Phase Map")
+
+st.markdown("""
+<div class="explain-box">
+    <div class="explain-title">How to read this panel</div>
+    <div class="explain-text">
+    ส่วนนี้ช่วยดูว่าในแต่ละวัน/เดือน Astro Model v2 มองตลาดเป็น phase แบบไหน:
+    Bullish, Bearish, Reversal, Volatility, Compression, Trend Start หรือ Trend End<br><br>
+    ใช้สำหรับดูภาพใหญ่ของ cycle ว่ากำลังเริ่มรอบ, เร่งตัว, อ่อนแรง, กลับตัว หรือเข้าสู่ sideways/compression
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# -----------------------------
+# CONTROLS
+# -----------------------------
+h1, h2, h3 = st.columns(3)
+
+with h1:
+    heatmap_start = st.date_input(
+        "Heatmap start date",
+        value=max(price_df["date"].min().date(), last_price_date.date() - pd.Timedelta(days=365 * 4)),
+        key="heatmap_start"
+    )
+
+with h2:
+    heatmap_end = st.date_input(
+        "Heatmap end date",
+        value=min(df["date"].max().date(), last_price_date.date() + pd.Timedelta(days=365)),
+        key="heatmap_end"
+    )
+
+with h3:
+    heatmap_freq = st.selectbox(
+        "Aggregation",
+        ["Daily", "Weekly", "Monthly"],
+        index=2,
+        key="heatmap_freq"
+    )
+
+heatmap_cols = [
+    "astro_bullish_score",
+    "astro_bearish_score",
+    "astro_reversal_score",
+    "astro_volatility_score",
+    "astro_compression_score",
+    "astro_trend_start_score",
+    "astro_trend_end_score",
+    "astro_momentum_v2",
+]
+
+missing_heatmap_cols = [c for c in heatmap_cols if c not in df.columns]
+
+if missing_heatmap_cols:
+    st.warning(f"ยังไม่มี columns สำหรับ heatmap: {missing_heatmap_cols}")
+else:
+    heat = df[
+        (df["date"].dt.date >= heatmap_start) &
+        (df["date"].dt.date <= heatmap_end)
+    ].copy()
+
+    heat = heat[["date"] + heatmap_cols].dropna(subset=["date"])
+
+    if heat.empty:
+        st.info("ไม่มีข้อมูลในช่วงวันที่ที่เลือก")
+    else:
+        if heatmap_freq == "Daily":
+            heat["period"] = heat["date"].dt.strftime("%Y-%m-%d")
+        elif heatmap_freq == "Weekly":
+            heat["period"] = heat["date"].dt.to_period("W").astype(str)
+            heat = heat.groupby("period", as_index=False)[heatmap_cols].mean()
+        else:
+            heat["period"] = heat["date"].dt.to_period("M").astype(str)
+            heat = heat.groupby("period", as_index=False)[heatmap_cols].mean()
+
+        if heatmap_freq == "Daily":
+            heatmap_matrix = heat.set_index("period")[heatmap_cols].T
+        else:
+            heatmap_matrix = heat.set_index("period")[heatmap_cols].T
+
+        fig_heatmap = go.Figure(
+            data=go.Heatmap(
+                z=heatmap_matrix.values,
+                x=heatmap_matrix.columns,
+                y=[
+                    "Bullish",
+                    "Bearish",
+                    "Reversal",
+                    "Volatility",
+                    "Compression",
+                    "Trend Start",
+                    "Trend End",
+                    "Momentum",
+                ],
+                colorscale="RdYlGn",
+                colorbar=dict(title="Score"),
+                hovertemplate="Period=%{x}<br>Metric=%{y}<br>Score=%{z:.2f}<extra></extra>",
+            )
+        )
+
+        fig_heatmap.update_layout(
+            template="plotly_dark",
+            height=520,
+            title=f"Astro Regime Heatmap ({heatmap_freq})",
+            xaxis_title="Period",
+            yaxis_title="Astro Metric",
+            margin=dict(l=40, r=40, t=60, b=40),
+        )
+
+        st.plotly_chart(fig_heatmap, use_container_width=True)
+
+        # -----------------------------
+        # CYCLE PHASE MAP
+        # -----------------------------
+        st.subheader("Cycle Phase Map")
+
+        phase_df = df[
+            (df["date"].dt.date >= heatmap_start) &
+            (df["date"].dt.date <= heatmap_end)
+        ].copy()
+
+        phase_required = [
+            "astro_bullish_score",
+            "astro_bearish_score",
+            "astro_reversal_score",
+            "astro_volatility_score",
+            "astro_compression_score",
+            "astro_trend_start_score",
+            "astro_trend_end_score",
+            "astro_momentum_v2",
+        ]
+
+        phase_df = phase_df.dropna(subset=phase_required)
+
+        def detect_cycle_phase(row):
+            momentum = row["astro_momentum_v2"]
+            bullish = row["astro_bullish_score"]
+            bearish = row["astro_bearish_score"]
+            reversal = row["astro_reversal_score"]
+            volatility = row["astro_volatility_score"]
+            compression = row["astro_compression_score"]
+            trend_start = row["astro_trend_start_score"]
+            trend_end = row["astro_trend_end_score"]
+
+            if reversal >= 3.0 and trend_end >= 2.0:
+                return "exhaustion_reversal"
+
+            if trend_start >= 2.0 and momentum > 0:
+                return "trend_start_bull"
+
+            if trend_start >= 2.0 and momentum < 0:
+                return "trend_start_bear"
+
+            if momentum >= 3.0 and bullish > bearish:
+                return "strong_uptrend"
+
+            if momentum <= -3.0 and bearish > bullish:
+                return "strong_downtrend"
+
+            if compression >= 2.0 and abs(momentum) < 1.5:
+                return "compression_sideways"
+
+            if volatility >= 3.0 and abs(momentum) < 2.0:
+                return "high_volatility_chop"
+
+            if momentum > 1.5:
+                return "uptrend"
+
+            if momentum < -1.5:
+                return "downtrend"
+
+            return "neutral_sideways"
+
+        phase_df["cycle_phase"] = phase_df.apply(detect_cycle_phase, axis=1)
+
+        phase_colors = {
+            "trend_start_bull": "#22c55e",
+            "strong_uptrend": "#16a34a",
+            "uptrend": "#84cc16",
+            "compression_sideways": "#f59e0b",
+            "neutral_sideways": "#94a3b8",
+            "high_volatility_chop": "#a855f7",
+            "trend_start_bear": "#fb7185",
+            "downtrend": "#ef4444",
+            "strong_downtrend": "#991b1b",
+            "exhaustion_reversal": "#f97316",
+        }
+
+        # compress consecutive phases
+        phase_blocks = []
+        current_phase = None
+        start = None
+        prev_date = None
+
+        for _, r in phase_df[["date", "cycle_phase"]].iterrows():
+            if current_phase is None:
+                current_phase = r["cycle_phase"]
+                start = r["date"]
+                prev_date = r["date"]
+                continue
+
+            if r["cycle_phase"] != current_phase:
+                phase_blocks.append({
+                    "start": start,
+                    "end": prev_date,
+                    "phase": current_phase,
+                    "days": (prev_date - start).days + 1
+                })
+                current_phase = r["cycle_phase"]
+                start = r["date"]
+
+            prev_date = r["date"]
+
+        if current_phase is not None:
+            phase_blocks.append({
+                "start": start,
+                "end": prev_date,
+                "phase": current_phase,
+                "days": (prev_date - start).days + 1
+            })
+
+        phase_blocks_df = pd.DataFrame(phase_blocks)
+
+        if phase_blocks_df.empty:
+            st.info("ไม่พบ phase blocks")
+        else:
+            fig_phase = go.Figure()
+
+            for _, r in phase_blocks_df.iterrows():
+                fig_phase.add_trace(
+                    go.Bar(
+                        x=[r["days"]],
+                        y=["Cycle Phase"],
+                        orientation="h",
+                        name=r["phase"],
+                        marker_color=phase_colors.get(r["phase"], "#94a3b8"),
+                        customdata=[[r["start"], r["end"], r["phase"], r["days"]]],
+                        hovertemplate=(
+                            "Phase=%{customdata[2]}<br>"
+                            "Start=%{customdata[0]}<br>"
+                            "End=%{customdata[1]}<br>"
+                            "Days=%{customdata[3]}<extra></extra>"
+                        )
+                    )
+                )
+
+            fig_phase.update_layout(
+                barmode="stack",
+                template="plotly_dark",
+                height=260,
+                title="Cycle Phase Timeline",
+                xaxis_title="Days",
+                yaxis_title="",
+                margin=dict(l=40, r=40, t=60, b=40),
+                legend=dict(orientation="h")
+            )
+
+            st.plotly_chart(fig_phase, use_container_width=True)
+
+            show_phase = phase_blocks_df.copy()
+            show_phase["start"] = pd.to_datetime(show_phase["start"]).dt.date
+            show_phase["end"] = pd.to_datetime(show_phase["end"]).dt.date
+
+            st.subheader("Cycle Phase Blocks")
+            st.dataframe(show_phase, use_container_width=True)
+
+            phase_summary = (
+                phase_df.groupby("cycle_phase")
+                .agg(
+                    days=("cycle_phase", "count"),
+                    avg_momentum=("astro_momentum_v2", "mean"),
+                    avg_bullish=("astro_bullish_score", "mean"),
+                    avg_bearish=("astro_bearish_score", "mean"),
+                    avg_reversal=("astro_reversal_score", "mean"),
+                    avg_volatility=("astro_volatility_score", "mean"),
+                )
+                .reset_index()
+                .sort_values("days", ascending=False)
+            )
+
+            st.subheader("Cycle Phase Summary")
+            st.dataframe(phase_summary, use_container_width=True)

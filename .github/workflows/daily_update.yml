@@ -28,7 +28,7 @@ jobs:
         run: python generate_astro_score.py
 
       - name: Optimize model v2
-        run: python optimize_model_2.py
+        run: python optimize_model_v2.py
 
       - name: Commit updated CSV
         run: |

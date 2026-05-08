@@ -4,22 +4,26 @@ import pandas as pd
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score
-from sklearn.inspection import permutation_importance
 
 DATA_PATH = "data/ml_dataset.csv"
 PREDICTION_PATH = "data/ml_predictions.csv"
 SUMMARY_PATH = "data/ml_model_summary.csv"
 IMPORTANCE_PATH = "data/ml_feature_importance.csv"
 
-HORIZON = 14
-TARGET_COL = f"future_direction_{HORIZON}d"
+HORIZONS = [3, 7, 14, 30, 60, 90]
 
 TRAIN_WINDOW = 730
 TEST_WINDOW = 90
 STEP_SIZE = 90
 
-MIN_PROBA_LONG = 0.58
-MAX_PROBA_SHORT = 0.42
+PROBA_THRESHOLDS = {
+    3:  {"long": 0.56, "short": 0.44},
+    7:  {"long": 0.57, "short": 0.43},
+    14: {"long": 0.58, "short": 0.42},
+    30: {"long": 0.60, "short": 0.40},
+    60: {"long": 0.62, "short": 0.38},
+    90: {"long": 0.63, "short": 0.37},
+}
 
 
 def max_drawdown(equity):
@@ -34,7 +38,7 @@ def sharpe_like(returns):
     return (returns.mean() / returns.std()) * np.sqrt(365)
 
 
-def get_feature_columns(df):
+def get_feature_columns(df, target_col):
     exclude_prefixes = [
         "future_return_",
         "future_direction_",
@@ -58,67 +62,76 @@ def get_feature_columns(df):
         "buy_hold_max_drawdown",
         "astro_regime_v2",
         "regime",
-        TARGET_COL,
+        target_col,
     }
 
     feature_cols = []
-
     for c in df.columns:
         if c in exclude_cols:
             continue
-
         if any(c.startswith(prefix) for prefix in exclude_prefixes):
             continue
-
         if pd.api.types.is_numeric_dtype(df[c]):
             feature_cols.append(c)
 
     return feature_cols
 
 
-def create_signal(prob_up):
-    if prob_up >= MIN_PROBA_LONG:
+def create_signal(prob_up, horizon):
+    long_th = PROBA_THRESHOLDS[horizon]["long"]
+    short_th = PROBA_THRESHOLDS[horizon]["short"]
+
+    if prob_up >= long_th:
         return 1
-    elif prob_up <= MAX_PROBA_SHORT:
+    elif prob_up <= short_th:
         return -1
     return 0
 
 
-def walk_forward_train(df, feature_cols):
+def walk_forward_train(df, horizon):
+    target_col = f"future_direction_{horizon}d"
+
+    if target_col not in df.columns:
+        raise ValueError(f"Missing target column: {target_col}")
+
+    feature_cols = get_feature_columns(df, target_col)
+
     rows = []
     all_importances = []
 
-    df = df.sort_values("date").reset_index(drop=True)
+    data = df.dropna(subset=["price", target_col]).copy()
+    data = data.replace([np.inf, -np.inf], np.nan)
+    data = data.sort_values("date").reset_index(drop=True)
 
     start = TRAIN_WINDOW
 
-    while start + TEST_WINDOW <= len(df):
+    while start + TEST_WINDOW <= len(data):
         train_start = start - TRAIN_WINDOW
         train_end = start
         test_start = start
         test_end = start + TEST_WINDOW
 
-        train = df.iloc[train_start:train_end].copy()
-        test = df.iloc[test_start:test_end].copy()
+        train = data.iloc[train_start:train_end].copy()
+        test = data.iloc[test_start:test_end].copy()
 
-        train = train.dropna(subset=feature_cols + [TARGET_COL])
-        test = test.dropna(subset=feature_cols + [TARGET_COL])
+        train = train.dropna(subset=feature_cols + [target_col])
+        test = test.dropna(subset=feature_cols + [target_col])
 
         if len(train) < 300 or len(test) == 0:
             start += STEP_SIZE
             continue
 
         X_train = train[feature_cols]
-        y_train = train[TARGET_COL].astype(int)
+        y_train = train[target_col].astype(int)
 
         X_test = test[feature_cols]
-        y_test = test[TARGET_COL].astype(int)
+        y_test = test[target_col].astype(int)
 
         model = RandomForestClassifier(
-            n_estimators=300,
+            n_estimators=400,
             max_depth=5,
             min_samples_leaf=20,
-            random_state=42,
+            random_state=42 + horizon,
             n_jobs=-1,
             class_weight="balanced",
         )
@@ -128,21 +141,23 @@ def walk_forward_train(df, feature_cols):
         prob_up = model.predict_proba(X_test)[:, 1]
         pred = (prob_up >= 0.5).astype(int)
 
-        test_out = test[["date", "price"]].copy()
-        test_out["ml_prob_up"] = prob_up
-        test_out["ml_pred_direction"] = pred
-        test_out["ml_position_raw"] = [create_signal(p) for p in prob_up]
-        test_out["actual_direction"] = y_test.values
-        test_out["walk_train_start"] = train["date"].min()
-        test_out["walk_train_end"] = train["date"].max()
+        out = test[["date", "price"]].copy()
+        out["horizon"] = horizon
+        out["ml_prob_up"] = prob_up
+        out["ml_pred_direction"] = pred
+        out["ml_position_raw"] = [create_signal(p, horizon) for p in prob_up]
+        out["actual_direction"] = y_test.values
+        out["walk_train_start"] = train["date"].min()
+        out["walk_train_end"] = train["date"].max()
 
-        rows.append(test_out)
+        rows.append(out)
 
         acc = accuracy_score(y_test, pred)
         prec = precision_score(y_test, pred, zero_division=0)
         rec = recall_score(y_test, pred, zero_division=0)
 
-        fold_importance = pd.DataFrame({
+        imp = pd.DataFrame({
+            "horizon": horizon,
             "feature": feature_cols,
             "importance": model.feature_importances_,
             "train_start": train["date"].min(),
@@ -154,17 +169,18 @@ def walk_forward_train(df, feature_cols):
             "recall": rec,
         })
 
-        all_importances.append(fold_importance)
+        all_importances.append(imp)
 
         print(
-            f"Fold {test['date'].min().date()} to {test['date'].max().date()} | "
+            f"Horizon {horizon}D | "
+            f"{test['date'].min().date()} to {test['date'].max().date()} | "
             f"Acc={acc:.3f} Prec={prec:.3f} Recall={rec:.3f}"
         )
 
         start += STEP_SIZE
 
     if not rows:
-        raise ValueError("No walk-forward predictions generated")
+        raise ValueError(f"No predictions generated for horizon {horizon}")
 
     pred_df = pd.concat(rows, ignore_index=True)
     imp_df = pd.concat(all_importances, ignore_index=True)
@@ -173,85 +189,108 @@ def walk_forward_train(df, feature_cols):
 
 
 def backtest_ml(pred_df):
-    pred_df = pred_df.sort_values("date").reset_index(drop=True)
+    all_rows = []
 
-    pred_df["btc_return_1d"] = pred_df["price"].pct_change().fillna(0)
+    for horizon, group in pred_df.groupby("horizon"):
+        g = group.sort_values("date").reset_index(drop=True).copy()
 
-    # shift position 1 day to avoid look-ahead
-    pred_df["ml_position"] = pred_df["ml_position_raw"].shift(1).fillna(0)
+        g["btc_return_1d"] = g["price"].pct_change().fillna(0)
 
-    pred_df["ml_strategy_return"] = pred_df["btc_return_1d"] * pred_df["ml_position"]
-    pred_df["buy_hold_return"] = pred_df["btc_return_1d"]
+        # Shift position to avoid look-ahead
+        g["ml_position"] = g["ml_position_raw"].shift(1).fillna(0)
 
-    pred_df["ml_strategy_equity"] = (1 + pred_df["ml_strategy_return"]).cumprod()
-    pred_df["buy_hold_equity_ml_period"] = (1 + pred_df["buy_hold_return"]).cumprod()
+        g["ml_strategy_return"] = g["btc_return_1d"] * g["ml_position"]
+        g["buy_hold_return"] = g["btc_return_1d"]
 
-    pred_df["ml_strategy_drawdown"] = (
-        pred_df["ml_strategy_equity"] / pred_df["ml_strategy_equity"].cummax()
-    ) - 1
+        g["ml_strategy_equity"] = (1 + g["ml_strategy_return"]).cumprod()
+        g["buy_hold_equity_ml_period"] = (1 + g["buy_hold_return"]).cumprod()
 
-    pred_df["buy_hold_drawdown_ml_period"] = (
-        pred_df["buy_hold_equity_ml_period"] / pred_df["buy_hold_equity_ml_period"].cummax()
-    ) - 1
+        g["ml_strategy_drawdown"] = (
+            g["ml_strategy_equity"] / g["ml_strategy_equity"].cummax()
+        ) - 1
 
-    return pred_df
+        g["buy_hold_drawdown_ml_period"] = (
+            g["buy_hold_equity_ml_period"] / g["buy_hold_equity_ml_period"].cummax()
+        ) - 1
+
+        all_rows.append(g)
+
+    return pd.concat(all_rows, ignore_index=True)
 
 
 def summarize(pred_df, imp_df):
-    total_return = pred_df["ml_strategy_equity"].iloc[-1] - 1
-    buy_hold_return = pred_df["buy_hold_equity_ml_period"].iloc[-1] - 1
+    summaries = []
 
-    max_dd = pred_df["ml_strategy_drawdown"].min()
-    bh_dd = pred_df["buy_hold_drawdown_ml_period"].min()
+    for horizon, g in pred_df.groupby("horizon"):
+        g = g.sort_values("date").reset_index(drop=True)
 
-    sharpe = sharpe_like(pred_df["ml_strategy_return"])
-    bh_sharpe = sharpe_like(pred_df["buy_hold_return"])
+        total_return = g["ml_strategy_equity"].iloc[-1] - 1
+        buy_hold_return = g["buy_hold_equity_ml_period"].iloc[-1] - 1
 
-    n_trades = int((pred_df["ml_position_raw"].diff().fillna(0) != 0).sum())
+        max_dd = g["ml_strategy_drawdown"].min()
+        bh_dd = g["buy_hold_drawdown_ml_period"].min()
 
-    accuracy = accuracy_score(
-        pred_df["actual_direction"].astype(int),
-        pred_df["ml_pred_direction"].astype(int),
-    )
+        sharpe = sharpe_like(g["ml_strategy_return"])
+        bh_sharpe = sharpe_like(g["buy_hold_return"])
 
-    precision = precision_score(
-        pred_df["actual_direction"].astype(int),
-        pred_df["ml_pred_direction"].astype(int),
-        zero_division=0,
-    )
+        trades = int((g["ml_position_raw"].diff().fillna(0) != 0).sum())
 
-    recall = recall_score(
-        pred_df["actual_direction"].astype(int),
-        pred_df["ml_pred_direction"].astype(int),
-        zero_division=0,
-    )
+        acc = accuracy_score(
+            g["actual_direction"].astype(int),
+            g["ml_pred_direction"].astype(int),
+        )
+        prec = precision_score(
+            g["actual_direction"].astype(int),
+            g["ml_pred_direction"].astype(int),
+            zero_division=0,
+        )
+        rec = recall_score(
+            g["actual_direction"].astype(int),
+            g["ml_pred_direction"].astype(int),
+            zero_division=0,
+        )
 
-    summary = pd.DataFrame([{
-        "model": "RandomForestClassifier",
-        "horizon_days": HORIZON,
-        "train_window_days": TRAIN_WINDOW,
-        "test_window_days": TEST_WINDOW,
-        "long_probability_threshold": MIN_PROBA_LONG,
-        "short_probability_threshold": MAX_PROBA_SHORT,
-        "ml_total_return": total_return,
-        "buy_hold_return_same_period": buy_hold_return,
-        "ml_max_drawdown": max_dd,
-        "buy_hold_max_drawdown_same_period": bh_dd,
-        "ml_sharpe_like": sharpe,
-        "buy_hold_sharpe_like": bh_sharpe,
-        "number_of_trades": n_trades,
-        "direction_accuracy": accuracy,
-        "direction_precision": precision,
-        "direction_recall": recall,
-        "prediction_start": pred_df["date"].min(),
-        "prediction_end": pred_df["date"].max(),
-    }])
+        dd_abs = abs(max_dd) if pd.notna(max_dd) else np.nan
+        return_dd_ratio = total_return / dd_abs if dd_abs and dd_abs != 0 else np.nan
+
+        balanced_score = (
+            total_return * 0.30
+            + (sharpe if pd.notna(sharpe) else 0) * 0.35
+            + (return_dd_ratio if pd.notna(return_dd_ratio) else 0) * 0.20
+            - (dd_abs if pd.notna(dd_abs) else 0) * 1.25
+            - trades * 0.002
+        )
+
+        summaries.append({
+            "model": "RandomForestClassifier",
+            "horizon_days": horizon,
+            "train_window_days": TRAIN_WINDOW,
+            "test_window_days": TEST_WINDOW,
+            "long_probability_threshold": PROBA_THRESHOLDS[horizon]["long"],
+            "short_probability_threshold": PROBA_THRESHOLDS[horizon]["short"],
+            "ml_total_return": total_return,
+            "buy_hold_return_same_period": buy_hold_return,
+            "ml_max_drawdown": max_dd,
+            "buy_hold_max_drawdown_same_period": bh_dd,
+            "ml_sharpe_like": sharpe,
+            "buy_hold_sharpe_like": bh_sharpe,
+            "return_drawdown_ratio": return_dd_ratio,
+            "balanced_score": balanced_score,
+            "number_of_trades": trades,
+            "direction_accuracy": acc,
+            "direction_precision": prec,
+            "direction_recall": rec,
+            "prediction_start": g["date"].min(),
+            "prediction_end": g["date"].max(),
+        })
+
+    summary = pd.DataFrame(summaries).sort_values("balanced_score", ascending=False)
 
     importance_summary = (
-        imp_df.groupby("feature")["importance"]
+        imp_df.groupby(["horizon", "feature"])["importance"]
         .mean()
         .reset_index()
-        .sort_values("importance", ascending=False)
+        .sort_values(["horizon", "importance"], ascending=[True, False])
     )
 
     return summary, importance_summary
@@ -262,35 +301,33 @@ def main():
     df = pd.read_csv(DATA_PATH)
     df["date"] = pd.to_datetime(df["date"])
 
-    if TARGET_COL not in df.columns:
-        raise ValueError(f"Missing target column: {TARGET_COL}")
+    all_preds = []
+    all_imps = []
 
-    df = df.dropna(subset=["price", TARGET_COL]).copy()
-    df = df.replace([np.inf, -np.inf], np.nan)
+    for horizon in HORIZONS:
+        print(f"\nTraining horizon: {horizon}D")
+        pred, imp = walk_forward_train(df, horizon)
+        all_preds.append(pred)
+        all_imps.append(imp)
 
-    feature_cols = get_feature_columns(df)
+    pred_df = pd.concat(all_preds, ignore_index=True)
+    imp_df = pd.concat(all_imps, ignore_index=True)
 
-    print(f"Rows: {len(df):,}")
-    print(f"Features: {len(feature_cols):,}")
-    print(f"Target: {TARGET_COL}")
-
-    pred_df, imp_df = walk_forward_train(df, feature_cols)
     pred_df = backtest_ml(pred_df)
-
-    summary, importance_summary = summarize(pred_df, imp_df)
+    summary, importance = summarize(pred_df, imp_df)
 
     os.makedirs("data", exist_ok=True)
 
     pred_df.to_csv(PREDICTION_PATH, index=False)
     summary.to_csv(SUMMARY_PATH, index=False)
-    importance_summary.to_csv(IMPORTANCE_PATH, index=False)
+    importance.to_csv(IMPORTANCE_PATH, index=False)
 
     print(f"Saved: {PREDICTION_PATH}")
     print(f"Saved: {SUMMARY_PATH}")
     print(f"Saved: {IMPORTANCE_PATH}")
 
     print(summary.to_string(index=False))
-    print(importance_summary.head(20).to_string(index=False))
+    print(importance.head(40).to_string(index=False))
 
 
 if __name__ == "__main__":

@@ -6,6 +6,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
 DATA_PATH = "data/ml_dataset.csv"
+SELECTED_FEATURES_PATH = "data/selected_features.csv"
+
 PREDICTION_PATH = "data/ml_predictions.csv"
 SUMMARY_PATH = "data/ml_model_summary.csv"
 IMPORTANCE_PATH = "data/ml_feature_importance.csv"
@@ -17,8 +19,8 @@ TEST_WINDOW = 90
 STEP_SIZE = 90
 
 PROBA_THRESHOLDS = {
-    3:  {"long": 0.56, "short": 0.44},
-    7:  {"long": 0.57, "short": 0.43},
+    3: {"long": 0.56, "short": 0.44},
+    7: {"long": 0.57, "short": 0.43},
     14: {"long": 0.58, "short": 0.42},
     30: {"long": 0.60, "short": 0.40},
     60: {"long": 0.62, "short": 0.38},
@@ -38,43 +40,26 @@ def sharpe_like(returns):
     return (returns.mean() / returns.std()) * np.sqrt(365)
 
 
-def get_feature_columns(df, target_col):
-    exclude_prefixes = [
-        "future_return_",
-        "future_direction_",
-        "future_drawdown_",
+def load_selected_features(df):
+    if not os.path.exists(SELECTED_FEATURES_PATH):
+        raise FileNotFoundError(f"Missing {SELECTED_FEATURES_PATH}")
+
+    sf = pd.read_csv(SELECTED_FEATURES_PATH)
+
+    if "feature" not in sf.columns:
+        raise ValueError("selected_features.csv must contain a 'feature' column")
+
+    selected = sf["feature"].dropna().astype(str).unique().tolist()
+
+    selected = [
+        f for f in selected
+        if f in df.columns and pd.api.types.is_numeric_dtype(df[f])
     ]
 
-    exclude_cols = {
-        "date",
-        "price",
-        "signal",
-        "position",
-        "returns",
-        "strategy_returns",
-        "strategy_equity",
-        "buy_hold_equity",
-        "strategy_drawdown",
-        "buy_hold_drawdown",
-        "strategy_total_return",
-        "buy_hold_total_return",
-        "strategy_max_drawdown",
-        "buy_hold_max_drawdown",
-        "astro_regime_v2",
-        "regime",
-        target_col,
-    }
+    if len(selected) == 0:
+        raise ValueError("No selected features found in ml_dataset.csv")
 
-    feature_cols = []
-    for c in df.columns:
-        if c in exclude_cols:
-            continue
-        if any(c.startswith(prefix) for prefix in exclude_prefixes):
-            continue
-        if pd.api.types.is_numeric_dtype(df[c]):
-            feature_cols.append(c)
-
-    return feature_cols
+    return selected
 
 
 def create_signal(prob_up, horizon):
@@ -88,13 +73,11 @@ def create_signal(prob_up, horizon):
     return 0
 
 
-def walk_forward_train(df, horizon):
+def walk_forward_train(df, horizon, feature_cols):
     target_col = f"future_direction_{horizon}d"
 
     if target_col not in df.columns:
         raise ValueError(f"Missing target column: {target_col}")
-
-    feature_cols = get_feature_columns(df, target_col)
 
     rows = []
     all_importances = []
@@ -128,7 +111,7 @@ def walk_forward_train(df, horizon):
         y_test = test[target_col].astype(int)
 
         model = RandomForestClassifier(
-            n_estimators=400,
+            n_estimators=500,
             max_depth=5,
             min_samples_leaf=20,
             random_state=42 + horizon,
@@ -167,6 +150,7 @@ def walk_forward_train(df, horizon):
             "accuracy": acc,
             "precision": prec,
             "recall": rec,
+            "feature_set": "selected_features",
         })
 
         all_importances.append(imp)
@@ -196,7 +180,7 @@ def backtest_ml(pred_df):
 
         g["btc_return_1d"] = g["price"].pct_change().fillna(0)
 
-        # Shift position to avoid look-ahead
+        # shift one day to avoid look-ahead
         g["ml_position"] = g["ml_position_raw"].shift(1).fillna(0)
 
         g["ml_strategy_return"] = g["btc_return_1d"] * g["ml_position"]
@@ -218,7 +202,7 @@ def backtest_ml(pred_df):
     return pd.concat(all_rows, ignore_index=True)
 
 
-def summarize(pred_df, imp_df):
+def summarize(pred_df):
     summaries = []
 
     for horizon, g in pred_df.groupby("horizon"):
@@ -239,11 +223,13 @@ def summarize(pred_df, imp_df):
             g["actual_direction"].astype(int),
             g["ml_pred_direction"].astype(int),
         )
+
         prec = precision_score(
             g["actual_direction"].astype(int),
             g["ml_pred_direction"].astype(int),
             zero_division=0,
         )
+
         rec = recall_score(
             g["actual_direction"].astype(int),
             g["ml_pred_direction"].astype(int),
@@ -263,6 +249,7 @@ def summarize(pred_df, imp_df):
 
         summaries.append({
             "model": "RandomForestClassifier",
+            "feature_set": "selected_features",
             "horizon_days": horizon,
             "train_window_days": TRAIN_WINDOW,
             "test_window_days": TEST_WINDOW,
@@ -284,16 +271,7 @@ def summarize(pred_df, imp_df):
             "prediction_end": g["date"].max(),
         })
 
-    summary = pd.DataFrame(summaries).sort_values("balanced_score", ascending=False)
-
-    importance_summary = (
-        imp_df.groupby(["horizon", "feature"])["importance"]
-        .mean()
-        .reset_index()
-        .sort_values(["horizon", "importance"], ascending=[True, False])
-    )
-
-    return summary, importance_summary
+    return pd.DataFrame(summaries).sort_values("balanced_score", ascending=False)
 
 
 def main():
@@ -301,12 +279,16 @@ def main():
     df = pd.read_csv(DATA_PATH)
     df["date"] = pd.to_datetime(df["date"])
 
+    feature_cols = load_selected_features(df)
+
+    print(f"Using selected features: {len(feature_cols):,}")
+
     all_preds = []
     all_imps = []
 
     for horizon in HORIZONS:
         print(f"\nTraining horizon: {horizon}D")
-        pred, imp = walk_forward_train(df, horizon)
+        pred, imp = walk_forward_train(df, horizon, feature_cols)
         all_preds.append(pred)
         all_imps.append(imp)
 
@@ -314,7 +296,14 @@ def main():
     imp_df = pd.concat(all_imps, ignore_index=True)
 
     pred_df = backtest_ml(pred_df)
-    summary, importance = summarize(pred_df, imp_df)
+    summary = summarize(pred_df)
+
+    importance = (
+        imp_df.groupby(["horizon", "feature", "feature_set"])["importance"]
+        .mean()
+        .reset_index()
+        .sort_values(["horizon", "importance"], ascending=[True, False])
+    )
 
     os.makedirs("data", exist_ok=True)
 

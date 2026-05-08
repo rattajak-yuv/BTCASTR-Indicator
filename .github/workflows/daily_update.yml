@@ -33,10 +33,13 @@ jobs:
       - name: Build ML dataset
         run: python build_ml_dataset.py
 
+      - name: Train ML model
+        run: python train_ml_model.py        
+
       - name: Commit updated CSV
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/bitcoin_astro_daily_score.csv data/model_optimization_v2_results.csv data/astro_aspects_raw.csv data/ml_dataset.csv
+          git add data/bitcoin_astro_daily_score.csv data/model_optimization_v2_results.csv data/astro_aspects_raw.csv data/ml_dataset.csv data/ml_predictions.csv data/ml_model_summary.csv data/ml_feature_importance.csv
           git diff --staged --quiet || git commit -m "daily data update"
           git push

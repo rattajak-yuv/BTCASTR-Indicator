@@ -36,6 +36,9 @@ jobs:
       - name: Train ML model
         run: python train_ml_model.py        
 
+      - name: Analyze feature stability
+        run: python analyze_feature_stability.py
+  
       - name: Commit updated CSV
         run: |
           git config user.name "github-actions[bot]"

@@ -505,82 +505,341 @@ with tabs[1]:
 # =========================================================
 # TAB 3 — ML INTELLIGENCE
 # =========================================================
+# =========================================================
+# TAB 3 — ML INTELLIGENCE
+# =========================================================
 with tabs[2]:
     st.markdown("""
     <div class="explain-box">
-    <b>Reading flow:</b> ดู ML Summary ก่อน → ดู Equity Curve → ดู Probability → ดู Feature Importance ว่า ML ใช้ข้อมูลอะไรตัดสิน
+    <b>Reading flow:</b><br>
+    1) เลือก horizon ที่ต้องการดู เช่น 3D, 14D, 60D<br>
+    2) ดูว่า ML Strategy ชนะ Buy & Hold หรือไม่<br>
+    3) ดู Probability Up ว่าโมเดลเอียงขึ้นหรือลง<br>
+    4) ดู Feature Importance ว่า Astro factor ไหนมีผลกับ horizon นั้นมากที่สุด
     </div>
     """, unsafe_allow_html=True)
 
     if ml_summary.empty or ml_pred.empty:
         st.warning("ยังไม่มีไฟล์ ML predictions / ML summary")
     else:
-        s = ml_summary.iloc[0]
-        c1, c2, c3, c4, c5 = st.columns(5)
-        with c1:
-            metric_card("ML Return", fmt_pct(s.get("ml_total_return", np.nan)), "Walk-forward")
-        with c2:
-            metric_card("Buy & Hold", fmt_pct(s.get("buy_hold_return_same_period", np.nan)), "Same ML period")
-        with c3:
-            metric_card("ML Max DD", fmt_pct(s.get("ml_max_drawdown", np.nan)), "Risk")
-        with c4:
-            metric_card("Accuracy", fmt_pct(s.get("direction_accuracy", np.nan)), "14D direction")
-        with c5:
-            metric_card("Trades", int(s.get("number_of_trades", 0)), "ML signals")
+        available_horizons = sorted(ml_summary["horizon_days"].dropna().unique().astype(int).tolist())
 
-        fig = make_subplots(
-            rows=2, cols=1, shared_xaxes=True,
-            vertical_spacing=0.06,
-            subplot_titles=("ML Strategy vs Buy & Hold", "ML Probability Up")
+        selected_horizon = st.selectbox(
+            "Select ML Horizon",
+            available_horizons,
+            index=available_horizons.index(14) if 14 in available_horizons else 0
         )
 
-        fig.add_trace(go.Scatter(
-            x=ml_pred["date"], y=ml_pred["ml_strategy_equity"],
-            mode="lines", name="ML Strategy",
-            line=dict(color="#22c55e", width=2)
-        ), row=1, col=1)
+        summary_h = ml_summary[ml_summary["horizon_days"] == selected_horizon].iloc[0]
+        pred_h = ml_pred[ml_pred["horizon"] == selected_horizon].copy()
 
-        fig.add_trace(go.Scatter(
-            x=ml_pred["date"], y=ml_pred["buy_hold_equity_ml_period"],
-            mode="lines", name="Buy & Hold",
-            line=dict(color="#e5e7eb", width=2, dash="dash")
-        ), row=1, col=1)
+        pred_h = pred_h.sort_values("date").reset_index(drop=True)
 
-        fig.add_trace(go.Scatter(
-            x=ml_pred["date"], y=ml_pred["ml_prob_up"],
-            mode="lines", name="Probability Up",
-            line=dict(color="#f59e0b", width=2)
-        ), row=2, col=1)
+        # -----------------------------
+        # SUMMARY CARDS
+        # -----------------------------
+        c1, c2, c3, c4, c5 = st.columns(5)
 
-        fig.add_hline(y=0.58, line_dash="dash", line_color="#22c55e", row=2, col=1)
-        fig.add_hline(y=0.42, line_dash="dash", line_color="#ef4444", row=2, col=1)
+        with c1:
+            metric_card(
+                f"ML Return {selected_horizon}D",
+                fmt_pct(summary_h.get("ml_total_return", np.nan)),
+                "Walk-forward"
+            )
+
+        with c2:
+            metric_card(
+                "Buy & Hold",
+                fmt_pct(summary_h.get("buy_hold_return_same_period", np.nan)),
+                "Same ML period"
+            )
+
+        with c3:
+            metric_card(
+                "ML Max DD",
+                fmt_pct(summary_h.get("ml_max_drawdown", np.nan)),
+                "Drawdown risk"
+            )
+
+        with c4:
+            metric_card(
+                "Accuracy",
+                fmt_pct(summary_h.get("direction_accuracy", np.nan)),
+                f"{selected_horizon}D direction"
+            )
+
+        with c5:
+            metric_card(
+                "Trades",
+                int(summary_h.get("number_of_trades", 0)),
+                "Position changes"
+            )
+
+        ml_return = summary_h.get("ml_total_return", np.nan)
+        bh_return = summary_h.get("buy_hold_return_same_period", np.nan)
+
+        if pd.notna(ml_return) and pd.notna(bh_return):
+            if ml_return > bh_return:
+                interpretation = f"ML {selected_horizon}D is outperforming Buy & Hold in the walk-forward test."
+            else:
+                interpretation = f"ML {selected_horizon}D is underperforming Buy & Hold in the walk-forward test."
+        else:
+            interpretation = "Not enough data to compare ML vs Buy & Hold."
+
+        st.markdown(f"""
+        <div class="explain-box">
+        <b>Current ML Interpretation:</b><br>
+        {interpretation}<br><br>
+        Probability Up > upper threshold = Long bias<br>
+        Probability Up < lower threshold = Short bias<br>
+        Middle zone = Flat / unclear
+        </div>
+        """, unsafe_allow_html=True)
+
+        # -----------------------------
+        # MAIN ML CHART
+        # -----------------------------
+        fig = make_subplots(
+            rows=3,
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.06,
+            row_heights=[0.42, 0.30, 0.28],
+            subplot_titles=(
+                f"ML Strategy vs Buy & Hold — {selected_horizon}D",
+                f"ML Probability Up — {selected_horizon}D",
+                "ML Position"
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=pred_h["date"],
+                y=pred_h["ml_strategy_equity"],
+                mode="lines",
+                name="ML Strategy",
+                line=dict(color="#22c55e", width=2)
+            ),
+            row=1,
+            col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=pred_h["date"],
+                y=pred_h["buy_hold_equity_ml_period"],
+                mode="lines",
+                name="Buy & Hold",
+                line=dict(color="#e5e7eb", width=2, dash="dash")
+            ),
+            row=1,
+            col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=pred_h["date"],
+                y=pred_h["ml_prob_up"],
+                mode="lines",
+                name="Probability Up",
+                line=dict(color="#f59e0b", width=2)
+            ),
+            row=2,
+            col=1
+        )
+
+        long_th = summary_h.get("long_probability_threshold", np.nan)
+        short_th = summary_h.get("short_probability_threshold", np.nan)
+
+        if pd.notna(long_th):
+            fig.add_hline(
+                y=long_th,
+                line_dash="dash",
+                line_color="#22c55e",
+                row=2,
+                col=1
+            )
+
+        if pd.notna(short_th):
+            fig.add_hline(
+                y=short_th,
+                line_dash="dash",
+                line_color="#ef4444",
+                row=2,
+                col=1
+            )
+
+        if "ml_position" in pred_h.columns:
+            pos_col = "ml_position"
+        else:
+            pos_col = "ml_position_raw"
+
+        fig.add_trace(
+            go.Scatter(
+                x=pred_h["date"],
+                y=pred_h[pos_col],
+                mode="lines",
+                name="ML Position",
+                line=dict(color="#60a5fa", width=2),
+                line_shape="hv"
+            ),
+            row=3,
+            col=1
+        )
+
+        fig.add_hline(y=0, line_dash="dash", line_color="#94a3b8", row=3, col=1)
 
         fig.update_layout(
             template="plotly_dark",
-            height=800,
+            height=900,
             legend=dict(orientation="h", y=1.02),
             margin=dict(l=40, r=40, t=60, b=40)
         )
+
+        fig.update_yaxes(title_text="Equity", row=1, col=1)
+        fig.update_yaxes(title_text="Prob Up", row=2, col=1)
+        fig.update_yaxes(title_text="Position", row=3, col=1)
+        fig.update_xaxes(title_text="Date", row=3, col=1)
+
         st.plotly_chart(fig, use_container_width=True)
 
-        if not ml_importance.empty:
-            st.subheader("Top ML Feature Importance")
-            top_imp = ml_importance.head(30)
-            fig_imp = go.Figure()
-            fig_imp.add_trace(go.Bar(
-                x=top_imp["importance"],
-                y=top_imp["feature"],
-                orientation="h",
-                marker_color="#60a5fa"
-            ))
-            fig_imp.update_layout(
-                template="plotly_dark",
-                height=760,
-                yaxis=dict(autorange="reversed"),
-                xaxis_title="Importance",
-                yaxis_title="Feature"
-            )
-            st.plotly_chart(fig_imp, use_container_width=True)
+        # -----------------------------
+        # HORIZON COMPARISON TABLE
+        # -----------------------------
+        st.subheader("Horizon Comparison")
+
+        summary_cols = [
+            "horizon_days",
+            "ml_total_return",
+            "buy_hold_return_same_period",
+            "ml_max_drawdown",
+            "buy_hold_max_drawdown_same_period",
+            "ml_sharpe_like",
+            "buy_hold_sharpe_like",
+            "return_drawdown_ratio",
+            "balanced_score",
+            "number_of_trades",
+            "direction_accuracy",
+            "direction_precision",
+            "direction_recall",
+        ]
+
+        summary_cols = [c for c in summary_cols if c in ml_summary.columns]
+        show_summary = ml_summary[summary_cols].copy()
+
+        pct_cols = [
+            "ml_total_return",
+            "buy_hold_return_same_period",
+            "ml_max_drawdown",
+            "buy_hold_max_drawdown_same_period",
+            "direction_accuracy",
+            "direction_precision",
+            "direction_recall",
+        ]
+
+        for c in pct_cols:
+            if c in show_summary.columns:
+                show_summary[c] = show_summary[c].apply(fmt_pct)
+
+        num_cols = [
+            "ml_sharpe_like",
+            "buy_hold_sharpe_like",
+            "return_drawdown_ratio",
+            "balanced_score",
+        ]
+
+        for c in num_cols:
+            if c in show_summary.columns:
+                show_summary[c] = pd.to_numeric(show_summary[c], errors="coerce").round(3)
+
+        st.dataframe(show_summary, use_container_width=True)
+
+        # -----------------------------
+        # FEATURE IMPORTANCE BY HORIZON
+        # -----------------------------
+        st.subheader(f"Top Feature Importance — {selected_horizon}D")
+
+        if ml_importance.empty:
+            st.warning("ยังไม่มีไฟล์ ml_feature_importance.csv")
+        else:
+            imp_h = ml_importance[ml_importance["horizon"] == selected_horizon].copy()
+
+            if imp_h.empty:
+                st.info(f"ไม่พบ feature importance สำหรับ horizon {selected_horizon}D")
+            else:
+                top_n = st.slider("Top N Features", 10, 50, 25, step=5)
+
+                top_imp = (
+                    imp_h.sort_values("importance", ascending=False)
+                    .head(top_n)
+                    .copy()
+                )
+
+                fig_imp = go.Figure()
+                fig_imp.add_trace(
+                    go.Bar(
+                        x=top_imp["importance"],
+                        y=top_imp["feature"],
+                        orientation="h",
+                        marker_color="#60a5fa"
+                    )
+                )
+
+                fig_imp.update_layout(
+                    template="plotly_dark",
+                    height=760,
+                    yaxis=dict(autorange="reversed"),
+                    xaxis_title="Importance",
+                    yaxis_title="Feature",
+                    title=f"Top {top_n} Features — {selected_horizon}D"
+                )
+
+                st.plotly_chart(fig_imp, use_container_width=True)
+
+                st.dataframe(
+                    top_imp[["feature", "importance"]].reset_index(drop=True),
+                    use_container_width=True
+                )
+
+        # -----------------------------
+        # LATEST ML SIGNAL BY HORIZON
+        # -----------------------------
+        st.subheader("Latest ML Signals by Horizon")
+
+        latest_signals = []
+
+        for h in available_horizons:
+            ph = ml_pred[ml_pred["horizon"] == h].copy()
+            if ph.empty:
+                continue
+
+            last = ph.sort_values("date").iloc[-1]
+
+            pos = last.get("ml_position_raw", np.nan)
+            prob = last.get("ml_prob_up", np.nan)
+
+            if pos == 1:
+                signal_label = "LONG"
+            elif pos == -1:
+                signal_label = "SHORT"
+            else:
+                signal_label = "FLAT"
+
+            latest_signals.append({
+                "horizon": f"{h}D",
+                "date": last["date"],
+                "prob_up": prob,
+                "signal": signal_label,
+                "price": last["price"],
+            })
+
+        latest_signal_df = pd.DataFrame(latest_signals)
+
+        if not latest_signal_df.empty:
+            latest_signal_df["date"] = pd.to_datetime(latest_signal_df["date"]).dt.date
+            latest_signal_df["prob_up"] = pd.to_numeric(latest_signal_df["prob_up"], errors="coerce").round(4)
+            latest_signal_df["price"] = pd.to_numeric(latest_signal_df["price"], errors="coerce").round(2)
+            st.dataframe(latest_signal_df, use_container_width=True)
 
 # =========================================================
 # TAB 4 — ASTRO RESEARCH

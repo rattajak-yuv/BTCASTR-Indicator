@@ -34,7 +34,10 @@ jobs:
         run: python build_ml_dataset.py
 
       - name: Train ML model
-        run: python train_ml_model.py        
+        run: python train_ml_model.py
+
+      - name: Tune ML thresholds
+        run: python tune_ml_thresholds.py
 
       - name: Analyze feature stability
         run: python analyze_feature_stability.py

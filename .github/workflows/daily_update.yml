@@ -8,13 +8,22 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: btcastr-daily-research-pipeline
+  cancel-in-progress: false
+
 jobs:
   update-data:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONUNBUFFERED: "1"
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,33 +31,152 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Generate astro score
-        run: python generate_astro_score.py
-
-      - name: Optimize model v2
-        run: python optimize_model_v2.py
-      
-      - name: Build ML dataset
-        run: python build_ml_dataset.py
-
-      - name: Train ML model
-        run: python train_ml_model.py
-
-      - name: Tune ML thresholds
-        run: python tune_ml_thresholds.py
-
-      - name: Analyze feature stability
-        run: python analyze_feature_stability.py
-
-      - name: Select robust features
-        run: python select_features.py
-  
-      - name: Commit updated CSV
+        shell: bash
         run: |
+          set -Eeuo pipefail
+          echo "::group::Install dependencies"
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          echo "::endgroup::"
+
+      - name: Run full research pipeline
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          log() {
+            echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $*"
+          }
+
+          require_file() {
+            local path="$1"
+            if [[ ! -f "$path" ]]; then
+              log "ERROR: Required file not found: $path"
+              exit 1
+            fi
+          }
+
+          require_outputs() {
+            local step_name="$1"
+            shift
+            local missing=0
+            for output in "$@"; do
+              if [[ ! -f "$output" ]]; then
+                log "ERROR: ${step_name} did not produce expected output: $output"
+                missing=1
+              else
+                log "Verified output: $output"
+              fi
+            done
+            if [[ "$missing" -ne 0 ]]; then
+              exit 1
+            fi
+          }
+
+          run_python_step() {
+            local step_name="$1"
+            local script_path="$2"
+            shift 2
+
+            require_file "$script_path"
+            log "Starting ${step_name}"
+            echo "::group::${step_name}"
+            if ! python "$script_path" "$@"; then
+              echo "::endgroup::"
+              log "ERROR: ${step_name} failed"
+              exit 1
+            fi
+            echo "::endgroup::"
+
+            if [[ "${#PIPELINE_OUTPUTS[@]}" -gt 0 ]]; then
+              require_outputs "$step_name" "${PIPELINE_OUTPUTS[@]}"
+            fi
+
+            log "Finished ${step_name}"
+          }
+
+          PIPELINE_OUTPUTS=(
+            "data/bitcoin_astro_daily_score.csv"
+            "data/astro_aspects_raw.csv"
+          )
+          run_python_step \
+            "1. Generate astro score" \
+            "generate_astro_score.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/model_optimization_v2_results.csv"
+          )
+          run_python_step \
+            "2. Optimize model v2" \
+            "optimize_model_v2.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/ml_dataset.csv"
+          )
+          run_python_step \
+            "3. Build ML dataset" \
+            "build_ml_dataset.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/ml_predictions.csv"
+            "data/ml_model_summary.csv"
+            "data/ml_feature_importance.csv"
+          )
+          run_python_step \
+            "4. Train ML model using all valid features" \
+            "train_ml_model.py" \
+            "--feature-set" \
+            "all"
+
+          PIPELINE_OUTPUTS=(
+            "data/feature_stability.csv"
+          )
+          run_python_step \
+            "5. Analyze feature stability" \
+            "analyze_feature_stability.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/selected_features.csv"
+          )
+          run_python_step \
+            "6. Select features" \
+            "select_features.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/ml_predictions.csv"
+            "data/ml_model_summary.csv"
+            "data/ml_feature_importance.csv"
+          )
+          run_python_step \
+            "7. Retrain ML model using newly selected features" \
+            "train_ml_model.py" \
+            "--feature-set" \
+            "selected"
+
+          PIPELINE_OUTPUTS=(
+            "data/ml_threshold_tuning_results.csv"
+          )
+          run_python_step \
+            "8. Tune ML thresholds" \
+            "tune_ml_thresholds.py"
+
+          log "Full research pipeline completed successfully"
+
+      - name: Commit generated CSV outputs
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          echo "::group::Commit generated CSV outputs"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/bitcoin_astro_daily_score.csv data/model_optimization_v2_results.csv data/astro_aspects_raw.csv data/ml_dataset.csv data/ml_predictions.csv data/ml_model_summary.csv data/ml_feature_importance.csv data/feature_stability.csv data/selected_features.csv data/ml_threshold_tuning_results.csv
-          git diff --staged --quiet || git commit -m "daily data update"
+          git add data/*.csv
+
+          if git diff --cached --quiet; then
+            echo "No generated CSV changes to commit"
+            echo "::endgroup::"
+            exit 0
+          fi
+
+          git commit -m "daily research pipeline update"
           git push
+          echo "::endgroup::"

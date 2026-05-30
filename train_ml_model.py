@@ -1,3 +1,4 @@
+import argparse
 import os
 import numpy as np
 import pandas as pd
@@ -27,6 +28,18 @@ PROBA_THRESHOLDS = {
     90: {"long": 0.63, "short": 0.37},
 }
 
+NON_FEATURE_COLUMNS = {
+    "date",
+    "astro_regime_v2",
+    "signal",
+    "regime",
+    "price",
+    "strategy_total_return",
+    "buy_hold_total_return",
+    "strategy_max_drawdown",
+    "buy_hold_max_drawdown",
+}
+
 
 def max_drawdown(equity):
     peak = equity.cummax()
@@ -38,6 +51,48 @@ def sharpe_like(returns):
     if returns.empty or returns.std() == 0:
         return np.nan
     return (returns.mean() / returns.std()) * np.sqrt(365)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Train BTC Astro ML models using either all valid features or a selected feature subset."
+    )
+    parser.add_argument(
+        "--feature-set",
+        choices=["all", "selected"],
+        default="selected",
+        help="Feature source to use for training.",
+    )
+    return parser.parse_args()
+
+
+def is_valid_feature_column(df, col):
+    if col in NON_FEATURE_COLUMNS:
+        return False
+
+    if col.startswith("future_"):
+        return False
+
+    if not pd.api.types.is_numeric_dtype(df[col]):
+        return False
+
+    series = df[col]
+    if series.isna().all():
+        return False
+
+    return True
+
+
+def load_all_features(df):
+    feature_cols = sorted(
+        col for col in df.columns
+        if is_valid_feature_column(df, col)
+    )
+
+    if len(feature_cols) == 0:
+        raise ValueError("No valid numeric features found in ml_dataset.csv")
+
+    return feature_cols
 
 
 def load_selected_features(df):
@@ -62,6 +117,13 @@ def load_selected_features(df):
     return selected
 
 
+def resolve_feature_columns(df, feature_set):
+    if feature_set == "all":
+        return load_all_features(df), "all_features"
+
+    return load_selected_features(df), "selected_features"
+
+
 def create_signal(prob_up, horizon):
     long_th = PROBA_THRESHOLDS[horizon]["long"]
     short_th = PROBA_THRESHOLDS[horizon]["short"]
@@ -73,7 +135,7 @@ def create_signal(prob_up, horizon):
     return 0
 
 
-def walk_forward_train(df, horizon, feature_cols):
+def walk_forward_train(df, horizon, feature_cols, feature_set_name):
     target_col = f"future_direction_{horizon}d"
 
     if target_col not in df.columns:
@@ -150,7 +212,7 @@ def walk_forward_train(df, horizon, feature_cols):
             "accuracy": acc,
             "precision": prec,
             "recall": rec,
-            "feature_set": "selected_features",
+            "feature_set": feature_set_name,
         })
 
         all_importances.append(imp)
@@ -202,7 +264,7 @@ def backtest_ml(pred_df):
     return pd.concat(all_rows, ignore_index=True)
 
 
-def summarize(pred_df):
+def summarize(pred_df, feature_set_name):
     summaries = []
 
     for horizon, g in pred_df.groupby("horizon"):
@@ -249,7 +311,7 @@ def summarize(pred_df):
 
         summaries.append({
             "model": "RandomForestClassifier",
-            "feature_set": "selected_features",
+            "feature_set": feature_set_name,
             "horizon_days": horizon,
             "train_window_days": TRAIN_WINDOW,
             "test_window_days": TEST_WINDOW,
@@ -275,20 +337,23 @@ def summarize(pred_df):
 
 
 def main():
+    args = parse_args()
+
     print("Loading ML dataset...")
     df = pd.read_csv(DATA_PATH)
     df["date"] = pd.to_datetime(df["date"])
 
-    feature_cols = load_selected_features(df)
+    feature_cols, feature_set_name = resolve_feature_columns(df, args.feature_set)
 
-    print(f"Using selected features: {len(feature_cols):,}")
+    print(f"Using feature set: {feature_set_name}")
+    print(f"Feature count: {len(feature_cols):,}")
 
     all_preds = []
     all_imps = []
 
     for horizon in HORIZONS:
         print(f"\nTraining horizon: {horizon}D")
-        pred, imp = walk_forward_train(df, horizon, feature_cols)
+        pred, imp = walk_forward_train(df, horizon, feature_cols, feature_set_name)
         all_preds.append(pred)
         all_imps.append(imp)
 
@@ -296,7 +361,7 @@ def main():
     imp_df = pd.concat(all_imps, ignore_index=True)
 
     pred_df = backtest_ml(pred_df)
-    summary = summarize(pred_df)
+    summary = summarize(pred_df, feature_set_name)
 
     importance = (
         imp_df.groupby(["horizon", "feature", "feature_set"])["importance"]

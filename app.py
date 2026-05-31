@@ -56,6 +56,10 @@ ZODIAC = [
 # =========================================================
 st.markdown("""
 <style>
+.stApp {
+    background: #F6F8FB;
+    color: #111827;
+}
 .block-container {
     padding-top: 1rem;
     padding-bottom: 2rem;
@@ -232,6 +236,165 @@ st.markdown("""
     padding: 14px 14px 12px 14px;
     min-height: 132px;
 }
+.light-header {
+    background: #ffffff;
+    border: 1px solid #E5E7EB;
+    border-radius: 20px;
+    padding: 24px 26px 18px 26px;
+    margin-bottom: 18px;
+}
+.light-kicker {
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.73rem;
+    font-weight: 700;
+}
+.light-headline {
+    color: #111827;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-top: 6px;
+}
+.light-subhead {
+    color: #6B7280;
+    font-size: 0.96rem;
+    line-height: 1.65;
+    margin-top: 8px;
+}
+.light-disclaimer {
+    color: #6B7280;
+    font-size: 0.82rem;
+    margin-top: 10px;
+}
+.summary-strip {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 18px;
+    padding: 12px;
+    margin-bottom: 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+.summary-item {
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 14px 14px 12px 14px;
+    min-height: 102px;
+}
+.summary-label {
+    color: #6B7280;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.summary-value {
+    color: #111827;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-top: 10px;
+}
+.summary-sub {
+    color: #6B7280;
+    font-size: 0.82rem;
+    margin-top: 8px;
+    line-height: 1.45;
+}
+.light-metric {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-top: 4px solid #CBD5E1;
+    border-radius: 16px;
+    padding: 18px 18px 16px 18px;
+    min-height: 144px;
+}
+.light-metric-label {
+    color: #6B7280;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.light-metric-value {
+    color: #111827;
+    font-size: 1.28rem;
+    font-weight: 800;
+    margin-top: 12px;
+}
+.light-metric-sub {
+    color: #6B7280;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    margin-top: 10px;
+}
+.section-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 18px;
+    padding: 18px 18px 16px 18px;
+    margin-bottom: 18px;
+    min-height: 214px;
+}
+.section-title {
+    color: #111827;
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+}
+.section-note {
+    color: #6B7280;
+    font-size: 0.88rem;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+.light-badge {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.77rem;
+    font-weight: 700;
+    color: #FFFFFF;
+}
+.turning-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 16px 16px 14px 16px;
+    min-height: 158px;
+}
+.turning-date {
+    color: #111827;
+    font-weight: 800;
+    font-size: 0.96rem;
+}
+.turning-type {
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-size: 0.74rem;
+    margin-top: 7px;
+}
+.turning-direction {
+    font-weight: 800;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+.turning-body {
+    color: #6B7280;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    margin-top: 10px;
+}
+.mini-risk-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-left: 4px solid #CBD5E1;
+    border-radius: 16px;
+    padding: 16px 16px 14px 16px;
+    min-height: 150px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -239,73 +402,67 @@ st.markdown("""
 # LOADERS
 # =========================================================
 @st.cache_data(ttl=3600)
-def load_daily():
-    df = pd.read_csv("data/bitcoin_astro_daily_score.csv")
-    df["date"] = pd.to_datetime(df["date"])
-    return df
-
-@st.cache_data(ttl=3600)
-def load_raw_aspects():
+def load_csv_safe(path, default=None, parse_date_cols=None):
+    if default is None:
+        default = pd.DataFrame()
     try:
-        df = pd.read_csv("data/astro_aspects_raw.csv")
-        df["date"] = pd.to_datetime(df["date"])
+        df = pd.read_csv(path)
+        for col in parse_date_cols or []:
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
         return df
     except Exception:
-        return pd.DataFrame()
+        return default.copy() if isinstance(default, pd.DataFrame) else default
 
 @st.cache_data(ttl=3600)
-def load_ml_predictions():
-    try:
-        df = pd.read_csv("data/ml_predictions.csv")
-        df["date"] = pd.to_datetime(df["date"])
-        return df
-    except Exception:
-        return pd.DataFrame()
-
-@st.cache_data(ttl=3600)
-def load_ml_summary():
-    try:
-        return pd.read_csv("data/ml_model_summary.csv")
-    except Exception:
-        return pd.DataFrame()
-
-@st.cache_data(ttl=3600)
-def load_ml_importance():
-    try:
-        return pd.read_csv("data/ml_feature_importance.csv")
-    except Exception:
-        return pd.DataFrame()
-
-@st.cache_data(ttl=3600)
-def load_optimization_v2():
-    try:
-        return pd.read_csv("data/model_optimization_v2_results.csv")
-    except Exception:
-        return pd.DataFrame()
-
-@st.cache_data(ttl=3600)
-def load_json_file(path):
+def load_json_safe(path, default=None):
+    if default is None:
+        default = {}
     try:
         with open(path, "r", encoding="utf-8") as handle:
             return json.load(handle)
     except Exception:
-        return {}
+        return default.copy() if isinstance(default, dict) else default
+
+@st.cache_data(ttl=3600)
+def load_daily():
+    return load_csv_safe("data/bitcoin_astro_daily_score.csv", parse_date_cols=["date"])
+
+@st.cache_data(ttl=3600)
+def load_raw_aspects():
+    return load_csv_safe("data/astro_aspects_raw.csv", parse_date_cols=["date"])
+
+@st.cache_data(ttl=3600)
+def load_ml_predictions():
+    return load_csv_safe("data/ml_predictions.csv", parse_date_cols=["date"])
+
+@st.cache_data(ttl=3600)
+def load_ml_summary():
+    return load_csv_safe("data/ml_model_summary.csv")
+
+@st.cache_data(ttl=3600)
+def load_ml_importance():
+    return load_csv_safe("data/ml_feature_importance.csv")
+
+@st.cache_data(ttl=3600)
+def load_optimization_v2():
+    return load_csv_safe("data/model_optimization_v2_results.csv")
 
 @st.cache_data(ttl=3600)
 def load_dashboard_current_state():
-    return load_json_file("data/dashboard_current_state.json")
+    return load_json_safe("data/dashboard_current_state.json")
 
 @st.cache_data(ttl=3600)
 def load_dashboard_timeline():
-    return load_json_file("data/dashboard_timeline.json")
+    return load_json_safe("data/dashboard_timeline.json")
 
 @st.cache_data(ttl=3600)
 def load_dashboard_risk_calendar():
-    return load_json_file("data/dashboard_risk_calendar.json")
+    return load_json_safe("data/dashboard_risk_calendar.json")
 
 @st.cache_data(ttl=3600)
 def load_dashboard_summary():
-    return load_json_file("data/dashboard_summary.json")
+    return load_json_safe("data/dashboard_summary.json")
 
 # =========================================================
 # HELPERS
@@ -318,6 +475,14 @@ def fmt_num(x):
 
 def fmt_pct(x):
     return "N/A" if pd.isna(x) else f"{x:.2%}"
+
+def format_pct(x):
+    return fmt_pct(x)
+
+def format_date(x):
+    if pd.isna(x) or x in [None, ""]:
+        return "N/A"
+    return pd.to_datetime(x).strftime("%Y-%m-%d")
 
 def classify_regime(score):
     if score >= 3:
@@ -553,27 +718,13 @@ latest_price = price_df.iloc[-1]["price"]
 # =========================================================
 # SIDEBAR
 # =========================================================
-st.sidebar.header("Global Controls")
+st.sidebar.header("Forecast Dashboard Controls")
 
 range_option = st.sidebar.selectbox(
-    "Historical Range",
-    ["4Y", "3Y", "2Y", "1Y", "6M", "3M", "All"],
-    index=0
+    "Historical Chart Range",
+    ["3M", "6M", "1Y", "2Y", "4Y", "ALL"],
+    index=2
 )
-
-indicator_options = {
-    "Astro Momentum v2": "astro_momentum_v2",
-    "Astro Momentum v2 Smooth": "astro_momentum_v2_smooth",
-    "Bullish Score": "astro_bullish_score",
-    "Bearish Score": "astro_bearish_score",
-    "Reversal Score": "astro_reversal_score",
-    "Volatility Score": "astro_volatility_score",
-    "Compression Score": "astro_compression_score",
-    "Trend Start Score": "astro_trend_start_score",
-    "Trend End Score": "astro_trend_end_score",
-}
-indicator_label = st.sidebar.selectbox("Astro Indicator", list(indicator_options.keys()), index=1)
-indicator_col = indicator_options[indicator_label]
 
 forecast_days = st.sidebar.selectbox(
     "Forecast Horizon",
@@ -581,15 +732,41 @@ forecast_days = st.sidebar.selectbox(
     index=3
 )
 
-show_signals = st.sidebar.checkbox("Show Rule-Based Buy/Sell Markers", value=True)
+taxonomy_filter_options = [
+    "All",
+    "Constructive / Positive Drift",
+    "Neutral / Tactical",
+    "False Bull / Exhaustion Risk",
+    "Bearish",
+    "High Risk",
+]
+taxonomy_filter = st.sidebar.selectbox("Taxonomy Filter", taxonomy_filter_options, index=0)
+show_turning_points = st.sidebar.checkbox("Show Turning Points", value=True)
+show_taxonomy_overlay = st.sidebar.checkbox("Show Taxonomy Overlay", value=True)
+show_detail_tables = st.sidebar.checkbox("Show Detailed Tables", value=True)
+
+with st.sidebar.expander("Research Chart Controls", expanded=False):
+    indicator_options = {
+        "Astro Momentum v2": "astro_momentum_v2",
+        "Astro Momentum v2 Smooth": "astro_momentum_v2_smooth",
+        "Bullish Score": "astro_bullish_score",
+        "Bearish Score": "astro_bearish_score",
+        "Reversal Score": "astro_reversal_score",
+        "Volatility Score": "astro_volatility_score",
+        "Compression Score": "astro_compression_score",
+        "Trend Start Score": "astro_trend_start_score",
+        "Trend End Score": "astro_trend_end_score",
+    }
+    indicator_label = st.selectbox("Astro Indicator", list(indicator_options.keys()), index=1)
+    show_signals = st.checkbox("Show Rule-Based Buy/Sell Markers", value=True)
+
+indicator_col = indicator_options[indicator_label]
 
 min_date = price_df["date"].min()
-if range_option == "All":
+if range_option == "ALL":
     start_date = min_date
 elif range_option == "4Y":
     start_date = last_price_date - pd.Timedelta(days=365 * 4)
-elif range_option == "3Y":
-    start_date = last_price_date - pd.Timedelta(days=365 * 3)
 elif range_option == "2Y":
     start_date = last_price_date - pd.Timedelta(days=365 * 2)
 elif range_option == "1Y":
@@ -611,6 +788,495 @@ future = df[(df["date"] > last_price_date) & (df["date"] <= last_price_date + pd
 st.title("Bitcoin Astro Quant Dashboard")
 
 if dashboard_current:
+    def render_light_metric(label, value, helper_text="", accent="#2563EB"):
+        st.markdown(
+            f"""
+            <div class="light-metric" style="border-top:4px solid {accent};">
+                <div class="light-metric-label">{label}</div>
+                <div class="light-metric-value">{value}</div>
+                <div class="light-metric-sub">{helper_text}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    def render_outlook_card(title, data):
+        taxonomy = data.get("dominant_taxonomy", "N/A")
+        badge_color = taxonomy_color(taxonomy)
+        st.markdown(
+            f"""
+            <div class="section-card">
+                <div class="section-title">{title}</div>
+                <div style="margin:8px 0 14px 0;">
+                    <span class="light-badge" style="background:{taxonomy_rgba(taxonomy, 0.12)}; color:{badge_color}; border:1px solid {taxonomy_rgba(taxonomy, 0.28)};">
+                        {taxonomy}
+                    </span>
+                </div>
+                <div class="section-note">Average confidence {format_pct(data.get("average_confidence", np.nan))}</div>
+                <div class="section-note">Average probability {format_pct(data.get("average_probability", np.nan))}</div>
+                <div class="section-note" style="margin-top:12px; color:#111827;">{data.get("summary", "No calibrated summary available.")}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    def first_window_by_taxonomy(window_df, taxonomy_label):
+        if window_df.empty:
+            return {}
+        match = window_df[window_df["taxonomy_v2"] == taxonomy_label]
+        return match.iloc[0].to_dict() if not match.empty else {}
+
+    top_dashboard_windows = pd.DataFrame(dashboard_timeline.get("windows", []))
+    top_turning_points = pd.DataFrame(dashboard_risk_calendar.get("turning_points", []))
+    top_risk_windows = pd.DataFrame(dashboard_risk_calendar.get("risk_windows", []))
+    top_current_window = dashboard_current.get("current_window", {})
+    top_next_turning = dashboard_current.get("next_turning_point", {})
+    top_next_constructive = dashboard_current.get("next_constructive_window", {})
+    top_next_high_risk = dashboard_current.get("next_high_risk_window", {})
+    top_30d = dashboard_summary.get("30D Outlook", {})
+    top_90d = dashboard_summary.get("90D Outlook", {})
+    top_365d = dashboard_summary.get("365D Outlook", {})
+    prev_price = price_df[price_df["date"] < last_price_date]["price"].iloc[-1] if len(price_df) > 1 else latest_price
+    price_delta = latest_price - prev_price
+    price_delta_pct = (price_delta / prev_price) if prev_price else 0.0
+    forecast_generated_date = format_date(dashboard_current.get("forecast_date"))
+    forecast_cutoff = last_price_date + pd.Timedelta(days=forecast_days)
+
+    if not top_dashboard_windows.empty:
+        top_dashboard_windows["start_date"] = pd.to_datetime(top_dashboard_windows["start_date"])
+        top_dashboard_windows["end_date"] = pd.to_datetime(top_dashboard_windows["end_date"])
+        top_dashboard_windows = top_dashboard_windows.sort_values("start_date").reset_index(drop=True)
+        top_dashboard_windows = top_dashboard_windows[top_dashboard_windows["start_date"] <= forecast_cutoff].copy()
+
+    if not top_turning_points.empty:
+        top_turning_points["turning_point_date"] = pd.to_datetime(top_turning_points["turning_point_date"])
+        top_turning_points = top_turning_points.sort_values("turning_point_date").reset_index(drop=True)
+        top_turning_points = top_turning_points[top_turning_points["turning_point_date"] <= forecast_cutoff].copy()
+
+    if not top_risk_windows.empty:
+        top_risk_windows["start_date"] = pd.to_datetime(top_risk_windows["start_date"])
+        top_risk_windows["end_date"] = pd.to_datetime(top_risk_windows["end_date"])
+        top_risk_windows = top_risk_windows.sort_values("start_date").reset_index(drop=True)
+        top_risk_windows = top_risk_windows[top_risk_windows["start_date"] <= forecast_cutoff].copy()
+
+    if taxonomy_filter != "All" and not top_dashboard_windows.empty:
+        top_dashboard_windows = top_dashboard_windows[top_dashboard_windows["taxonomy_v2"] == taxonomy_filter].copy()
+
+    if top_dashboard_windows.empty and taxonomy_filter != "All":
+        st.warning(f"No forecast windows match the taxonomy filter `{taxonomy_filter}` for the selected horizon.")
+
+    next_risk_window = top_risk_windows.iloc[0].to_dict() if not top_risk_windows.empty else {}
+    next_bearish_window = first_window_by_taxonomy(top_dashboard_windows, "Bearish")
+    next_false_bull_window = first_window_by_taxonomy(top_dashboard_windows, "False Bull / Exhaustion Risk")
+
+    st.markdown(
+        f"""
+        <div class="light-header">
+            <div class="light-kicker">Forecast Dashboard</div>
+            <div class="light-headline">Evidence-based forecast timeline powered by Robust Astro Engine v1</div>
+            <div class="light-subhead">
+                Generated {forecast_generated_date}. Current market view: {dashboard_current.get("market_view", "Unavailable")}.
+            </div>
+            <div class="light-disclaimer">Research tool only. Not financial advice.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    summary_values = [
+        ("Current Market View", dashboard_current.get("market_view", "N/A"), dashboard_current.get("current_signal", "N/A")),
+        ("Current Taxonomy", dashboard_current.get("current_taxonomy", "N/A"), top_current_window.get("v2_posture", "N/A")),
+        ("Recommended Bias", dashboard_current.get("recommended_bias", "N/A"), dashboard_current.get("risk_level", "N/A")),
+        ("Current Confidence", format_pct(dashboard_current.get("current_confidence", np.nan)), f"Probability {format_pct(dashboard_current.get('current_probability', np.nan))}"),
+        ("Next Turning Point", format_date(top_next_turning.get("turning_point_date")), top_next_turning.get("new_signal", "N/A")),
+        ("Next Risk Window", f"{format_date(top_next_high_risk.get('start_date'))} to {format_date(top_next_high_risk.get('end_date'))}", top_next_high_risk.get("taxonomy_v2", "N/A")),
+    ]
+    summary_html = "".join(
+        f"""
+        <div class="summary-item">
+            <div class="summary-label">{label}</div>
+            <div class="summary-value">{value}</div>
+            <div class="summary-sub">{sub}</div>
+        </div>
+        """
+        for label, value, sub in summary_values
+    )
+    st.markdown(f'<div class="summary-strip">{summary_html}</div>', unsafe_allow_html=True)
+
+    state_cols = st.columns(5)
+    with state_cols[0]:
+        render_light_metric(
+            "Current Signal",
+            dashboard_current.get("current_signal", "N/A"),
+            dashboard_current.get("market_view", "No market view available."),
+            taxonomy_color(dashboard_current.get("current_taxonomy")),
+        )
+    with state_cols[1]:
+        render_light_metric(
+            "Current Taxonomy",
+            dashboard_current.get("current_taxonomy", "N/A"),
+            top_current_window.get("v2_posture", "No posture available."),
+            taxonomy_color(dashboard_current.get("current_taxonomy")),
+        )
+    with state_cols[2]:
+        render_light_metric(
+            "Confidence",
+            format_pct(dashboard_current.get("current_confidence", np.nan)),
+            f"ML probability {format_pct(dashboard_current.get('current_probability', np.nan))}",
+            "#2563EB",
+        )
+    with state_cols[3]:
+        render_light_metric(
+            "Bias",
+            dashboard_current.get("recommended_bias", "N/A"),
+            top_current_window.get("taxonomy_reason", top_current_window.get("narrative_v2", "No narrative available."))[:120],
+            taxonomy_color(dashboard_current.get("current_taxonomy")),
+        )
+    with state_cols[4]:
+        render_light_metric(
+            "Risk Level",
+            dashboard_current.get("risk_level", "N/A"),
+            f"BTC {fmt_money(latest_price)} | {price_delta_pct:+.2%} vs prior close",
+            risk_level_color(dashboard_current.get("risk_level")),
+        )
+
+    st.markdown('<div class="section-title" style="margin-top:24px;">BTC Price with Forecast Taxonomy Overlay</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-note">The historical range selector controls the visible BTCUSD history. The forecast horizon selector controls how far future taxonomy windows and turning points extend.</div>',
+        unsafe_allow_html=True,
+    )
+
+    chart_windows = top_dashboard_windows.copy()
+    chart_turning_points = top_turning_points.copy()
+    chart_start = start_date
+    chart_end = max(forecast_cutoff, last_price_date)
+    chart_price = price_df[(price_df["date"] >= chart_start) & (price_df["date"] <= last_price_date)].copy()
+
+    if chart_price.empty:
+        chart_price = price_df.copy()
+
+    price_fig = go.Figure()
+
+    if show_taxonomy_overlay and not chart_windows.empty:
+        for _, row in chart_windows.iterrows():
+            price_fig.add_vrect(
+                x0=max(row["start_date"], chart_start),
+                x1=min(row["end_date"], forecast_cutoff),
+                fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.10 if row["taxonomy_v2"] != "High Risk" else 0.15),
+                layer="below",
+                line_width=0,
+            )
+
+    price_fig.add_vrect(
+        x0=last_price_date,
+        x1=forecast_cutoff,
+        fillcolor="rgba(148,163,184,0.08)",
+        layer="below",
+        line_width=0,
+        annotation_text="Forecast Zone",
+        annotation_position="top left",
+        annotation_font_color="#6B7280",
+    )
+
+    hist_custom = np.column_stack(
+        [
+            np.full(len(chart_price), "Historical / Live"),
+            np.full(len(chart_price), "N/A"),
+            np.full(len(chart_price), "N/A"),
+            np.full(len(chart_price), ""),
+        ]
+    )
+    price_fig.add_trace(
+        go.Scatter(
+            x=chart_price["date"],
+            y=chart_price["price"],
+            mode="lines",
+            name="BTCUSD Price",
+            line=dict(color="#2563EB", width=2.6),
+            customdata=hist_custom,
+            hovertemplate=(
+                "Date: %{x|%Y-%m-%d}<br>"
+                "BTC Price: $%{y:,.0f}<br>"
+                "Taxonomy: %{customdata[0]}<br>"
+                "Confidence: %{customdata[1]}<br>"
+                "Probability: %{customdata[2]}<br>"
+                "%{customdata[3]}<extra></extra>"
+            ),
+        )
+    )
+
+    forecast_context_rows = []
+    if not chart_windows.empty:
+        for _, row in chart_windows.iterrows():
+            date_range = pd.date_range(max(row["start_date"], last_price_date), min(row["end_date"], forecast_cutoff), freq="D")
+            for dt in date_range:
+                forecast_context_rows.append(
+                    {
+                        "date": dt,
+                        "taxonomy_v2": row["taxonomy_v2"],
+                        "average_confidence": row["average_confidence"],
+                        "average_ml_probability": row["average_ml_probability"],
+                    }
+                )
+
+    forecast_context = pd.DataFrame(forecast_context_rows)
+    if not forecast_context.empty:
+        forecast_context = forecast_context.groupby("date", as_index=False).last()
+        forecast_context["reference_price"] = latest_price
+        future_custom = np.column_stack(
+            [
+                forecast_context["taxonomy_v2"].astype(str),
+                forecast_context["average_confidence"].map(format_pct),
+                forecast_context["average_ml_probability"].map(format_pct),
+                np.full(len(forecast_context), ""),
+            ]
+        )
+        price_fig.add_trace(
+            go.Scatter(
+                x=forecast_context["date"],
+                y=forecast_context["reference_price"],
+                mode="lines",
+                name="Forecast Baseline",
+                line=dict(color="#94A3B8", width=1.5, dash="dot"),
+                customdata=future_custom,
+                hovertemplate=(
+                    "Date: %{x|%Y-%m-%d}<br>"
+                    "BTC Price: $%{y:,.0f} (last close reference)<br>"
+                    "Taxonomy: %{customdata[0]}<br>"
+                    "Confidence: %{customdata[1]}<br>"
+                    "Probability: %{customdata[2]}<extra></extra>"
+                ),
+            )
+        )
+
+    if show_turning_points and not chart_turning_points.empty:
+        chart_turning_points = chart_turning_points[chart_turning_points["turning_point_date"] >= chart_start].copy()
+        if not chart_turning_points.empty:
+            marker_map = {
+                "bullish": ("triangle-up", "#16A34A"),
+                "bearish": ("triangle-down", "#DC2626"),
+            }
+            chart_turning_points["marker_symbol"] = chart_turning_points["new_signal"].str.lower().map(lambda x: marker_map.get(x, ("circle", "#6B7280"))[0])
+            chart_turning_points["marker_color"] = chart_turning_points["new_signal"].str.lower().map(lambda x: marker_map.get(x, ("circle", "#6B7280"))[1])
+            chart_turning_points["plot_y"] = latest_price * 1.015
+            price_fig.add_trace(
+                go.Scatter(
+                    x=chart_turning_points["turning_point_date"],
+                    y=chart_turning_points["plot_y"],
+                    mode="markers",
+                    name="Turning Points",
+                    marker=dict(
+                        symbol=chart_turning_points["marker_symbol"],
+                        size=13,
+                        color=chart_turning_points["marker_color"],
+                        line=dict(width=1, color="#FFFFFF"),
+                    ),
+                    customdata=np.column_stack(
+                        [
+                            chart_turning_points["turning_point_type"].astype(str),
+                            chart_turning_points["old_signal"].astype(str),
+                            chart_turning_points["new_signal"].astype(str),
+                            chart_turning_points["confidence"].map(format_pct),
+                        ]
+                    ),
+                    hovertemplate=(
+                        "Date: %{x|%Y-%m-%d}<br>"
+                        "Turning point: %{customdata[0]}<br>"
+                        "Signal shift: %{customdata[1]} -> %{customdata[2]}<br>"
+                        "Confidence: %{customdata[3]}<br>"
+                        "Probability: N/A<extra></extra>"
+                    ),
+                )
+            )
+
+    price_fig.add_vline(
+        x=last_price_date,
+        line_dash="dash",
+        line_color="#6B7280",
+        opacity=0.9,
+        annotation_text="Forecast Start",
+        annotation_position="top right",
+        annotation_font_color="#6B7280",
+    )
+    price_fig.update_layout(
+        height=580,
+        margin=dict(l=20, r=20, t=20, b=20),
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+        hovermode="x unified",
+        legend=dict(orientation="h", y=1.03, x=0, bgcolor="rgba(255,255,255,0.9)"),
+        xaxis_title="Date",
+        yaxis_title="BTCUSD Price",
+        font=dict(color="#111827"),
+    )
+    price_fig.update_xaxes(
+        range=[chart_start, chart_end],
+        showgrid=True,
+        gridcolor="rgba(148,163,184,0.18)",
+        zeroline=False,
+    )
+    price_fig.update_yaxes(
+        showgrid=True,
+        gridcolor="rgba(148,163,184,0.18)",
+        zeroline=False,
+        range=[chart_price["price"].min() * 0.95, max(chart_price["price"].max(), latest_price) * 1.08],
+    )
+    st.plotly_chart(price_fig, use_container_width=True)
+
+    st.markdown('<div class="section-title" style="margin-top:24px;">Outlook Cards</div>', unsafe_allow_html=True)
+    outlook_cols = st.columns(3)
+    with outlook_cols[0]:
+        render_outlook_card("30D Outlook", top_30d)
+    with outlook_cols[1]:
+        render_outlook_card("90D Outlook", top_90d)
+    with outlook_cols[2]:
+        render_outlook_card("365D Outlook", top_365d)
+
+    if show_detail_tables:
+        st.markdown('<div class="section-title" style="margin-top:24px;">Forecast Windows Detail</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="section-note">Detailed forecast windows remain available for auditability, with filters for taxonomy and posture.</div>',
+            unsafe_allow_html=True,
+        )
+        detail_df = top_dashboard_windows.copy()
+        if not detail_df.empty:
+            filter_cols = st.columns([1.1, 1, 1, 1.1])
+            with filter_cols[0]:
+                detail_start = st.date_input(
+                    "Window start after",
+                    value=detail_df["start_date"].min().date(),
+                    key="detail_start_date",
+                )
+            with filter_cols[1]:
+                detail_end = st.date_input(
+                    "Window end before",
+                    value=detail_df["end_date"].max().date(),
+                    key="detail_end_date",
+                )
+            with filter_cols[2]:
+                only_risk = st.checkbox("Risk windows only", value=False, key="detail_only_risk")
+            with filter_cols[3]:
+                only_constructive = st.checkbox("Constructive only", value=False, key="detail_only_constructive")
+
+            detail_df = detail_df[
+                (detail_df["start_date"].dt.date >= detail_start) &
+                (detail_df["end_date"].dt.date <= detail_end)
+            ].copy()
+            if only_risk:
+                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["High Risk", "Bearish", "False Bull / Exhaustion Risk"])].copy()
+            if only_constructive:
+                detail_df = detail_df[detail_df["taxonomy_v2"] == "Constructive / Positive Drift"].copy()
+
+            detail_display = detail_df.copy()
+            detail_display["start_date"] = detail_display["start_date"].map(format_date)
+            detail_display["end_date"] = detail_display["end_date"].map(format_date)
+            detail_display["average_confidence"] = detail_display["average_confidence"].map(format_pct)
+            detail_display["average_ml_probability"] = detail_display["average_ml_probability"].map(format_pct)
+            if "average_astro_score" in detail_display.columns:
+                detail_display["average_astro_score"] = detail_display["average_astro_score"].map(lambda x: "N/A" if pd.isna(x) else f"{x:.2f}")
+            detail_display["taxonomy_reason"] = detail_display["taxonomy_reason"].fillna(detail_display.get("narrative_v2", ""))
+            detail_display = detail_display[
+                [
+                    "start_date",
+                    "end_date",
+                    "taxonomy_v2",
+                    "duration_days",
+                    "average_confidence",
+                    "average_ml_probability",
+                    "average_astro_score",
+                    "v2_posture",
+                    "taxonomy_reason",
+                ]
+            ]
+            st.dataframe(detail_display, use_container_width=True, hide_index=True)
+        else:
+            st.info("No forecast windows are available for the current filters.")
+
+    st.markdown('<div class="section-title" style="margin-top:24px;">Upcoming Turning Points</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-note">The next three turning points are surfaced as quick-read cards, with the full table available on demand.</div>',
+        unsafe_allow_html=True,
+    )
+    if not top_turning_points.empty:
+        turn_cards = top_turning_points.head(3).copy()
+        turn_cols = st.columns(3)
+        for idx, (_, row) in enumerate(turn_cards.iterrows()):
+            new_signal = str(row["new_signal"]).strip()
+            direction_color = taxonomy_color("Constructive / Positive Drift") if new_signal.lower() == "bullish" else taxonomy_color("Bearish") if new_signal.lower() == "bearish" else "#6B7280"
+            with turn_cols[idx]:
+                st.markdown(
+                    f"""
+                    <div class="turning-card" style="border-top:4px solid {direction_color};">
+                        <div class="turning-date">{format_date(row["turning_point_date"])}</div>
+                        <div class="turning-type">{str(row["turning_point_type"]).replace("_", " ").title()}</div>
+                        <div class="turning-direction" style="color:{direction_color};">{row["old_signal"]} -> {row["new_signal"]}</div>
+                        <div class="turning-body">Confidence {format_pct(row["confidence"])}. {row["explanation"]}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+        with st.expander("Show full turning point table", expanded=False):
+            tp_display = top_turning_points.copy()
+            tp_display["turning_point_date"] = tp_display["turning_point_date"].map(format_date)
+            tp_display["confidence"] = tp_display["confidence"].map(format_pct)
+            st.dataframe(
+                tp_display[
+                    [
+                        "turning_point_date",
+                        "turning_point_type",
+                        "old_signal",
+                        "new_signal",
+                        "confidence",
+                        "explanation",
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+    else:
+        st.info("No turning points are available for the selected horizon.")
+
+    st.markdown('<div class="section-title" style="margin-top:24px;">Risk Calendar</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="section-note">Compact risk cards keep the next major caution windows visible without repeating the same information unnecessarily.</div>',
+        unsafe_allow_html=True,
+    )
+    risk_card_specs = [
+        ("Next Risk Window", next_risk_window, next_risk_window.get("taxonomy_v2", dashboard_current.get("current_taxonomy", "Neutral / Tactical"))),
+        ("Next High Risk Window", top_next_high_risk, top_next_high_risk.get("taxonomy_v2", "High Risk")),
+        ("Next Bearish Window", next_bearish_window, next_bearish_window.get("taxonomy_v2", "Bearish")),
+        ("Next False Bull Window", next_false_bull_window, next_false_bull_window.get("taxonomy_v2", "False Bull / Exhaustion Risk")),
+    ]
+    risk_cols = st.columns(4)
+    for idx, (title, row, taxonomy_label) in enumerate(risk_card_specs):
+        start_text = format_date(row.get("start_date", row.get("turning_point_date")))
+        end_text = format_date(row.get("end_date"))
+        date_text = start_text if end_text == "N/A" else f"{start_text} to {end_text}"
+        body_text = row.get("taxonomy_reason", row.get("explanation", "No additional context available."))
+        with risk_cols[idx]:
+            st.markdown(
+                f"""
+                <div class="mini-risk-card" style="border-top:4px solid {taxonomy_color(taxonomy_label)};">
+                    <div class="summary-label">{title}</div>
+                    <div class="summary-value" style="font-size:1.05rem;">{date_text}</div>
+                    <div style="margin:10px 0 8px 0;">
+                        <span class="light-badge" style="background:{taxonomy_rgba(taxonomy_label, 0.12)}; color:{taxonomy_color(taxonomy_label)}; border:1px solid {taxonomy_rgba(taxonomy_label, 0.28)};">
+                            {taxonomy_label}
+                        </span>
+                    </div>
+                    <div class="summary-sub">{body_text}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("---")
+else:
+    st.warning("Forecast dashboard files are missing or empty. The research tabs below are still available.")
+    st.markdown("---")
+
+if dashboard_current and False:
     top_dashboard_windows = pd.DataFrame(dashboard_timeline.get("windows", []))
     top_turning_points = pd.DataFrame(dashboard_risk_calendar.get("turning_points", []))
     top_risk_windows = pd.DataFrame(dashboard_risk_calendar.get("risk_windows", []))

@@ -1,0 +1,48 @@
+{
+  "forecast_date": "2026-05-31",
+  "current_signal": "Neutral",
+  "current_probability": 0.4749604818583967,
+  "current_confidence": 0.2708486269904867,
+  "current_taxonomy": "Constructive / Positive Drift",
+  "market_view": "Balanced consolidation",
+  "risk_level": "Low",
+  "recommended_bias": "Neutral",
+  "current_window": {
+    "start_date": "2026-05-31",
+    "end_date": "2026-06-04",
+    "window_class": "Transition",
+    "taxonomy_v2": "Constructive / Positive Drift",
+    "average_confidence": 0.2946128471807154,
+    "average_ml_probability": 0.5288445066982769,
+    "average_astro_score": 1.6499690753542224,
+    "v2_posture": "Constructive Long Bias",
+    "narrative_v2": "From 2026-05-31 to 2026-06-04, the calibrated outlook is constructive rather than merely optimistic. Historical outcomes remain positive across key horizons (7D=1.59%, 14D=3.46%, 30D=8.98%) with average win rate 60.34%. The stance favors measured long exposure instead of aggressive chasing."
+  },
+  "next_turning_point": {
+    "turning_point_date": "2026-06-05",
+    "turning_point_type": "signal_flip",
+    "old_signal": "Neutral",
+    "new_signal": "Bullish",
+    "confidence": 0.3507633163788466,
+    "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5786.",
+    "severity": "high"
+  },
+  "next_constructive_window": {
+    "start_date": "2026-05-31",
+    "end_date": "2026-06-04",
+    "taxonomy_v2": "Constructive / Positive Drift",
+    "average_confidence": 0.2946128471807154,
+    "average_ml_probability": 0.5288445066982769,
+    "v2_posture": "Constructive Long Bias",
+    "taxonomy_reason": "Historical outcomes remain positive across key horizons (7D=1.59%, 14D=3.46%, 30D=8.98%) with average win rate 60.34%."
+  },
+  "next_high_risk_window": {
+    "start_date": "2026-11-15",
+    "end_date": "2026-11-22",
+    "taxonomy_v2": "High Risk",
+    "average_confidence": 0.3995969753095416,
+    "average_ml_probability": 0.4237595165873582,
+    "v2_posture": "Defensive",
+    "taxonomy_reason": "Historical returns are weak at 0.03% while average volatility stays elevated at 12.14%, which supports a defensive risk framing."
+  }
+}

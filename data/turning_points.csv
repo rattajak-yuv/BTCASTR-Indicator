@@ -1,0 +1,39 @@
+turning_point_date,old_signal,new_signal,turning_point_type,confidence,explanation
+2026-06-05,Neutral,Bullish,signal_flip,0.3507633163788466,Signal shifted from Neutral to Bullish as ML probability moved to 0.5786.
+2026-07-05,Bullish,Neutral,bullish_window_break,0.3271261318895935,Signal shifted from Bullish to Neutral as ML probability moved to 0.5626.
+2026-07-15,Neutral,Bearish,signal_flip,0.2811525552809793,Signal shifted from Neutral to Bearish as ML probability moved to 0.4260.
+2026-07-22,Bearish,Bearish,momentum_breakdown_down,0.39115699939060644,"Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.2639."
+2026-07-29,Bearish,Bearish,momentum_neutral_cross,0.47579000469805155,Astro momentum crossed the neutral line and is now -0.0929.
+2026-08-01,Bearish,Neutral,bearish_window_relief,0.25468881703126767,Signal shifted from Bearish to Neutral as ML probability moved to 0.4567.
+2026-08-02,Neutral,Neutral,momentum_neutral_cross,0.23532846117831255,Astro momentum crossed the neutral line and is now 0.0900.
+2026-08-20,Neutral,Bullish,signal_flip,0.35494034947226155,Signal shifted from Neutral to Bullish as ML probability moved to 0.5850.
+2026-09-28,Bullish,Neutral,bullish_window_break,0.3779902654502187,Signal shifted from Bullish to Neutral as ML probability moved to 0.5683.
+2026-10-03,Neutral,Bullish,signal_flip,0.38278820857082624,Signal shifted from Neutral to Bullish as ML probability moved to 0.5729.
+2026-10-13,Bullish,Neutral,bullish_window_break,0.35061667721007894,Signal shifted from Bullish to Neutral as ML probability moved to 0.5527.
+2026-10-20,Neutral,Neutral,momentum_breakout_up,0.3481399225242488,"Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.8050."
+2026-11-15,Neutral,Bearish,signal_flip,0.3999454756534496,Signal shifted from Neutral to Bearish as ML probability moved to 0.4187.
+2026-11-23,Bearish,Neutral,bearish_window_relief,0.38929520673914814,Signal shifted from Bearish to Neutral as ML probability moved to 0.4343.
+2026-11-23,Bearish,Neutral,momentum_breakdown_down,0.38929520673914814,"Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.2792."
+2026-12-13,Neutral,Bullish,signal_flip,0.384772656178461,Signal shifted from Neutral to Bullish as ML probability moved to 0.5716.
+2026-12-14,Bullish,Neutral,bullish_window_break,0.3822541682318452,Signal shifted from Bullish to Neutral as ML probability moved to 0.5690.
+2026-12-15,Neutral,Bullish,signal_flip,0.3823819845606367,Signal shifted from Neutral to Bullish as ML probability moved to 0.5704.
+2026-12-16,Bullish,Neutral,bullish_window_break,0.3838390980703691,Signal shifted from Bullish to Neutral as ML probability moved to 0.5699.
+2026-12-22,Neutral,Bullish,signal_flip,0.3860302291766703,Signal shifted from Neutral to Bullish as ML probability moved to 0.5716.
+2026-12-23,Bullish,Neutral,bullish_window_break,0.3808257301064193,Signal shifted from Bullish to Neutral as ML probability moved to 0.5676.
+2026-12-28,Neutral,Bullish,signal_flip,0.38779687671863444,Signal shifted from Neutral to Bullish as ML probability moved to 0.5725.
+2027-01-04,Bullish,Neutral,bullish_window_break,0.33511447722715154,Signal shifted from Bullish to Neutral as ML probability moved to 0.5384.
+2027-01-08,Neutral,Neutral,momentum_breakout_up,0.32287374168458755,"Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.8250."
+2027-01-19,Neutral,Bullish,signal_flip,0.32663013846909505,Signal shifted from Neutral to Bullish as ML probability moved to 0.5713.
+2027-02-07,Bullish,Neutral,bullish_window_break,0.20914799686321084,Signal shifted from Bullish to Neutral as ML probability moved to 0.5037.
+2027-02-13,Neutral,Bearish,signal_flip,0.3462933744757606,Signal shifted from Neutral to Bearish as ML probability moved to 0.4292.
+2027-02-14,Bearish,Neutral,bearish_window_relief,0.34396023217286315,Signal shifted from Bearish to Neutral as ML probability moved to 0.4314.
+2027-02-15,Neutral,Bearish,signal_flip,0.35069116875011175,Signal shifted from Neutral to Bearish as ML probability moved to 0.4276.
+2027-02-16,Bearish,Neutral,bearish_window_relief,0.3370478467926141,Signal shifted from Bearish to Neutral as ML probability moved to 0.4381.
+2027-03-02,Neutral,Neutral,momentum_breakout_up,0.2884941253458196,"Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.7692."
+2027-03-28,Neutral,Bullish,momentum_breakdown_down,0.35295894218525925,"Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.3154."
+2027-03-28,Neutral,Bullish,signal_flip,0.35295894218525925,Signal shifted from Neutral to Bullish as ML probability moved to 0.5701.
+2027-04-03,Bullish,Neutral,bullish_window_break,0.3633989402166255,Signal shifted from Bullish to Neutral as ML probability moved to 0.5699.
+2027-04-19,Neutral,Neutral,momentum_breakout_up,0.35646380341585904,"Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.7881."
+2027-05-10,Neutral,Neutral,momentum_breakdown_down,0.326104089965217,"Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.2865."
+2027-05-16,Neutral,Neutral,momentum_neutral_cross,0.3164817694775973,Astro momentum crossed the neutral line and is now -0.0010.
+2027-05-17,Neutral,Neutral,momentum_neutral_cross,0.32054316461198484,Astro momentum crossed the neutral line and is now 0.0058.

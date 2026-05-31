@@ -1,0 +1,36 @@
+{
+  "forecast_date": "2026-05-31",
+  "Current Signal": "Neutral",
+  "Current Confidence": 0.2708486269904867,
+  "Current Taxonomy": "Constructive / Positive Drift",
+  "Next Turning Point": "2026-06-05",
+  "Next Constructive Window": "2026-05-31",
+  "Next High Risk Window": "2026-11-15",
+  "30D Outlook": {
+    "label": "30D Outlook",
+    "horizon_days": 30,
+    "dominant_taxonomy": "False Bull / Exhaustion Risk",
+    "average_confidence": 0.34785411949375006,
+    "average_probability": 0.5706691224694599,
+    "window_count": 2,
+    "summary": "Dominant state is false bull / exhaustion risk with mean confidence 34.79% and mean probability 57.07%. The horizon starts in constructive / positive drift and rotates toward false bull / exhaustion risk."
+  },
+  "90D Outlook": {
+    "label": "90D Outlook",
+    "horizon_days": 90,
+    "dominant_taxonomy": "Neutral / Tactical",
+    "average_confidence": 0.337450464936574,
+    "average_probability": 0.5129954197149281,
+    "window_count": 6,
+    "summary": "Dominant state is neutral / tactical with mean confidence 33.75% and mean probability 51.30%. The horizon starts in constructive / positive drift and rotates toward neutral / tactical."
+  },
+  "365D Outlook": {
+    "label": "365D Outlook",
+    "horizon_days": 365,
+    "dominant_taxonomy": "Constructive / Positive Drift",
+    "average_confidence": 0.35263815965657,
+    "average_probability": 0.521227752027366,
+    "window_count": 27,
+    "summary": "Dominant state is constructive / positive drift with mean confidence 35.26% and mean probability 52.12%."
+  }
+}

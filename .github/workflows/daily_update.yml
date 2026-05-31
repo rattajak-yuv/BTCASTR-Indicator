@@ -121,6 +121,10 @@ jobs:
             "data/ml_predictions.csv"
             "data/ml_model_summary.csv"
             "data/ml_feature_importance.csv"
+            "data/signal_filter_results.csv"
+            "data/signal_filter_summary.csv"
+            "data/signal_filter_v2_results.csv"
+            "data/signal_filter_v2_summary.csv"
           )
           run_python_step \
             "4. Train ML model using all valid features" \
@@ -146,6 +150,10 @@ jobs:
             "data/ml_predictions.csv"
             "data/ml_model_summary.csv"
             "data/ml_feature_importance.csv"
+            "data/signal_filter_results.csv"
+            "data/signal_filter_summary.csv"
+            "data/signal_filter_v2_results.csv"
+            "data/signal_filter_v2_summary.csv"
           )
           run_python_step \
             "7. Retrain ML model using newly selected features" \
@@ -160,6 +168,66 @@ jobs:
             "8. Tune ML thresholds" \
             "tune_ml_thresholds.py"
 
+          PIPELINE_OUTPUTS=(
+            "data/ml_predictions.csv"
+            "data/ml_model_summary.csv"
+            "data/ml_feature_importance.csv"
+            "data/signal_filter_results.csv"
+            "data/signal_filter_summary.csv"
+            "data/signal_filter_v2_results.csv"
+            "data/signal_filter_v2_summary.csv"
+          )
+          run_python_step \
+            "9. Recompute ML outputs using best tuned thresholds" \
+            "train_ml_model.py" \
+            "--feature-set" \
+            "selected"
+
+          PIPELINE_OUTPUTS=(
+            "data/live_forecast.csv"
+            "data/future_forecast_timeline.csv"
+            "data/turning_points.csv"
+            "data/forecast_windows.csv"
+            "data/forecast_system_report.md"
+          )
+          run_python_step \
+            "10. Generate forecast system outputs" \
+            "forecast_system_v1.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/forecast_intelligence.csv"
+            "data/forecast_intelligence_report.md"
+          )
+          run_python_step \
+            "11. Generate forecast intelligence outputs" \
+            "forecast_intelligence_v1.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/forecast_calibration.csv"
+            "data/forecast_calibration_report.md"
+          )
+          run_python_step \
+            "12. Generate forecast calibration outputs" \
+            "forecast_calibration_v1.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/forecast_intelligence_v2.csv"
+            "data/forecast_intelligence_v2_report.md"
+          )
+          run_python_step \
+            "13. Generate calibrated forecast taxonomy outputs" \
+            "forecast_taxonomy_v2.py"
+
+          PIPELINE_OUTPUTS=(
+            "data/dashboard_current_state.json"
+            "data/dashboard_timeline.json"
+            "data/dashboard_risk_calendar.json"
+            "data/dashboard_summary.json"
+          )
+          run_python_step \
+            "14. Generate dashboard data layer outputs" \
+            "forecast_dashboard_layer_v1.py"
+
           log "Full research pipeline completed successfully"
 
       - name: Commit generated CSV outputs
@@ -169,7 +237,22 @@ jobs:
           echo "::group::Commit generated CSV outputs"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/*.csv
+          git add \
+            data/live_forecast.csv \
+            data/future_forecast_timeline.csv \
+            data/turning_points.csv \
+            data/forecast_windows.csv \
+            data/forecast_system_report.md \
+            data/forecast_intelligence.csv \
+            data/forecast_intelligence_report.md \
+            data/forecast_calibration.csv \
+            data/forecast_calibration_report.md \
+            data/forecast_intelligence_v2.csv \
+            data/forecast_intelligence_v2_report.md \
+            data/dashboard_current_state.json \
+            data/dashboard_timeline.json \
+            data/dashboard_risk_calendar.json \
+            data/dashboard_summary.json
 
           if git diff --cached --quiet; then
             echo "No generated CSV changes to commit"

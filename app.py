@@ -126,6 +126,112 @@ st.markdown("""
     margin-bottom: 6px;
     color: white;
 }
+.terminal-shell {
+    background: radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 28%),
+                linear-gradient(180deg, #06111f 0%, #07131d 100%);
+    border: 1px solid #132334;
+    border-radius: 22px;
+    padding: 18px 20px 10px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 18px 50px rgba(2, 6, 23, 0.45);
+}
+.terminal-kicker {
+    color: #7dd3fc;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.terminal-headline {
+    color: #f8fafc;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-top: 4px;
+}
+.terminal-subhead {
+    color: #94a3b8;
+    font-size: 0.96rem;
+    line-height: 1.6;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+.terminal-stat {
+    background: linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(2,6,23,0.96) 100%);
+    border: 1px solid #1f3347;
+    border-radius: 16px;
+    padding: 16px 16px 14px 16px;
+    min-height: 118px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.terminal-stat-label {
+    color: #7c93ae;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.terminal-stat-value {
+    color: #f8fafc;
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin-top: 10px;
+}
+.terminal-stat-sub {
+    color: #cbd5e1;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    margin-top: 10px;
+}
+.terminal-section-title {
+    color: #e2e8f0;
+    font-size: 1.02rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+.terminal-note {
+    color: #8aa0b8;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+.event-card {
+    background: linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(3,7,18,0.96) 100%);
+    border: 1px solid #1f3347;
+    border-radius: 14px;
+    padding: 14px 14px 12px 14px;
+    min-height: 138px;
+    margin-bottom: 10px;
+}
+.event-date {
+    color: #f8fafc;
+    font-weight: 700;
+    font-size: 0.98rem;
+}
+.event-type {
+    font-size: 0.78rem;
+    color: #7dd3fc;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 6px;
+}
+.event-direction {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-top: 8px;
+}
+.event-body {
+    color: #cbd5e1;
+    font-size: 0.83rem;
+    line-height: 1.5;
+    margin-top: 8px;
+}
+.risk-card {
+    background: linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(3,7,18,0.96) 100%);
+    border: 1px solid #1f3347;
+    border-left: 4px solid #475569;
+    border-radius: 14px;
+    padding: 14px 14px 12px 14px;
+    min-height: 132px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -247,21 +353,35 @@ def signal_color(sig):
 
 def taxonomy_color(label):
     return {
-        "Constructive / Positive Drift": "#16a34a",
-        "Neutral / Tactical": "#d4a72c",
-        "High Risk": "#ea580c",
-        "Bearish": "#dc2626",
-        "False Bull / Exhaustion Risk": "#c2410c",
+        "Constructive / Positive Drift": "#2E7D32",
+        "Neutral / Tactical": "#C9A227",
+        "High Risk": "#7F1D1D",
+        "Bearish": "#C62828",
+        "False Bull / Exhaustion Risk": "#D97706",
     }.get(label, "#475569")
 
 def taxonomy_bg(label):
     return {
-        "Constructive / Positive Drift": "linear-gradient(135deg, #14532d 0%, #166534 100%)",
-        "Neutral / Tactical": "linear-gradient(135deg, #4b5563 0%, #a16207 100%)",
-        "High Risk": "linear-gradient(135deg, #7c2d12 0%, #ea580c 100%)",
-        "Bearish": "linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%)",
-        "False Bull / Exhaustion Risk": "linear-gradient(135deg, #7c2d12 0%, #c2410c 100%)",
+        "Constructive / Positive Drift": "linear-gradient(135deg, #16351d 0%, #2E7D32 100%)",
+        "Neutral / Tactical": "linear-gradient(135deg, #453f18 0%, #C9A227 100%)",
+        "High Risk": "linear-gradient(135deg, #2b0a0a 0%, #7F1D1D 100%)",
+        "Bearish": "linear-gradient(135deg, #3b0a0f 0%, #C62828 100%)",
+        "False Bull / Exhaustion Risk": "linear-gradient(135deg, #432510 0%, #D97706 100%)",
     }.get(label, "linear-gradient(135deg, #1f2937 0%, #334155 100%)")
+
+def taxonomy_rgba(label, alpha=0.18):
+    hex_color = taxonomy_color(label).lstrip("#")
+    if len(hex_color) != 6:
+        return f"rgba(71,85,105,{alpha})"
+    rgb = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({rgb[0]},{rgb[1]},{rgb[2]},{alpha})"
+
+def risk_level_color(level):
+    return {
+        "Low": "#2E7D32",
+        "Medium": "#C9A227",
+        "High": "#C62828",
+    }.get(level, "#64748b")
 
 def julday(dt):
     return swe.julday(
@@ -378,6 +498,35 @@ def render_taxonomy_text(label):
     color = taxonomy_color(label)
     return f"<span style='color:{color};font-weight:700;'>{label}</span>"
 
+def terminal_stat_card(label, value, sub="", accent="#3b82f6"):
+    st.markdown(f"""
+    <div class="terminal-stat" style="border-top:3px solid {accent};">
+        <div class="terminal-stat-label">{label}</div>
+        <div class="terminal-stat-value">{value}</div>
+        <div class="terminal-stat-sub">{sub}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+def event_card_html(date_text, event_type, direction_text, direction_color, body):
+    return f"""
+    <div class="event-card">
+        <div class="event-date">{date_text}</div>
+        <div class="event-type">{event_type}</div>
+        <div class="event-direction" style="color:{direction_color};">{direction_text}</div>
+        <div class="event-body">{body}</div>
+    </div>
+    """
+
+def risk_window_card_html(title, date_text, taxonomy, body):
+    return f"""
+    <div class="risk-card" style="border-left-color:{taxonomy_color(taxonomy)};">
+        <div class="event-type">{title}</div>
+        <div class="event-date" style="margin-top:8px;">{date_text}</div>
+        <div class="event-direction" style="font-size:1rem;color:{taxonomy_color(taxonomy)};">{taxonomy}</div>
+        <div class="event-body">{body}</div>
+    </div>
+    """
+
 # =========================================================
 # DATA
 # =========================================================
@@ -472,213 +621,394 @@ if dashboard_current:
     top_30d = dashboard_summary.get("30D Outlook", {})
     top_90d = dashboard_summary.get("90D Outlook", {})
     top_365d = dashboard_summary.get("365D Outlook", {})
+    prev_price = price_df[price_df["date"] < last_price_date]["price"].iloc[-1] if len(price_df) > 1 else latest_price
+    price_delta = latest_price - prev_price
+    price_delta_pct = (price_delta / prev_price) if prev_price else 0.0
 
-    st.markdown("""
-    <div class="explain-box">
-    <b>Forecast Dashboard v1</b><br>
-    This section is designed for investors first: start with the current market state, then check the
-    30D / 90D / 365D outlook, the next turning points, and the forward risk calendar. The existing
-    research tabs and charts remain below for deeper analysis.
-    </div>
-    """, unsafe_allow_html=True)
+    if not top_dashboard_windows.empty:
+        top_dashboard_windows["start_date"] = pd.to_datetime(top_dashboard_windows["start_date"])
+        top_dashboard_windows["end_date"] = pd.to_datetime(top_dashboard_windows["end_date"])
+        top_dashboard_windows = top_dashboard_windows.sort_values("start_date").reset_index(drop=True)
 
-    st.subheader("Forecast Dashboard")
-    h1, h2, h3, h4, h5 = st.columns(5)
-    with h1:
-        dashboard_card(
-            "Current Signal",
-            dashboard_current.get("current_signal", "N/A"),
-            dashboard_current.get("market_view", ""),
-            dashboard_current.get("current_taxonomy"),
-        )
-    with h2:
-        dashboard_card(
-            "Current Taxonomy",
-            dashboard_current.get("current_taxonomy", "N/A"),
-            top_current_window.get("v2_posture", ""),
-            dashboard_current.get("current_taxonomy"),
-        )
-    with h3:
-        dashboard_card(
-            "Current Confidence",
-            fmt_pct(dashboard_current.get("current_confidence", np.nan)),
-            f"Probability Up: {fmt_pct(dashboard_current.get('current_probability', np.nan))}",
-            dashboard_current.get("current_taxonomy"),
-        )
-    with h4:
-        dashboard_card(
-            "Recommended Bias",
-            dashboard_current.get("recommended_bias", "N/A"),
-            dashboard_current.get("market_view", ""),
-            dashboard_current.get("current_taxonomy"),
-        )
-    with h5:
-        dashboard_card(
-            "Current Risk Level",
-            dashboard_current.get("risk_level", "N/A"),
-            f"Window: {top_current_window.get('start_date', 'N/A')} to {top_current_window.get('end_date', 'N/A')}",
-            "High Risk" if dashboard_current.get("risk_level") == "High" else dashboard_current.get("current_taxonomy"),
-        )
+    if not top_turning_points.empty:
+        top_turning_points["turning_point_date"] = pd.to_datetime(top_turning_points["turning_point_date"])
+        top_turning_points = top_turning_points.sort_values("turning_point_date").reset_index(drop=True)
+
+    if not top_risk_windows.empty:
+        top_risk_windows["start_date"] = pd.to_datetime(top_risk_windows["start_date"])
+        top_risk_windows["end_date"] = pd.to_datetime(top_risk_windows["end_date"])
+        top_risk_windows = top_risk_windows.sort_values("start_date").reset_index(drop=True)
 
     st.markdown(
         f"""
-        <div class="explain-box">
-        <b>Current window:</b> {render_taxonomy_text(dashboard_current.get("current_taxonomy", "N/A"))}
-        from {top_current_window.get("start_date", "N/A")} to {top_current_window.get("end_date", "N/A")}<br>
-        <b>Investor interpretation:</b> {top_current_window.get("narrative_v2", "N/A")}
+        <div class="terminal-shell">
+            <div class="terminal-kicker">Institutional Forecast Terminal</div>
+            <div class="terminal-headline">BTC Macro Regime & Forecast Dashboard</div>
+            <div class="terminal-subhead">
+                {dashboard_current.get("market_view", "Market view unavailable")} •
+                Current window runs from {top_current_window.get("start_date", "N/A")} to {top_current_window.get("end_date", "N/A")}.
+                The forecast engine remains unchanged; this layer is a visual redesign for faster investment reads.
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.subheader("Outlook Cards")
-    o1, o2, o3 = st.columns(3)
-    with o1:
-        dashboard_card(
+    hero_cols = st.columns(6)
+    with hero_cols[0]:
+        terminal_stat_card(
+            "Current Signal",
+            dashboard_current.get("current_signal", "N/A"),
+            dashboard_current.get("market_view", ""),
+            taxonomy_color(dashboard_current.get("current_taxonomy")),
+        )
+    with hero_cols[1]:
+        terminal_stat_card(
+            "Taxonomy",
+            dashboard_current.get("current_taxonomy", "N/A"),
+            top_current_window.get("v2_posture", ""),
+            taxonomy_color(dashboard_current.get("current_taxonomy")),
+        )
+    with hero_cols[2]:
+        terminal_stat_card(
+            "Confidence",
+            fmt_pct(dashboard_current.get("current_confidence", np.nan)),
+            f"Probability {fmt_pct(dashboard_current.get('current_probability', np.nan))}",
+            "#38bdf8",
+        )
+    with hero_cols[3]:
+        terminal_stat_card(
+            "Risk",
+            dashboard_current.get("risk_level", "N/A"),
+            top_next_high_risk.get("start_date", "No high-risk window queued"),
+            risk_level_color(dashboard_current.get("risk_level")),
+        )
+    with hero_cols[4]:
+        terminal_stat_card(
+            "Bias",
+            dashboard_current.get("recommended_bias", "N/A"),
+            top_current_window.get("narrative_v2", "")[:82] + ("..." if len(top_current_window.get("narrative_v2", "")) > 82 else ""),
+            taxonomy_color(dashboard_current.get("current_taxonomy")),
+        )
+    with hero_cols[5]:
+        terminal_stat_card(
+            "BTC Price",
+            fmt_money(latest_price),
+            f"{price_delta:+,.0f} ({price_delta_pct:+.2%}) vs prior close",
+            "#22c55e" if price_delta >= 0 else "#ef4444",
+        )
+
+    st.markdown('<div class="terminal-section-title">Primary Market Chart</div>', unsafe_allow_html=True)
+    st.markdown('<div class="terminal-note">Historical BTCUSD price with forecast taxonomy windows, turning-point markers, and daily hover context.</div>', unsafe_allow_html=True)
+
+    terminal_range = st.radio(
+        "Terminal Timeframe",
+        ["1M", "3M", "6M", "1Y", "2Y", "4Y", "ALL"],
+        index=3,
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+
+    lookback_days = {
+        "1M": 31,
+        "3M": 92,
+        "6M": 183,
+        "1Y": 365,
+        "2Y": 730,
+        "4Y": 1460,
+    }
+    terminal_start = price_df["date"].min() if terminal_range == "ALL" else last_price_date - pd.Timedelta(days=lookback_days[terminal_range])
+    terminal_start = max(terminal_start, price_df["date"].min())
+    terminal_price = price_df[price_df["date"] >= terminal_start].copy()
+
+    overlay_rows = []
+    if not top_dashboard_windows.empty:
+        for _, row in top_dashboard_windows.iterrows():
+            row_start = max(row["start_date"], last_price_date.normalize() if hasattr(last_price_date, "normalize") else last_price_date)
+            for dt in pd.date_range(row_start, row["end_date"], freq="D"):
+                overlay_rows.append(
+                    {
+                        "date": dt,
+                        "taxonomy_v2": row["taxonomy_v2"],
+                        "average_confidence": row["average_confidence"],
+                        "average_ml_probability": row["average_ml_probability"],
+                        "v2_posture": row["v2_posture"],
+                    }
+                )
+    future_overlay = pd.DataFrame(overlay_rows)
+    if not future_overlay.empty:
+        future_overlay = future_overlay.groupby("date", as_index=False).last()
+        future_overlay["reference_price"] = latest_price
+
+    price_fig = go.Figure()
+    if not top_dashboard_windows.empty:
+        for _, row in top_dashboard_windows.iterrows():
+            if row["end_date"] < terminal_start:
+                continue
+            price_fig.add_vrect(
+                x0=max(row["start_date"], terminal_start),
+                x1=row["end_date"],
+                fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.18),
+                layer="below",
+                line_width=0,
+            )
+
+    hist_custom = np.column_stack(
+        [
+            np.full(len(terminal_price), "Historical / Live Price"),
+            np.full(len(terminal_price), "N/A"),
+            np.full(len(terminal_price), "N/A"),
+        ]
+    )
+    price_fig.add_trace(
+        go.Scatter(
+            x=terminal_price["date"],
+            y=terminal_price["price"],
+            mode="lines",
+            name="BTCUSD",
+            line=dict(color="#60a5fa", width=2.4),
+            customdata=hist_custom,
+            hovertemplate=(
+                "Date: %{x|%Y-%m-%d}<br>"
+                "BTC Price: $%{y:,.0f}<br>"
+                "Taxonomy: %{customdata[0]}<br>"
+                "Confidence: %{customdata[1]}<br>"
+                "Probability: %{customdata[2]}<extra></extra>"
+            ),
+        )
+    )
+
+    if not future_overlay.empty:
+        future_custom = np.column_stack(
+            [
+                future_overlay["taxonomy_v2"].astype(str),
+                future_overlay["average_confidence"].map(fmt_pct),
+                future_overlay["average_ml_probability"].map(fmt_pct),
+            ]
+        )
+        price_fig.add_trace(
+            go.Scatter(
+                x=future_overlay["date"],
+                y=future_overlay["reference_price"],
+                mode="lines+markers",
+                name="Forecast Context",
+                line=dict(color="#94a3b8", width=1.5, dash="dot"),
+                marker=dict(size=5, color="#cbd5e1"),
+                customdata=future_custom,
+                hovertemplate=(
+                    "Date: %{x|%Y-%m-%d}<br>"
+                    "BTC Price: $%{y:,.0f} (last close reference)<br>"
+                    "Taxonomy: %{customdata[0]}<br>"
+                    "Confidence: %{customdata[1]}<br>"
+                    "Probability: %{customdata[2]}<extra></extra>"
+                ),
+            )
+        )
+
+    if not top_turning_points.empty:
+        chart_turns = top_turning_points[top_turning_points["turning_point_date"] >= terminal_start].copy()
+        if not chart_turns.empty:
+            turn_y = np.full(len(chart_turns), terminal_price["price"].max() * 1.05)
+            chart_turns["marker_text"] = np.where(
+                chart_turns["new_signal"].str.lower() == "bullish",
+                "▲",
+                np.where(chart_turns["new_signal"].str.lower() == "bearish", "▼", "•"),
+            )
+            chart_turns["marker_color"] = np.where(
+                chart_turns["new_signal"].str.lower() == "bullish",
+                "#22c55e",
+                np.where(chart_turns["new_signal"].str.lower() == "bearish", "#ef4444", "#cbd5e1"),
+            )
+            price_fig.add_trace(
+                go.Scatter(
+                    x=chart_turns["turning_point_date"],
+                    y=turn_y,
+                    mode="text",
+                    text=chart_turns["marker_text"],
+                    textfont=dict(size=17, color=chart_turns["marker_color"]),
+                    name="Turning Points",
+                    hovertemplate=(
+                        "Date: %{x|%Y-%m-%d}<br>"
+                        "Turning Point: %{customdata[0]}<br>"
+                        "Signal Shift: %{customdata[1]} → %{customdata[2]}<br>"
+                        "Confidence: %{customdata[3]}<br>"
+                        "Probability: N/A<extra></extra>"
+                    ),
+                    customdata=np.column_stack(
+                        [
+                            chart_turns["turning_point_type"].astype(str),
+                            chart_turns["old_signal"].astype(str),
+                            chart_turns["new_signal"].astype(str),
+                            chart_turns["confidence"].map(fmt_pct),
+                        ]
+                    ),
+                    showlegend=False,
+                )
+            )
+
+    price_fig.add_vline(x=last_price_date, line_dash="dot", line_color="#cbd5e1", opacity=0.8)
+    price_fig.update_layout(
+        template="plotly_dark",
+        height=620,
+        margin=dict(l=24, r=24, t=24, b=24),
+        paper_bgcolor="#020617",
+        plot_bgcolor="#020617",
+        legend=dict(orientation="h", y=1.03, x=0),
+        hovermode="x unified",
+        xaxis_title="Date",
+        yaxis_title="BTCUSD",
+    )
+    price_fig.update_yaxes(range=[terminal_price["price"].min() * 0.94, terminal_price["price"].max() * 1.11])
+    st.plotly_chart(price_fig, use_container_width=True)
+
+    st.markdown('<div class="terminal-section-title">Forward Outlook Grid</div>', unsafe_allow_html=True)
+    st.markdown('<div class="terminal-note">Three calibrated horizons for institutional positioning, from tactical 30-day risk to 365-day regime drift.</div>', unsafe_allow_html=True)
+    outlook_cols = st.columns(3)
+    with outlook_cols[0]:
+        terminal_stat_card(
             "30D Outlook",
             top_30d.get("dominant_taxonomy", "N/A"),
             top_30d.get("summary", ""),
-            top_30d.get("dominant_taxonomy"),
+            taxonomy_color(top_30d.get("dominant_taxonomy")),
         )
-    with o2:
-        dashboard_card(
+    with outlook_cols[1]:
+        terminal_stat_card(
             "90D Outlook",
             top_90d.get("dominant_taxonomy", "N/A"),
             top_90d.get("summary", ""),
-            top_90d.get("dominant_taxonomy"),
+            taxonomy_color(top_90d.get("dominant_taxonomy")),
         )
-    with o3:
-        dashboard_card(
+    with outlook_cols[2]:
+        terminal_stat_card(
             "365D Outlook",
             top_365d.get("dominant_taxonomy", "N/A"),
             top_365d.get("summary", ""),
-            top_365d.get("dominant_taxonomy"),
+            taxonomy_color(top_365d.get("dominant_taxonomy")),
         )
 
-    left_panel, right_panel = st.columns([1.1, 0.9])
-    with left_panel:
-        st.subheader("Upcoming Turning Points")
-        if not top_turning_points.empty:
-            top_turning_points["turning_point_date"] = pd.to_datetime(top_turning_points["turning_point_date"])
-            top_turning_points["confidence"] = pd.to_numeric(top_turning_points["confidence"], errors="coerce").round(4)
-            top_turns = top_turning_points.head(8).copy()
-            top_turns["turning_point_date"] = top_turns["turning_point_date"].dt.date
-            st.dataframe(
-                top_turns[
-                    [
-                        "turning_point_date",
-                        "turning_point_type",
-                        "old_signal",
-                        "new_signal",
-                        "severity",
-                        "confidence",
-                    ]
-                ],
-                use_container_width=True,
-                height=290,
-            )
-        else:
-            st.info("No turning-point events are currently available.")
+    st.markdown('<div class="terminal-section-title">Upcoming Turning Points</div>', unsafe_allow_html=True)
+    st.markdown('<div class="terminal-note">Near-term inflection dates ranked by forecast direction and confidence, replacing the old raw table.</div>', unsafe_allow_html=True)
+    if not top_turning_points.empty:
+        turn_cards = top_turning_points.head(6).copy()
+        turn_card_cols = st.columns(3)
+        for idx, (_, row) in enumerate(turn_cards.iterrows()):
+            direction_text = "▲ Bullish" if str(row["new_signal"]).lower() == "bullish" else "▼ Bearish" if str(row["new_signal"]).lower() == "bearish" else "• Neutral"
+            direction_color = "#22c55e" if "Bullish" in direction_text else "#ef4444" if "Bearish" in direction_text else "#cbd5e1"
+            with turn_card_cols[idx % 3]:
+                st.markdown(
+                    event_card_html(
+                        row["turning_point_date"].strftime("%Y-%m-%d"),
+                        str(row["turning_point_type"]).replace("_", " "),
+                        direction_text,
+                        direction_color,
+                        f"{row['old_signal']} → {row['new_signal']} • Confidence {fmt_pct(row['confidence'])}<br>{row['explanation']}",
+                    ),
+                    unsafe_allow_html=True,
+                )
+    else:
+        st.info("No turning-point events are currently available.")
 
-    with right_panel:
-        st.subheader("Risk Calendar")
-        r1, r2, r3 = st.columns(3)
-        with r1:
-            dashboard_card(
-                "Next Turning Point",
-                top_next_turning.get("turning_point_date", "N/A"),
-                top_next_turning.get("turning_point_type", ""),
-                dashboard_current.get("current_taxonomy"),
-            )
-        with r2:
-            dashboard_card(
-                "Next Constructive Window",
-                top_next_constructive.get("start_date", "N/A"),
-                top_next_constructive.get("taxonomy_v2", ""),
-                top_next_constructive.get("taxonomy_v2"),
-            )
-        with r3:
-            dashboard_card(
-                "Next High Risk Window",
-                top_next_high_risk.get("start_date", "N/A"),
-                top_next_high_risk.get("taxonomy_v2", ""),
-                top_next_high_risk.get("taxonomy_v2"),
-            )
-
-    st.subheader("Forecast Windows")
+    st.markdown('<div class="terminal-section-title">Forecast Taxonomy Timeline</div>', unsafe_allow_html=True)
+    st.markdown('<div class="terminal-note">Forward windows grouped into institution-friendly regimes with duration, confidence, and probability in hover.</div>', unsafe_allow_html=True)
     if not top_dashboard_windows.empty:
-        top_windows = top_dashboard_windows.copy()
-        top_windows["taxonomy"] = top_windows["taxonomy_v2"].apply(taxonomy_chip)
-        top_windows["average_confidence"] = pd.to_numeric(top_windows["average_confidence"], errors="coerce").apply(fmt_pct)
-        top_windows["average_ml_probability"] = pd.to_numeric(top_windows["average_ml_probability"], errors="coerce").apply(fmt_pct)
-        top_windows["duration_days"] = pd.to_numeric(top_windows["duration_days"], errors="coerce")
-        top_windows = top_windows.rename(
-            columns={
-                "duration_days": "days",
-                "average_confidence": "avg_confidence",
-                "average_ml_probability": "avg_probability",
-            }
+        timeline_windows = top_dashboard_windows.head(14).copy()
+        window_fig = go.Figure()
+        y_labels = []
+        for idx, row in timeline_windows.iterrows():
+            y_labels.append(f"W{idx + 1}")
+            window_fig.add_trace(
+                go.Scatter(
+                    x=[row["start_date"], row["end_date"]],
+                    y=[idx, idx],
+                    mode="lines+markers",
+                    line=dict(color=taxonomy_color(row["taxonomy_v2"]), width=18),
+                    marker=dict(size=7, color=taxonomy_color(row["taxonomy_v2"])),
+                    name=row["taxonomy_v2"],
+                    customdata=np.array(
+                        [[
+                            row["taxonomy_v2"],
+                            fmt_pct(row["average_confidence"]),
+                            fmt_pct(row["average_ml_probability"]),
+                            row["v2_posture"],
+                            row["duration_days"],
+                        ]] * 2
+                    ),
+                    hovertemplate=(
+                        "Taxonomy: %{customdata[0]}<br>"
+                        "Date: %{x|%Y-%m-%d}<br>"
+                        "Confidence: %{customdata[1]}<br>"
+                        "Probability: %{customdata[2]}<br>"
+                        "Posture: %{customdata[3]}<br>"
+                        "Duration: %{customdata[4]} days<extra></extra>"
+                    ),
+                    showlegend=False,
+                )
+            )
+        window_fig.update_layout(
+            template="plotly_dark",
+            height=460,
+            margin=dict(l=24, r=24, t=24, b=24),
+            paper_bgcolor="#020617",
+            plot_bgcolor="#020617",
+            xaxis_title="Date",
+            yaxis=dict(
+                title="Window Sequence",
+                tickmode="array",
+                tickvals=list(range(len(y_labels))),
+                ticktext=y_labels,
+            ),
         )
-        st.markdown(
-            top_windows[
-                [
-                    "start_date",
-                    "end_date",
-                    "taxonomy",
-                    "days",
-                    "avg_confidence",
-                    "avg_probability",
-                    "v2_posture",
-                ]
-            ].to_html(escape=False, index=False),
-            unsafe_allow_html=True,
-        )
+        st.plotly_chart(window_fig, use_container_width=True)
     else:
         st.info("No forecast windows are available yet.")
 
-    st.subheader("12-Month Timeline")
-    if not top_dashboard_windows.empty:
-        top_timeline = top_dashboard_windows.copy()
-        top_timeline["start_date"] = pd.to_datetime(top_timeline["start_date"])
-        top_timeline["end_date"] = pd.to_datetime(top_timeline["end_date"])
-        top_timeline_fig = go.Figure()
-
-        for _, row in top_timeline.iterrows():
-            top_timeline_fig.add_trace(go.Scatter(
-                x=[row["start_date"], row["end_date"]],
-                y=[row["taxonomy_v2"], row["taxonomy_v2"]],
-                mode="lines+markers",
-                line=dict(color=taxonomy_color(row["taxonomy_v2"]), width=18),
-                marker=dict(size=8, color=taxonomy_color(row["taxonomy_v2"])),
-                hovertemplate=(
-                    f"{row['taxonomy_v2']}<br>"
-                    f"{row['start_date'].date()} to {row['end_date'].date()}<br>"
-                    f"Confidence: {row['average_confidence']:.2%}<br>"
-                    f"Probability: {row['average_ml_probability']:.2%}<extra></extra>"
-                ),
-                showlegend=False,
-            ))
-
-        top_timeline_fig.update_layout(
-            template="plotly_dark",
-            height=420,
-            margin=dict(l=20, r=20, t=50, b=20),
-            xaxis_title="Date",
-            yaxis_title="Forecast Taxonomy",
-            title="Investor Timeline View",
+    st.markdown('<div class="terminal-section-title">Risk Calendar</div>', unsafe_allow_html=True)
+    st.markdown('<div class="terminal-note">High-conviction constructive and defensive windows summarized as decision-ready cards instead of raw tables.</div>', unsafe_allow_html=True)
+    risk_cols = st.columns(3)
+    with risk_cols[0]:
+        st.markdown(
+            risk_window_card_html(
+                "Next Turning Point",
+                top_next_turning.get("turning_point_date", "N/A"),
+                dashboard_current.get("current_taxonomy"),
+                top_next_turning.get("explanation", "No next turning-point explanation available."),
+            ),
+            unsafe_allow_html=True,
         )
-        st.plotly_chart(top_timeline_fig, use_container_width=True)
-    else:
-        st.info("No timeline data is available.")
+    with risk_cols[1]:
+        st.markdown(
+            risk_window_card_html(
+                "Next Constructive Window",
+                f"{top_next_constructive.get('start_date', 'N/A')} to {top_next_constructive.get('end_date', 'N/A')}",
+                top_next_constructive.get("taxonomy_v2", "Constructive / Positive Drift"),
+                top_next_constructive.get("taxonomy_reason", "Constructive window details unavailable."),
+            ),
+            unsafe_allow_html=True,
+        )
+    with risk_cols[2]:
+        st.markdown(
+            risk_window_card_html(
+                "Next High-Risk Window",
+                f"{top_next_high_risk.get('start_date', 'N/A')} to {top_next_high_risk.get('end_date', 'N/A')}",
+                top_next_high_risk.get("taxonomy_v2", "High Risk"),
+                top_next_high_risk.get("taxonomy_reason", "High-risk window details unavailable."),
+            ),
+            unsafe_allow_html=True,
+        )
 
     if not top_risk_windows.empty:
-        top_risk_windows["average_confidence"] = pd.to_numeric(
-            top_risk_windows["average_confidence"], errors="coerce"
-        ).apply(fmt_pct)
-        top_risk_windows["average_ml_probability"] = pd.to_numeric(
-            top_risk_windows["average_ml_probability"], errors="coerce"
-        ).apply(fmt_pct)
-        st.dataframe(top_risk_windows, use_container_width=True, height=220)
+        more_risk_cols = st.columns(min(3, len(top_risk_windows.head(3))))
+        for idx, (_, row) in enumerate(top_risk_windows.head(3).iterrows()):
+            with more_risk_cols[idx]:
+                st.markdown(
+                    risk_window_card_html(
+                        "Risk Window",
+                        f"{row['start_date'].strftime('%Y-%m-%d')} to {row['end_date'].strftime('%Y-%m-%d')}",
+                        row["taxonomy_v2"],
+                        f"Confidence {fmt_pct(row['average_confidence'])} • Probability {fmt_pct(row['average_ml_probability'])}<br>{row['taxonomy_reason']}",
+                    ),
+                    unsafe_allow_html=True,
+                )
 
     st.markdown("---")
 

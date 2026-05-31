@@ -230,14 +230,20 @@ jobs:
 
           log "Full research pipeline completed successfully"
 
-      - name: Commit generated CSV outputs
+      - name: Commit generated app and dashboard outputs
         shell: bash
         run: |
           set -Eeuo pipefail
-          echo "::group::Commit generated CSV outputs"
+          echo "::group::Commit generated app and dashboard outputs"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
+            data/bitcoin_astro_daily_score.csv \
+            data/astro_aspects_raw.csv \
+            data/model_optimization_v2_results.csv \
+            data/ml_predictions.csv \
+            data/ml_model_summary.csv \
+            data/ml_feature_importance.csv \
             data/live_forecast.csv \
             data/future_forecast_timeline.csv \
             data/turning_points.csv \

@@ -220,11 +220,26 @@ def clamp(value, lower, upper):
 
 def load_btc_price_data(price_cache_path):
     if price_cache_path and os.path.exists(price_cache_path):
-        cached = pd.read_csv(price_cache_path)
-        if "date" in cached.columns and "price" in cached.columns:
-            cached["date"] = pd.to_datetime(cached["date"]).dt.date
+        cached = None
+        try:
+            cached = pd.read_csv(price_cache_path)
+        except pd.errors.ParserError:
+            try:
+                # Recover date/price history from partially malformed cached score files.
+                cached = pd.read_csv(
+                    price_cache_path,
+                    usecols=["date", "price"],
+                    on_bad_lines="skip",
+                    engine="python",
+                )
+                print(f"Recovered BTC prices from malformed cache file {price_cache_path}")
+            except Exception:
+                cached = None
+
+        if cached is not None and "date" in cached.columns and "price" in cached.columns:
+            cached["date"] = pd.to_datetime(cached["date"], errors="coerce").dt.date
             cached["price"] = pd.to_numeric(cached["price"], errors="coerce")
-            cached = cached[["date", "price"]].dropna(subset=["price"]).drop_duplicates("date")
+            cached = cached[["date", "price"]].dropna(subset=["date", "price"]).drop_duplicates("date")
             if not cached.empty:
                 print(f"Reusing cached BTC prices from {price_cache_path}")
                 return cached

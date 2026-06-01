@@ -11,6 +11,7 @@ LIVE_FORECAST_PATH = Path("data/live_forecast.csv")
 FORECAST_WINDOWS_PATH = Path("data/forecast_windows.csv")
 TURNING_POINTS_PATH = Path("data/turning_points.csv")
 FORECAST_INTELLIGENCE_V2_PATH = Path("data/forecast_intelligence_v2.csv")
+FORECAST_INTELLIGENCE_V3_PATH = Path("data/forecast_intelligence_v3.csv")
 
 CURRENT_STATE_PATH = Path("data/dashboard_current_state.json")
 TIMELINE_PATH = Path("data/dashboard_timeline.json")
@@ -18,11 +19,11 @@ RISK_CALENDAR_PATH = Path("data/dashboard_risk_calendar.json")
 SUMMARY_PATH = Path("data/dashboard_summary.json")
 
 TAXONOMY_PRIORITY = {
-    "Constructive / Positive Drift": 5,
-    "Neutral / Tactical": 4,
-    "False Bull / Exhaustion Risk": 3,
-    "High Risk": 2,
-    "Bearish": 1,
+    "High Momentum Expansion": 6,
+    "Constructive Drift": 5,
+    "Tactical Neutral": 4,
+    "High Volatility Risk": 2,
+    "Defensive / Weak Trend": 1,
 }
 
 TURNING_POINT_PRIORITY = {
@@ -259,11 +260,11 @@ def build_risk_calendar_payload(
 ) -> Dict[str, object]:
     risk_windows = intelligence[
         intelligence["taxonomy_v2"].isin(
-            ["High Risk", "Bearish", "False Bull / Exhaustion Risk"]
+            ["High Volatility Risk", "Defensive / Weak Trend"]
         )
     ].copy()
     constructive_windows = intelligence[
-        intelligence["taxonomy_v2"] == "Constructive / Positive Drift"
+        intelligence["taxonomy_v2"].isin(["Constructive Drift", "High Momentum Expansion"])
     ].copy()
 
     turning_events = []
@@ -358,10 +359,19 @@ def main() -> None:
     live_forecast = pd.read_csv(LIVE_FORECAST_PATH).iloc[0]
     _ = pd.read_csv(FORECAST_WINDOWS_PATH)
     turning_points = pd.read_csv(TURNING_POINTS_PATH, parse_dates=["turning_point_date"])
+    intelligence_path = FORECAST_INTELLIGENCE_V3_PATH if FORECAST_INTELLIGENCE_V3_PATH.exists() else FORECAST_INTELLIGENCE_V2_PATH
     intelligence = pd.read_csv(
-        FORECAST_INTELLIGENCE_V2_PATH,
+        intelligence_path,
         parse_dates=["start_date", "end_date"],
     )
+    if "taxonomy_v3" in intelligence.columns:
+        intelligence["taxonomy_v2"] = intelligence["taxonomy_v3"]
+    if "v3_posture" in intelligence.columns:
+        intelligence["v2_posture"] = intelligence["v3_posture"]
+    if "taxonomy_v3_reason" in intelligence.columns:
+        intelligence["taxonomy_reason"] = intelligence["taxonomy_v3_reason"]
+    if "narrative_v3" in intelligence.columns:
+        intelligence["narrative_v2"] = intelligence["narrative_v3"]
 
     forecast_date = pd.to_datetime(live_forecast["forecast_date"])
     current_window = find_current_window(intelligence, forecast_date)
@@ -383,12 +393,12 @@ def main() -> None:
     next_constructive_window = find_next_window(
         intelligence,
         forecast_date,
-        ["Constructive / Positive Drift"],
+        ["Constructive Drift", "High Momentum Expansion"],
     )
     next_high_risk_window = find_next_window(
         intelligence,
         forecast_date,
-        ["High Risk"],
+        ["High Volatility Risk", "Defensive / Weak Trend"],
     )
 
     outlook_30d = summarize_outlook(intelligence, forecast_date, 30)

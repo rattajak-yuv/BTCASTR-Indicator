@@ -464,6 +464,14 @@ def load_dashboard_risk_calendar():
 def load_dashboard_summary():
     return load_json_safe("data/dashboard_summary.json")
 
+@st.cache_data(ttl=3600)
+def load_taxonomy_attribution():
+    return load_csv_safe("data/taxonomy_attribution.csv")
+
+@st.cache_data(ttl=3600)
+def load_taxonomy_feature_importance():
+    return load_csv_safe("data/taxonomy_feature_importance.csv")
+
 # =========================================================
 # HELPERS
 # =========================================================
@@ -518,6 +526,11 @@ def signal_color(sig):
 
 def taxonomy_color(label):
     return {
+        "High Momentum Expansion": "#D97706",
+        "Constructive Drift": "#2E7D32",
+        "Tactical Neutral": "#C9A227",
+        "High Volatility Risk": "#7F1D1D",
+        "Defensive / Weak Trend": "#C62828",
         "Constructive / Positive Drift": "#2E7D32",
         "Neutral / Tactical": "#C9A227",
         "High Risk": "#7F1D1D",
@@ -527,6 +540,11 @@ def taxonomy_color(label):
 
 def taxonomy_bg(label):
     return {
+        "High Momentum Expansion": "linear-gradient(135deg, #432510 0%, #D97706 100%)",
+        "Constructive Drift": "linear-gradient(135deg, #16351d 0%, #2E7D32 100%)",
+        "Tactical Neutral": "linear-gradient(135deg, #453f18 0%, #C9A227 100%)",
+        "High Volatility Risk": "linear-gradient(135deg, #2b0a0a 0%, #7F1D1D 100%)",
+        "Defensive / Weak Trend": "linear-gradient(135deg, #3b0a0f 0%, #C62828 100%)",
         "Constructive / Positive Drift": "linear-gradient(135deg, #16351d 0%, #2E7D32 100%)",
         "Neutral / Tactical": "linear-gradient(135deg, #453f18 0%, #C9A227 100%)",
         "High Risk": "linear-gradient(135deg, #2b0a0a 0%, #7F1D1D 100%)",
@@ -541,12 +559,87 @@ def taxonomy_rgba(label, alpha=0.18):
     rgb = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
     return f"rgba({rgb[0]},{rgb[1]},{rgb[2]},{alpha})"
 
+def taxonomy_badge_html(label):
+    label = label or "Unknown"
+    return (
+        f"<span class='light-badge' "
+        f"style='background:{taxonomy_rgba(label, 0.12)};"
+        f" color:{taxonomy_color(label)};"
+        f" border:1px solid {taxonomy_rgba(label, 0.28)};'>"
+        f"{label}</span>"
+    )
+
 def risk_level_color(level):
     return {
         "Low": "#2E7D32",
         "Medium": "#C9A227",
         "High": "#C62828",
     }.get(level, "#64748b")
+
+def safe_datetime(value):
+    if pd.isna(value) or value in [None, ""]:
+        return None
+    try:
+        return pd.to_datetime(value).to_pydatetime()
+    except Exception:
+        return None
+
+def add_safe_vertical_marker(fig, x_value, label, line_color="#6B7280"):
+    x_dt = safe_datetime(x_value)
+    if x_dt is None:
+        return
+    try:
+        fig.add_shape(
+            type="line",
+            x0=x_dt,
+            x1=x_dt,
+            y0=0,
+            y1=1,
+            xref="x",
+            yref="paper",
+            line=dict(color=line_color, width=1.5, dash="dash"),
+        )
+        fig.add_annotation(
+            x=x_dt,
+            y=1,
+            xref="x",
+            yref="paper",
+            text=label,
+            showarrow=False,
+            xanchor="left",
+            yanchor="bottom",
+            font=dict(color=line_color, size=11),
+            bgcolor="rgba(255,255,255,0.9)",
+        )
+    except Exception:
+        return
+
+def card_container():
+    try:
+        return st.container(border=True)
+    except TypeError:
+        return st.container()
+
+def parse_ranked_items(value, limit=5):
+    if pd.isna(value) or value in [None, ""]:
+        return []
+    items = []
+    for raw_item in str(value).split(", "):
+        raw_item = raw_item.strip()
+        if not raw_item:
+            continue
+        if " (" in raw_item and raw_item.endswith(")"):
+            name, score_text = raw_item.rsplit(" (", 1)
+            score_text = score_text[:-1]
+            try:
+                score = float(score_text)
+            except ValueError:
+                score = np.nan
+        else:
+            name = raw_item
+            score = np.nan
+        items.append({"name": name, "score": score})
+    return items[:limit]
 
 def julday(dt):
     return swe.julday(
@@ -705,6 +798,8 @@ dashboard_current = load_dashboard_current_state()
 dashboard_timeline = load_dashboard_timeline()
 dashboard_risk_calendar = load_dashboard_risk_calendar()
 dashboard_summary = load_dashboard_summary()
+taxonomy_attribution = load_taxonomy_attribution()
+taxonomy_feature_importance = load_taxonomy_feature_importance()
 
 price_df = df.dropna(subset=["price"]).copy()
 if price_df.empty:
@@ -728,17 +823,17 @@ range_option = st.sidebar.selectbox(
 
 forecast_days = st.sidebar.selectbox(
     "Forecast Horizon",
-    [30, 90, 180, 365, 730],
+    [30, 90, 180, 365],
     index=3
 )
 
 taxonomy_filter_options = [
     "All",
-    "Constructive / Positive Drift",
-    "Neutral / Tactical",
-    "False Bull / Exhaustion Risk",
-    "Bearish",
-    "High Risk",
+    "Constructive Drift",
+    "Tactical Neutral",
+    "High Momentum Expansion",
+    "Defensive / Weak Trend",
+    "High Volatility Risk",
 ]
 taxonomy_filter = st.sidebar.selectbox("Taxonomy Filter", taxonomy_filter_options, index=0)
 show_turning_points = st.sidebar.checkbox("Show Turning Points", value=True)
@@ -788,43 +883,127 @@ future = df[(df["date"] > last_price_date) & (df["date"] <= last_price_date + pd
 st.title("Bitcoin Astro Quant Dashboard")
 
 if dashboard_current:
-    def render_light_metric(label, value, helper_text="", accent="#2563EB"):
-        st.markdown(
-            f"""
-            <div class="light-metric" style="border-top:4px solid {accent};">
-                <div class="light-metric-label">{label}</div>
-                <div class="light-metric-value">{value}</div>
-                <div class="light-metric-sub">{helper_text}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    def render_light_metric(label, value, helper_text="", accent="#2563EB", badge_label=None):
+        with card_container():
+            st.markdown(
+                f"<div style='height:4px;background:{accent};border-radius:999px;margin-bottom:12px;'></div>",
+                unsafe_allow_html=True,
+            )
+            st.caption(label.upper())
+            if badge_label:
+                st.markdown(taxonomy_badge_html(badge_label), unsafe_allow_html=True)
+            st.markdown(f"**{value}**")
+            if helper_text:
+                st.caption(helper_text)
 
     def render_outlook_card(title, data):
         taxonomy = data.get("dominant_taxonomy", "N/A")
-        badge_color = taxonomy_color(taxonomy)
-        st.markdown(
-            f"""
-            <div class="section-card">
-                <div class="section-title">{title}</div>
-                <div style="margin:8px 0 14px 0;">
-                    <span class="light-badge" style="background:{taxonomy_rgba(taxonomy, 0.12)}; color:{badge_color}; border:1px solid {taxonomy_rgba(taxonomy, 0.28)};">
-                        {taxonomy}
-                    </span>
-                </div>
-                <div class="section-note">Average confidence {format_pct(data.get("average_confidence", np.nan))}</div>
-                <div class="section-note">Average probability {format_pct(data.get("average_probability", np.nan))}</div>
-                <div class="section-note" style="margin-top:12px; color:#111827;">{data.get("summary", "No calibrated summary available.")}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        with card_container():
+            st.caption(title.upper())
+            st.markdown(taxonomy_badge_html(taxonomy), unsafe_allow_html=True)
+            st.markdown(f"**{taxonomy}**")
+            st.caption(f"Average confidence {format_pct(data.get('average_confidence', np.nan))}")
+            st.caption(f"Average probability {format_pct(data.get('average_probability', np.nan))}")
+            st.write(data.get("summary", "No calibrated summary available."))
 
     def first_window_by_taxonomy(window_df, taxonomy_label):
         if window_df.empty:
             return {}
         match = window_df[window_df["taxonomy_v2"] == taxonomy_label]
         return match.iloc[0].to_dict() if not match.empty else {}
+
+    def get_taxonomy_attribution_row(taxonomy_label):
+        if taxonomy_attribution.empty or "taxonomy_v3" not in taxonomy_attribution.columns:
+            return {}
+        match = taxonomy_attribution[taxonomy_attribution["taxonomy_v3"] == taxonomy_label]
+        return match.iloc[0].to_dict() if not match.empty else {}
+
+    def get_top_feature_rows(taxonomy_label, limit=5):
+        if taxonomy_feature_importance.empty or "taxonomy_v3" not in taxonomy_feature_importance.columns:
+            return pd.DataFrame()
+        match = taxonomy_feature_importance[taxonomy_feature_importance["taxonomy_v3"] == taxonomy_label].copy()
+        if match.empty:
+            return match
+        sort_col = "abs_zscore_diff" if "abs_zscore_diff" in match.columns else "differential"
+        match = match.sort_values(sort_col, ascending=False).head(limit).copy()
+        return match
+
+    def render_driver_list(title, items, empty_text="No strong drivers detected."):
+        st.caption(title.upper())
+        if not items:
+            st.write(empty_text)
+            return
+        for item in items:
+            score = item.get("score", np.nan)
+            score_text = "" if pd.isna(score) else f" ({score:+.2f})"
+            st.write(f"• {item.get('name', 'Unknown')}{score_text}")
+
+    def render_contribution_bars(feature_df, key_suffix):
+        if feature_df.empty or "feature" not in feature_df.columns:
+            st.info("Contribution bars are unavailable for this taxonomy.")
+            return
+        plot_df = feature_df.copy()
+        if "zscore_diff" in plot_df.columns:
+            plot_df["contribution_value"] = plot_df["zscore_diff"].fillna(plot_df.get("differential", 0.0))
+        else:
+            plot_df["contribution_value"] = plot_df.get("differential", 0.0)
+        plot_df["bar_color"] = np.where(plot_df["contribution_value"] >= 0, "#2E7D32", "#C62828")
+        plot_df = plot_df.sort_values("contribution_value", ascending=True)
+
+        fig = go.Figure(
+            go.Bar(
+                x=plot_df["contribution_value"],
+                y=plot_df["feature"],
+                orientation="h",
+                marker=dict(color=plot_df["bar_color"]),
+                text=plot_df["contribution_value"].map(lambda x: f"{x:+.2f}"),
+                textposition="outside",
+                hovertemplate=(
+                    "Feature: %{y}<br>"
+                    "Contribution: %{x:+.2f}<extra></extra>"
+                ),
+            )
+        )
+        fig.update_layout(
+            height=max(240, 52 * len(plot_df)),
+            margin=dict(l=12, r=12, t=8, b=8),
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
+            xaxis_title="Relative Contribution",
+            yaxis_title="",
+            font=dict(color="#111827"),
+            showlegend=False,
+        )
+        fig.update_xaxes(showgrid=True, gridcolor="rgba(148,163,184,0.18)", zeroline=True, zerolinecolor="#CBD5E1")
+        fig.update_yaxes(showgrid=False)
+        st.plotly_chart(fig, use_container_width=True, key=f"contribution_{key_suffix}")
+
+    def render_state_explanation_card(title, taxonomy_label, confidence_value, probability_value, summary_text, key_suffix):
+        attribution_row = get_taxonomy_attribution_row(taxonomy_label)
+        feature_rows = get_top_feature_rows(taxonomy_label, limit=5)
+        planets = parse_ranked_items(attribution_row.get("most_influential_planets"), limit=3)
+        aspects = parse_ranked_items(attribution_row.get("most_influential_aspects"), limit=3)
+        positive_features = parse_ranked_items(attribution_row.get("top_positive_astro_features"), limit=3)
+        with card_container():
+            st.caption(title.upper())
+            st.markdown(taxonomy_badge_html(taxonomy_label), unsafe_allow_html=True)
+            st.markdown(f"**{taxonomy_label}**")
+            st.caption(
+                f"Confidence {format_pct(confidence_value)} | Probability {format_pct(probability_value)}"
+            )
+            if summary_text:
+                st.write(summary_text)
+            if positive_features:
+                st.caption("DOMINANT DRIVERS")
+                st.write(", ".join(item["name"] for item in positive_features))
+            if planets:
+                st.caption("DOMINANT PLANETS")
+                st.write(", ".join(item["name"] for item in planets))
+            if aspects:
+                st.caption("DOMINANT ASPECTS")
+                st.write(", ".join(item["name"] for item in aspects))
+            if not feature_rows.empty:
+                render_contribution_bars(feature_rows.head(3), key_suffix)
 
     top_dashboard_windows = pd.DataFrame(dashboard_timeline.get("windows", []))
     top_turning_points = pd.DataFrame(dashboard_risk_calendar.get("turning_points", []))
@@ -866,264 +1045,212 @@ if dashboard_current:
         st.warning(f"No forecast windows match the taxonomy filter `{taxonomy_filter}` for the selected horizon.")
 
     next_risk_window = top_risk_windows.iloc[0].to_dict() if not top_risk_windows.empty else {}
-    next_bearish_window = first_window_by_taxonomy(top_dashboard_windows, "Bearish")
-    next_false_bull_window = first_window_by_taxonomy(top_dashboard_windows, "False Bull / Exhaustion Risk")
+    next_bearish_window = first_window_by_taxonomy(top_dashboard_windows, "Defensive / Weak Trend")
+    next_momentum_window = first_window_by_taxonomy(top_dashboard_windows, "High Momentum Expansion")
+    st.subheader("Evidence-based BTC forecast timeline powered by Robust Astro Engine v1")
+    st.caption(f"Forecast generated: {forecast_generated_date}")
+    st.caption("Research tool only. Not financial advice.")
 
-    st.markdown(
-        f"""
-        <div class="light-header">
-            <div class="light-kicker">Forecast Dashboard</div>
-            <div class="light-headline">Evidence-based forecast timeline powered by Robust Astro Engine v1</div>
-            <div class="light-subhead">
-                Generated {forecast_generated_date}. Current market view: {dashboard_current.get("market_view", "Unavailable")}.
-            </div>
-            <div class="light-disclaimer">Research tool only. Not financial advice.</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    summary_values = [
-        ("Current Market View", dashboard_current.get("market_view", "N/A"), dashboard_current.get("current_signal", "N/A")),
-        ("Current Taxonomy", dashboard_current.get("current_taxonomy", "N/A"), top_current_window.get("v2_posture", "N/A")),
-        ("Recommended Bias", dashboard_current.get("recommended_bias", "N/A"), dashboard_current.get("risk_level", "N/A")),
-        ("Current Confidence", format_pct(dashboard_current.get("current_confidence", np.nan)), f"Probability {format_pct(dashboard_current.get('current_probability', np.nan))}"),
-        ("Next Turning Point", format_date(top_next_turning.get("turning_point_date")), top_next_turning.get("new_signal", "N/A")),
-        ("Next Risk Window", f"{format_date(top_next_high_risk.get('start_date'))} to {format_date(top_next_high_risk.get('end_date'))}", top_next_high_risk.get("taxonomy_v2", "N/A")),
+    st.markdown("#### Executive Summary")
+    summary_cols = st.columns(6)
+    summary_cards = [
+        ("Current Market View", dashboard_current.get("market_view", "N/A"), dashboard_current.get("current_signal", "N/A"), taxonomy_color(dashboard_current.get("current_taxonomy")), None),
+        ("Current Taxonomy", dashboard_current.get("current_taxonomy", "N/A"), top_current_window.get("v2_posture", "N/A"), taxonomy_color(dashboard_current.get("current_taxonomy")), dashboard_current.get("current_taxonomy")),
+        ("Confidence", format_pct(dashboard_current.get("current_confidence", np.nan)), f"Probability {format_pct(dashboard_current.get('current_probability', np.nan))}", "#2563EB", None),
+        ("Bias", dashboard_current.get("recommended_bias", "N/A"), top_current_window.get("taxonomy_reason", top_current_window.get("narrative_v2", "No narrative available."))[:110], taxonomy_color(dashboard_current.get("current_taxonomy")), None),
+        ("Risk", dashboard_current.get("risk_level", "N/A"), f"Next high-risk window {format_date(top_next_high_risk.get('start_date'))}", risk_level_color(dashboard_current.get("risk_level")), None),
+        ("BTC Price", fmt_money(latest_price), f"{price_delta_pct:+.2%} vs prior close", "#2563EB" if price_delta >= 0 else "#DC2626", None),
     ]
-    summary_html = "".join(
-        f"""
-        <div class="summary-item">
-            <div class="summary-label">{label}</div>
-            <div class="summary-value">{value}</div>
-            <div class="summary-sub">{sub}</div>
-        </div>
-        """
-        for label, value, sub in summary_values
-    )
-    st.markdown(f'<div class="summary-strip">{summary_html}</div>', unsafe_allow_html=True)
+    for col, (label, value, helper_text, accent, badge_label) in zip(summary_cols, summary_cards):
+        with col:
+            render_light_metric(label, value, helper_text, accent=accent, badge_label=badge_label)
 
-    state_cols = st.columns(5)
-    with state_cols[0]:
-        render_light_metric(
-            "Current Signal",
-            dashboard_current.get("current_signal", "N/A"),
-            dashboard_current.get("market_view", "No market view available."),
-            taxonomy_color(dashboard_current.get("current_taxonomy")),
-        )
-    with state_cols[1]:
-        render_light_metric(
-            "Current Taxonomy",
-            dashboard_current.get("current_taxonomy", "N/A"),
-            top_current_window.get("v2_posture", "No posture available."),
-            taxonomy_color(dashboard_current.get("current_taxonomy")),
-        )
-    with state_cols[2]:
-        render_light_metric(
-            "Confidence",
-            format_pct(dashboard_current.get("current_confidence", np.nan)),
-            f"ML probability {format_pct(dashboard_current.get('current_probability', np.nan))}",
-            "#2563EB",
-        )
-    with state_cols[3]:
-        render_light_metric(
-            "Bias",
-            dashboard_current.get("recommended_bias", "N/A"),
-            top_current_window.get("taxonomy_reason", top_current_window.get("narrative_v2", "No narrative available."))[:120],
-            taxonomy_color(dashboard_current.get("current_taxonomy")),
-        )
-    with state_cols[4]:
-        render_light_metric(
-            "Risk Level",
-            dashboard_current.get("risk_level", "N/A"),
-            f"BTC {fmt_money(latest_price)} | {price_delta_pct:+.2%} vs prior close",
-            risk_level_color(dashboard_current.get("risk_level")),
-        )
-
-    st.markdown('<div class="section-title" style="margin-top:24px;">BTC Price with Forecast Taxonomy Overlay</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="section-note">The historical range selector controls the visible BTCUSD history. The forecast horizon selector controls how far future taxonomy windows and turning points extend.</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("#### BTC Price + Forecast Taxonomy Overlay")
+    st.caption("Historical range comes from the sidebar control. Forecast horizon controls future taxonomy windows and turning points.")
 
     chart_windows = top_dashboard_windows.copy()
     chart_turning_points = top_turning_points.copy()
-    chart_start = start_date
-    chart_end = max(forecast_cutoff, last_price_date)
-    chart_price = price_df[(price_df["date"] >= chart_start) & (price_df["date"] <= last_price_date)].copy()
+    chart_start = safe_datetime(start_date) or safe_datetime(min_date)
+    chart_end = safe_datetime(max(forecast_cutoff, last_price_date)) or safe_datetime(last_price_date)
+    chart_price = price_df[(price_df["date"] >= start_date) & (price_df["date"] <= last_price_date)].copy()
 
     if chart_price.empty:
-        chart_price = price_df.copy()
+        st.warning("BTC price history is unavailable for the selected range.")
+    else:
+        chart_price["date"] = pd.to_datetime(chart_price["date"], errors="coerce")
+        chart_price = chart_price.dropna(subset=["date", "price"]).copy()
 
-    price_fig = go.Figure()
+        try:
+            price_fig = go.Figure()
 
-    if show_taxonomy_overlay and not chart_windows.empty:
-        for _, row in chart_windows.iterrows():
-            price_fig.add_vrect(
-                x0=max(row["start_date"], chart_start),
-                x1=min(row["end_date"], forecast_cutoff),
-                fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.10 if row["taxonomy_v2"] != "High Risk" else 0.15),
-                layer="below",
-                line_width=0,
-            )
+            if show_taxonomy_overlay and not chart_windows.empty:
+                for _, row in chart_windows.iterrows():
+                    x0 = safe_datetime(max(row["start_date"], start_date))
+                    x1 = safe_datetime(min(row["end_date"], forecast_cutoff))
+                    if x0 is None or x1 is None:
+                        continue
+                    price_fig.add_vrect(
+                        x0=x0,
+                        x1=x1,
+                        fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.10 if row["taxonomy_v2"] != "High Volatility Risk" else 0.15),
+                        layer="below",
+                        line_width=0,
+                    )
 
-    price_fig.add_vrect(
-        x0=last_price_date,
-        x1=forecast_cutoff,
-        fillcolor="rgba(148,163,184,0.08)",
-        layer="below",
-        line_width=0,
-        annotation_text="Forecast Zone",
-        annotation_position="top left",
-        annotation_font_color="#6B7280",
-    )
-
-    hist_custom = np.column_stack(
-        [
-            np.full(len(chart_price), "Historical / Live"),
-            np.full(len(chart_price), "N/A"),
-            np.full(len(chart_price), "N/A"),
-            np.full(len(chart_price), ""),
-        ]
-    )
-    price_fig.add_trace(
-        go.Scatter(
-            x=chart_price["date"],
-            y=chart_price["price"],
-            mode="lines",
-            name="BTCUSD Price",
-            line=dict(color="#2563EB", width=2.6),
-            customdata=hist_custom,
-            hovertemplate=(
-                "Date: %{x|%Y-%m-%d}<br>"
-                "BTC Price: $%{y:,.0f}<br>"
-                "Taxonomy: %{customdata[0]}<br>"
-                "Confidence: %{customdata[1]}<br>"
-                "Probability: %{customdata[2]}<br>"
-                "%{customdata[3]}<extra></extra>"
-            ),
-        )
-    )
-
-    forecast_context_rows = []
-    if not chart_windows.empty:
-        for _, row in chart_windows.iterrows():
-            date_range = pd.date_range(max(row["start_date"], last_price_date), min(row["end_date"], forecast_cutoff), freq="D")
-            for dt in date_range:
-                forecast_context_rows.append(
-                    {
-                        "date": dt,
-                        "taxonomy_v2": row["taxonomy_v2"],
-                        "average_confidence": row["average_confidence"],
-                        "average_ml_probability": row["average_ml_probability"],
-                    }
+            forecast_start_dt = safe_datetime(last_price_date)
+            forecast_end_dt = safe_datetime(forecast_cutoff)
+            if forecast_start_dt and forecast_end_dt:
+                price_fig.add_vrect(
+                    x0=forecast_start_dt,
+                    x1=forecast_end_dt,
+                    fillcolor="rgba(148,163,184,0.08)",
+                    layer="below",
+                    line_width=0,
+                    annotation_text="Forecast Zone",
+                    annotation_position="top left",
+                    annotation_font_color="#6B7280",
                 )
 
-    forecast_context = pd.DataFrame(forecast_context_rows)
-    if not forecast_context.empty:
-        forecast_context = forecast_context.groupby("date", as_index=False).last()
-        forecast_context["reference_price"] = latest_price
-        future_custom = np.column_stack(
-            [
-                forecast_context["taxonomy_v2"].astype(str),
-                forecast_context["average_confidence"].map(format_pct),
-                forecast_context["average_ml_probability"].map(format_pct),
-                np.full(len(forecast_context), ""),
-            ]
-        )
-        price_fig.add_trace(
-            go.Scatter(
-                x=forecast_context["date"],
-                y=forecast_context["reference_price"],
-                mode="lines",
-                name="Forecast Baseline",
-                line=dict(color="#94A3B8", width=1.5, dash="dot"),
-                customdata=future_custom,
-                hovertemplate=(
-                    "Date: %{x|%Y-%m-%d}<br>"
-                    "BTC Price: $%{y:,.0f} (last close reference)<br>"
-                    "Taxonomy: %{customdata[0]}<br>"
-                    "Confidence: %{customdata[1]}<br>"
-                    "Probability: %{customdata[2]}<extra></extra>"
-                ),
+            hist_custom = np.column_stack(
+                [
+                    np.full(len(chart_price), "Historical / Live"),
+                    np.full(len(chart_price), "N/A"),
+                    np.full(len(chart_price), "N/A"),
+                ]
             )
-        )
-
-    if show_turning_points and not chart_turning_points.empty:
-        chart_turning_points = chart_turning_points[chart_turning_points["turning_point_date"] >= chart_start].copy()
-        if not chart_turning_points.empty:
-            marker_map = {
-                "bullish": ("triangle-up", "#16A34A"),
-                "bearish": ("triangle-down", "#DC2626"),
-            }
-            chart_turning_points["marker_symbol"] = chart_turning_points["new_signal"].str.lower().map(lambda x: marker_map.get(x, ("circle", "#6B7280"))[0])
-            chart_turning_points["marker_color"] = chart_turning_points["new_signal"].str.lower().map(lambda x: marker_map.get(x, ("circle", "#6B7280"))[1])
-            chart_turning_points["plot_y"] = latest_price * 1.015
             price_fig.add_trace(
                 go.Scatter(
-                    x=chart_turning_points["turning_point_date"],
-                    y=chart_turning_points["plot_y"],
-                    mode="markers",
-                    name="Turning Points",
-                    marker=dict(
-                        symbol=chart_turning_points["marker_symbol"],
-                        size=13,
-                        color=chart_turning_points["marker_color"],
-                        line=dict(width=1, color="#FFFFFF"),
-                    ),
-                    customdata=np.column_stack(
-                        [
-                            chart_turning_points["turning_point_type"].astype(str),
-                            chart_turning_points["old_signal"].astype(str),
-                            chart_turning_points["new_signal"].astype(str),
-                            chart_turning_points["confidence"].map(format_pct),
-                        ]
-                    ),
+                    x=chart_price["date"].dt.to_pydatetime(),
+                    y=chart_price["price"],
+                    mode="lines",
+                    name="BTCUSD Price",
+                    line=dict(color="#2563EB", width=2.6),
+                    customdata=hist_custom,
                     hovertemplate=(
                         "Date: %{x|%Y-%m-%d}<br>"
-                        "Turning point: %{customdata[0]}<br>"
-                        "Signal shift: %{customdata[1]} -> %{customdata[2]}<br>"
-                        "Confidence: %{customdata[3]}<br>"
-                        "Probability: N/A<extra></extra>"
+                        "BTC Price: $%{y:,.0f}<br>"
+                        "Taxonomy: %{customdata[0]}<br>"
+                        "Confidence: %{customdata[1]}<br>"
+                        "Probability: %{customdata[2]}<extra></extra>"
                     ),
                 )
             )
 
-    price_fig.add_vline(
-        x=last_price_date,
-        line_dash="dash",
-        line_color="#6B7280",
-        opacity=0.9,
-        annotation_text="Forecast Start",
-        annotation_position="top right",
-        annotation_font_color="#6B7280",
-    )
-    price_fig.update_layout(
-        height=580,
-        margin=dict(l=20, r=20, t=20, b=20),
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
-        hovermode="x unified",
-        legend=dict(orientation="h", y=1.03, x=0, bgcolor="rgba(255,255,255,0.9)"),
-        xaxis_title="Date",
-        yaxis_title="BTCUSD Price",
-        font=dict(color="#111827"),
-    )
-    price_fig.update_xaxes(
-        range=[chart_start, chart_end],
-        showgrid=True,
-        gridcolor="rgba(148,163,184,0.18)",
-        zeroline=False,
-    )
-    price_fig.update_yaxes(
-        showgrid=True,
-        gridcolor="rgba(148,163,184,0.18)",
-        zeroline=False,
-        range=[chart_price["price"].min() * 0.95, max(chart_price["price"].max(), latest_price) * 1.08],
-    )
-    st.plotly_chart(price_fig, use_container_width=True)
+            forecast_context_rows = []
+            if not chart_windows.empty:
+                for _, row in chart_windows.iterrows():
+                    date_range = pd.date_range(max(row["start_date"], last_price_date), min(row["end_date"], forecast_cutoff), freq="D")
+                    for dt in date_range:
+                        forecast_context_rows.append(
+                            {
+                                "date": dt,
+                                "taxonomy_v2": row["taxonomy_v2"],
+                                "average_confidence": row["average_confidence"],
+                                "average_ml_probability": row["average_ml_probability"],
+                            }
+                        )
 
-    st.markdown('<div class="section-title" style="margin-top:24px;">Outlook Cards</div>', unsafe_allow_html=True)
+            forecast_context = pd.DataFrame(forecast_context_rows)
+            if not forecast_context.empty:
+                forecast_context["date"] = pd.to_datetime(forecast_context["date"], errors="coerce")
+                forecast_context = forecast_context.dropna(subset=["date"]).groupby("date", as_index=False).last()
+                forecast_context["reference_price"] = latest_price
+                future_custom = np.column_stack(
+                    [
+                        forecast_context["taxonomy_v2"].astype(str),
+                        forecast_context["average_confidence"].map(format_pct),
+                        forecast_context["average_ml_probability"].map(format_pct),
+                    ]
+                )
+                price_fig.add_trace(
+                    go.Scatter(
+                        x=forecast_context["date"].dt.to_pydatetime(),
+                        y=forecast_context["reference_price"],
+                        mode="lines",
+                        name="Forecast Baseline",
+                        line=dict(color="#94A3B8", width=1.5, dash="dot"),
+                        customdata=future_custom,
+                        hovertemplate=(
+                            "Date: %{x|%Y-%m-%d}<br>"
+                            "BTC Price: $%{y:,.0f} (last close reference)<br>"
+                            "Taxonomy: %{customdata[0]}<br>"
+                            "Confidence: %{customdata[1]}<br>"
+                            "Probability: %{customdata[2]}<extra></extra>"
+                        ),
+                    )
+                )
+
+            if show_turning_points and not chart_turning_points.empty:
+                chart_turning_points = chart_turning_points[chart_turning_points["turning_point_date"] >= start_date].copy()
+                if not chart_turning_points.empty:
+                    chart_turning_points["turning_point_date"] = pd.to_datetime(chart_turning_points["turning_point_date"], errors="coerce")
+                    chart_turning_points = chart_turning_points.dropna(subset=["turning_point_date"])
+                    marker_map = {
+                        "bullish": ("triangle-up", "#16A34A"),
+                        "bearish": ("triangle-down", "#DC2626"),
+                    }
+                    chart_turning_points["marker_symbol"] = chart_turning_points["new_signal"].str.lower().map(lambda x: marker_map.get(x, ("circle", "#6B7280"))[0])
+                    chart_turning_points["marker_color"] = chart_turning_points["new_signal"].str.lower().map(lambda x: marker_map.get(x, ("circle", "#6B7280"))[1])
+                    chart_turning_points["plot_y"] = chart_price["price"].max() * 1.02
+                    price_fig.add_trace(
+                        go.Scatter(
+                            x=chart_turning_points["turning_point_date"].dt.to_pydatetime(),
+                            y=chart_turning_points["plot_y"],
+                            mode="markers",
+                            name="Turning Points",
+                            marker=dict(
+                                symbol=chart_turning_points["marker_symbol"],
+                                size=12,
+                                color=chart_turning_points["marker_color"],
+                                line=dict(width=1, color="#FFFFFF"),
+                            ),
+                            customdata=np.column_stack(
+                                [
+                                    chart_turning_points["turning_point_type"].astype(str),
+                                    chart_turning_points["old_signal"].astype(str),
+                                    chart_turning_points["new_signal"].astype(str),
+                                    chart_turning_points["confidence"].map(format_pct),
+                                ]
+                            ),
+                            hovertemplate=(
+                                "Date: %{x|%Y-%m-%d}<br>"
+                                "Turning point: %{customdata[0]}<br>"
+                                "Signal shift: %{customdata[1]} -> %{customdata[2]}<br>"
+                                "Confidence: %{customdata[3]}<br>"
+                                "Probability: N/A<extra></extra>"
+                            ),
+                        )
+                    )
+
+            add_safe_vertical_marker(price_fig, last_price_date, "Forecast Start", "#6B7280")
+            price_fig.update_layout(
+                height=580,
+                margin=dict(l=20, r=20, t=20, b=20),
+                paper_bgcolor="#FFFFFF",
+                plot_bgcolor="#FFFFFF",
+                hovermode="x unified",
+                legend=dict(orientation="h", y=1.03, x=0, bgcolor="rgba(255,255,255,0.9)"),
+                xaxis_title="Date",
+                yaxis_title="BTCUSD Price",
+                font=dict(color="#111827"),
+            )
+            price_fig.update_xaxes(
+                range=[chart_start, chart_end],
+                showgrid=True,
+                gridcolor="rgba(148,163,184,0.18)",
+                zeroline=False,
+            )
+            price_fig.update_yaxes(
+                showgrid=True,
+                gridcolor="rgba(148,163,184,0.18)",
+                zeroline=False,
+                range=[chart_price["price"].min() * 0.95, max(chart_price["price"].max(), latest_price) * 1.08],
+            )
+            st.plotly_chart(price_fig, use_container_width=True)
+        except Exception as exc:
+            st.warning(f"Unable to render the forecast price chart safely: {exc}")
+
+    st.markdown("#### Outlook Cards")
     outlook_cols = st.columns(3)
     with outlook_cols[0]:
         render_outlook_card("30D Outlook", top_30d)
@@ -1132,40 +1259,104 @@ if dashboard_current:
     with outlook_cols[2]:
         render_outlook_card("365D Outlook", top_365d)
 
-    if show_detail_tables:
-        st.markdown('<div class="section-title" style="margin-top:24px;">Forecast Windows Detail</div>', unsafe_allow_html=True)
-        st.markdown(
-            '<div class="section-note">Detailed forecast windows remain available for auditability, with filters for taxonomy and posture.</div>',
-            unsafe_allow_html=True,
+    st.markdown("#### Why The Model Thinks This")
+    current_taxonomy = dashboard_current.get("current_taxonomy", "N/A")
+    current_attr = get_taxonomy_attribution_row(current_taxonomy)
+    current_features = get_top_feature_rows(current_taxonomy, limit=5)
+    current_planets = parse_ranked_items(current_attr.get("most_influential_planets"), limit=5)
+    current_aspects = parse_ranked_items(current_attr.get("most_influential_aspects"), limit=5)
+
+    explain_cols = st.columns([1.1, 1.3])
+    with explain_cols[0]:
+        with card_container():
+            st.caption("CURRENT STATE".upper())
+            st.markdown(taxonomy_badge_html(current_taxonomy), unsafe_allow_html=True)
+            st.markdown(f"**{current_taxonomy}**")
+            metric_cols = st.columns(2)
+            with metric_cols[0]:
+                st.metric(
+                    "Astro Momentum",
+                    fmt_num(latest.get("astro_momentum_v2_smooth", np.nan)),
+                    help="Latest smoothed astro momentum from the live feature frame.",
+                )
+            with metric_cols[1]:
+                st.metric(
+                    "ML Probability",
+                    format_pct(dashboard_current.get("current_probability", np.nan)),
+                    help="Current forecast probability from the Robust Astro Engine v1 ML layer.",
+                )
+            st.caption(
+                f"Typical taxonomy momentum range: {current_attr.get('typical_momentum_range', 'N/A')}"
+            )
+            st.caption(
+                f"Typical taxonomy probability range: {current_attr.get('typical_probability_range', 'N/A')}"
+            )
+            render_driver_list("Top 5 Contributing Features", [
+                {
+                    "name": row["feature"],
+                    "score": row["zscore_diff"] if "zscore_diff" in row else row.get("differential", np.nan),
+                }
+                for _, row in current_features.iterrows()
+            ])
+            driver_cols = st.columns(2)
+            with driver_cols[0]:
+                render_driver_list("Top Planets", current_planets, empty_text="No strong planetary concentration.")
+            with driver_cols[1]:
+                render_driver_list("Top Aspects", current_aspects, empty_text="No strong aspect concentration.")
+
+    with explain_cols[1]:
+        with card_container():
+            st.caption("CONTRIBUTION BARS")
+            st.write("These show the strongest feature-level pushes behind the current taxonomy state.")
+            render_contribution_bars(current_features, "current_state")
+
+    st.markdown("##### Outlook Drivers")
+    outlook_driver_cols = st.columns(3)
+    with outlook_driver_cols[0]:
+        render_state_explanation_card(
+            "30D Outlook",
+            top_30d.get("dominant_taxonomy", "N/A"),
+            top_30d.get("average_confidence", np.nan),
+            top_30d.get("average_probability", np.nan),
+            top_30d.get("summary", ""),
+            "30d",
         )
+    with outlook_driver_cols[1]:
+        render_state_explanation_card(
+            "90D Outlook",
+            top_90d.get("dominant_taxonomy", "N/A"),
+            top_90d.get("average_confidence", np.nan),
+            top_90d.get("average_probability", np.nan),
+            top_90d.get("summary", ""),
+            "90d",
+        )
+    with outlook_driver_cols[2]:
+        render_state_explanation_card(
+            "365D Outlook",
+            top_365d.get("dominant_taxonomy", "N/A"),
+            top_365d.get("average_confidence", np.nan),
+            top_365d.get("average_probability", np.nan),
+            top_365d.get("summary", ""),
+            "365d",
+        )
+
+    if show_detail_tables:
+        st.markdown("#### Forecast Windows Detail")
+        st.caption("Detailed forecast windows remain available for auditability, with taxonomy and risk filters.")
         detail_df = top_dashboard_windows.copy()
         if not detail_df.empty:
-            filter_cols = st.columns([1.1, 1, 1, 1.1])
+            filter_cols = st.columns([1, 1, 1])
             with filter_cols[0]:
-                detail_start = st.date_input(
-                    "Window start after",
-                    value=detail_df["start_date"].min().date(),
-                    key="detail_start_date",
-                )
-            with filter_cols[1]:
-                detail_end = st.date_input(
-                    "Window end before",
-                    value=detail_df["end_date"].max().date(),
-                    key="detail_end_date",
-                )
-            with filter_cols[2]:
                 only_risk = st.checkbox("Risk windows only", value=False, key="detail_only_risk")
-            with filter_cols[3]:
+            with filter_cols[1]:
                 only_constructive = st.checkbox("Constructive only", value=False, key="detail_only_constructive")
+            with filter_cols[2]:
+                st.caption(f"Taxonomy filter: {taxonomy_filter}")
 
-            detail_df = detail_df[
-                (detail_df["start_date"].dt.date >= detail_start) &
-                (detail_df["end_date"].dt.date <= detail_end)
-            ].copy()
             if only_risk:
-                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["High Risk", "Bearish", "False Bull / Exhaustion Risk"])].copy()
+                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["High Volatility Risk", "Defensive / Weak Trend"])].copy()
             if only_constructive:
-                detail_df = detail_df[detail_df["taxonomy_v2"] == "Constructive / Positive Drift"].copy()
+                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["Constructive Drift", "High Momentum Expansion"])].copy()
 
             detail_display = detail_df.copy()
             detail_display["start_date"] = detail_display["start_date"].map(format_date)
@@ -1192,29 +1383,25 @@ if dashboard_current:
         else:
             st.info("No forecast windows are available for the current filters.")
 
-    st.markdown('<div class="section-title" style="margin-top:24px;">Upcoming Turning Points</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="section-note">The next three turning points are surfaced as quick-read cards, with the full table available on demand.</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("#### Upcoming Turning Points")
+    st.caption("The next three turning points are surfaced as quick-read cards, with the full table available on demand.")
     if not top_turning_points.empty:
         turn_cards = top_turning_points.head(3).copy()
         turn_cols = st.columns(3)
         for idx, (_, row) in enumerate(turn_cards.iterrows()):
             new_signal = str(row["new_signal"]).strip()
-            direction_color = taxonomy_color("Constructive / Positive Drift") if new_signal.lower() == "bullish" else taxonomy_color("Bearish") if new_signal.lower() == "bearish" else "#6B7280"
+            direction_color = taxonomy_color("Constructive Drift") if new_signal.lower() == "bullish" else taxonomy_color("Defensive / Weak Trend") if new_signal.lower() == "bearish" else "#6B7280"
             with turn_cols[idx]:
-                st.markdown(
-                    f"""
-                    <div class="turning-card" style="border-top:4px solid {direction_color};">
-                        <div class="turning-date">{format_date(row["turning_point_date"])}</div>
-                        <div class="turning-type">{str(row["turning_point_type"]).replace("_", " ").title()}</div>
-                        <div class="turning-direction" style="color:{direction_color};">{row["old_signal"]} -> {row["new_signal"]}</div>
-                        <div class="turning-body">Confidence {format_pct(row["confidence"])}. {row["explanation"]}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                with card_container():
+                    st.markdown(
+                        f"<div style='height:4px;background:{direction_color};border-radius:999px;margin-bottom:12px;'></div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.caption(format_date(row["turning_point_date"]))
+                    st.markdown(f"**{str(row['turning_point_type']).replace('_', ' ').title()}**")
+                    st.markdown(f"**{row['old_signal']} -> {row['new_signal']}**")
+                    st.caption(f"Confidence {format_pct(row['confidence'])}")
+                    st.write(row["explanation"])
 
         with st.expander("Show full turning point table", expanded=False):
             tp_display = top_turning_points.copy()
@@ -1237,39 +1424,31 @@ if dashboard_current:
     else:
         st.info("No turning points are available for the selected horizon.")
 
-    st.markdown('<div class="section-title" style="margin-top:24px;">Risk Calendar</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="section-note">Compact risk cards keep the next major caution windows visible without repeating the same information unnecessarily.</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("#### Risk Calendar")
+    st.caption("Compact risk cards keep the next major caution windows visible without repeating the same information unnecessarily.")
     risk_card_specs = [
-        ("Next Risk Window", next_risk_window, next_risk_window.get("taxonomy_v2", dashboard_current.get("current_taxonomy", "Neutral / Tactical"))),
-        ("Next High Risk Window", top_next_high_risk, top_next_high_risk.get("taxonomy_v2", "High Risk")),
-        ("Next Bearish Window", next_bearish_window, next_bearish_window.get("taxonomy_v2", "Bearish")),
-        ("Next False Bull Window", next_false_bull_window, next_false_bull_window.get("taxonomy_v2", "False Bull / Exhaustion Risk")),
+        ("Next Risk Window", next_risk_window, next_risk_window.get("taxonomy_v2", dashboard_current.get("current_taxonomy", "Tactical Neutral"))),
+        ("Next Constructive Window", top_next_constructive, top_next_constructive.get("taxonomy_v2", "Constructive Drift")),
+        ("Next Momentum Expansion", next_momentum_window, next_momentum_window.get("taxonomy_v2", "High Momentum Expansion")),
+        ("Next Weak Trend Window", next_bearish_window, next_bearish_window.get("taxonomy_v2", "Defensive / Weak Trend")),
+        ("Next Volatility Risk", top_next_high_risk, top_next_high_risk.get("taxonomy_v2", "High Volatility Risk")),
     ]
-    risk_cols = st.columns(4)
+    risk_cols = st.columns(5)
     for idx, (title, row, taxonomy_label) in enumerate(risk_card_specs):
         start_text = format_date(row.get("start_date", row.get("turning_point_date")))
         end_text = format_date(row.get("end_date"))
         date_text = start_text if end_text == "N/A" else f"{start_text} to {end_text}"
         body_text = row.get("taxonomy_reason", row.get("explanation", "No additional context available."))
         with risk_cols[idx]:
-            st.markdown(
-                f"""
-                <div class="mini-risk-card" style="border-top:4px solid {taxonomy_color(taxonomy_label)};">
-                    <div class="summary-label">{title}</div>
-                    <div class="summary-value" style="font-size:1.05rem;">{date_text}</div>
-                    <div style="margin:10px 0 8px 0;">
-                        <span class="light-badge" style="background:{taxonomy_rgba(taxonomy_label, 0.12)}; color:{taxonomy_color(taxonomy_label)}; border:1px solid {taxonomy_rgba(taxonomy_label, 0.28)};">
-                            {taxonomy_label}
-                        </span>
-                    </div>
-                    <div class="summary-sub">{body_text}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            with card_container():
+                st.markdown(
+                    f"<div style='height:4px;background:{taxonomy_color(taxonomy_label)};border-radius:999px;margin-bottom:12px;'></div>",
+                    unsafe_allow_html=True,
+                )
+                st.caption(title.upper())
+                st.markdown(taxonomy_badge_html(taxonomy_label), unsafe_allow_html=True)
+                st.markdown(f"**{date_text}**")
+                st.caption(body_text)
 
     st.markdown("---")
 else:
@@ -1512,7 +1691,7 @@ if dashboard_current and False:
                 )
             )
 
-    price_fig.add_vline(x=last_price_date, line_dash="dot", line_color="#cbd5e1", opacity=0.8)
+    add_safe_vertical_marker(price_fig, last_price_date, "Forecast Start", "#cbd5e1")
     price_fig.update_layout(
         template="plotly_dark",
         height=620,
@@ -1646,7 +1825,7 @@ if dashboard_current and False:
             risk_window_card_html(
                 "Next Constructive Window",
                 f"{top_next_constructive.get('start_date', 'N/A')} to {top_next_constructive.get('end_date', 'N/A')}",
-                top_next_constructive.get("taxonomy_v2", "Constructive / Positive Drift"),
+                top_next_constructive.get("taxonomy_v2", "Constructive Drift"),
                 top_next_constructive.get("taxonomy_reason", "Constructive window details unavailable."),
             ),
             unsafe_allow_html=True,
@@ -1656,7 +1835,7 @@ if dashboard_current and False:
             risk_window_card_html(
                 "Next High-Risk Window",
                 f"{top_next_high_risk.get('start_date', 'N/A')} to {top_next_high_risk.get('end_date', 'N/A')}",
-                top_next_high_risk.get("taxonomy_v2", "High Risk"),
+                top_next_high_risk.get("taxonomy_v2", "High Volatility Risk"),
                 top_next_high_risk.get("taxonomy_reason", "High-risk window details unavailable."),
             ),
             unsafe_allow_html=True,
@@ -1800,7 +1979,7 @@ with tabs[1]:
         line=dict(color="#f59e0b", width=2, dash="dash")
     ))
     fig.add_hline(y=0, line_dash="dash", line_color="#94a3b8")
-    fig.add_vline(x=last_price_date, line_dash="dot", line_color="#e5e7eb")
+    add_safe_vertical_marker(fig, last_price_date, "Forecast Start", "#e5e7eb")
     fig.update_layout(
         template="plotly_dark",
         height=620,

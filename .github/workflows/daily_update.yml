@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -279,5 +280,5 @@ jobs:
           fi
 
           git commit -m "daily research pipeline update"
-          git push
+          git push origin "HEAD:${GITHUB_REF_NAME}"
           echo "::endgroup::"

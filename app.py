@@ -641,6 +641,9 @@ def parse_ranked_items(value, limit=5):
         items.append({"name": name, "score": score})
     return items[:limit]
 
+def safe_record(value):
+    return value if isinstance(value, dict) else {}
+
 def julday(dt):
     return swe.julday(
         dt.year, dt.month, dt.day,
@@ -1008,13 +1011,13 @@ if dashboard_current:
     top_dashboard_windows = pd.DataFrame(dashboard_timeline.get("windows", []))
     top_turning_points = pd.DataFrame(dashboard_risk_calendar.get("turning_points", []))
     top_risk_windows = pd.DataFrame(dashboard_risk_calendar.get("risk_windows", []))
-    top_current_window = dashboard_current.get("current_window", {})
-    top_next_turning = dashboard_current.get("next_turning_point", {})
-    top_next_constructive = dashboard_current.get("next_constructive_window", {})
-    top_next_high_risk = dashboard_current.get("next_high_risk_window", {})
-    top_30d = dashboard_summary.get("30D Outlook", {})
-    top_90d = dashboard_summary.get("90D Outlook", {})
-    top_365d = dashboard_summary.get("365D Outlook", {})
+    top_current_window = safe_record(dashboard_current.get("current_window"))
+    top_next_turning = safe_record(dashboard_current.get("next_turning_point"))
+    top_next_constructive = safe_record(dashboard_current.get("next_constructive_window"))
+    top_next_high_risk = safe_record(dashboard_current.get("next_high_risk_window"))
+    top_30d = safe_record(dashboard_summary.get("30D Outlook"))
+    top_90d = safe_record(dashboard_summary.get("90D Outlook"))
+    top_365d = safe_record(dashboard_summary.get("365D Outlook"))
     prev_price = price_df[price_df["date"] < last_price_date]["price"].iloc[-1] if len(price_df) > 1 else latest_price
     price_delta = latest_price - prev_price
     price_delta_pct = (price_delta / prev_price) if prev_price else 0.0

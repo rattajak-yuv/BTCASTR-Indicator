@@ -1,36 +1,36 @@
 {
-  "forecast_date": "2026-05-31",
+  "forecast_date": "2026-06-02",
   "Current Signal": "Neutral",
-  "Current Confidence": 0.2708486269904867,
-  "Current Taxonomy": "Constructive Drift",
+  "Current Confidence": 0.2447389553978353,
+  "Current Taxonomy": "Tactical Neutral",
   "Next Turning Point": "2026-06-05",
-  "Next Constructive Window": "2026-05-31",
-  "Next High Risk Window": "2026-07-15",
+  "Next Constructive Window": "2026-09-27",
+  "Next High Risk Window": null,
   "30D Outlook": {
     "label": "30D Outlook",
     "horizon_days": 30,
-    "dominant_taxonomy": "High Momentum Expansion",
-    "average_confidence": 0.34785411949375006,
-    "average_probability": 0.5706691224694599,
+    "dominant_taxonomy": "Tactical Neutral",
+    "average_confidence": 0.32201787822160577,
+    "average_probability": 0.5651306594572851,
     "window_count": 2,
-    "summary": "Dominant state is high momentum expansion with mean confidence 34.79% and mean probability 57.07%. The horizon starts in constructive drift and rotates toward high momentum expansion."
+    "summary": "Dominant state is tactical neutral with mean confidence 32.20% and mean probability 56.51%."
   },
   "90D Outlook": {
     "label": "90D Outlook",
     "horizon_days": 90,
     "dominant_taxonomy": "Tactical Neutral",
-    "average_confidence": 0.337450464936574,
-    "average_probability": 0.5129954197149281,
+    "average_confidence": 0.31614607169256803,
+    "average_probability": 0.5311401332571598,
     "window_count": 6,
-    "summary": "Dominant state is tactical neutral with mean confidence 33.75% and mean probability 51.30%. The horizon starts in constructive drift and rotates toward tactical neutral."
+    "summary": "Dominant state is tactical neutral with mean confidence 31.61% and mean probability 53.11%."
   },
   "365D Outlook": {
     "label": "365D Outlook",
     "horizon_days": 365,
-    "dominant_taxonomy": "Constructive Drift",
-    "average_confidence": 0.35263815965657,
-    "average_probability": 0.521227752027366,
+    "dominant_taxonomy": "Tactical Neutral",
+    "average_confidence": 0.3363196033466135,
+    "average_probability": 0.5192021823328968,
     "window_count": 27,
-    "summary": "Dominant state is constructive drift with mean confidence 35.26% and mean probability 52.12%."
+    "summary": "Dominant state is tactical neutral with mean confidence 33.63% and mean probability 51.92%."
   }
 }

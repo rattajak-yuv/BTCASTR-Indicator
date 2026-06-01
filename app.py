@@ -464,6 +464,14 @@ def load_dashboard_risk_calendar():
 def load_dashboard_summary():
     return load_json_safe("data/dashboard_summary.json")
 
+@st.cache_data(ttl=3600)
+def load_taxonomy_attribution():
+    return load_csv_safe("data/taxonomy_attribution.csv")
+
+@st.cache_data(ttl=3600)
+def load_taxonomy_feature_importance():
+    return load_csv_safe("data/taxonomy_feature_importance.csv")
+
 # =========================================================
 # HELPERS
 # =========================================================
@@ -518,6 +526,11 @@ def signal_color(sig):
 
 def taxonomy_color(label):
     return {
+        "High Momentum Expansion": "#D97706",
+        "Constructive Drift": "#2E7D32",
+        "Tactical Neutral": "#C9A227",
+        "High Volatility Risk": "#7F1D1D",
+        "Defensive / Weak Trend": "#C62828",
         "Constructive / Positive Drift": "#2E7D32",
         "Neutral / Tactical": "#C9A227",
         "High Risk": "#7F1D1D",
@@ -527,6 +540,11 @@ def taxonomy_color(label):
 
 def taxonomy_bg(label):
     return {
+        "High Momentum Expansion": "linear-gradient(135deg, #432510 0%, #D97706 100%)",
+        "Constructive Drift": "linear-gradient(135deg, #16351d 0%, #2E7D32 100%)",
+        "Tactical Neutral": "linear-gradient(135deg, #453f18 0%, #C9A227 100%)",
+        "High Volatility Risk": "linear-gradient(135deg, #2b0a0a 0%, #7F1D1D 100%)",
+        "Defensive / Weak Trend": "linear-gradient(135deg, #3b0a0f 0%, #C62828 100%)",
         "Constructive / Positive Drift": "linear-gradient(135deg, #16351d 0%, #2E7D32 100%)",
         "Neutral / Tactical": "linear-gradient(135deg, #453f18 0%, #C9A227 100%)",
         "High Risk": "linear-gradient(135deg, #2b0a0a 0%, #7F1D1D 100%)",
@@ -601,6 +619,27 @@ def card_container():
         return st.container(border=True)
     except TypeError:
         return st.container()
+
+def parse_ranked_items(value, limit=5):
+    if pd.isna(value) or value in [None, ""]:
+        return []
+    items = []
+    for raw_item in str(value).split(", "):
+        raw_item = raw_item.strip()
+        if not raw_item:
+            continue
+        if " (" in raw_item and raw_item.endswith(")"):
+            name, score_text = raw_item.rsplit(" (", 1)
+            score_text = score_text[:-1]
+            try:
+                score = float(score_text)
+            except ValueError:
+                score = np.nan
+        else:
+            name = raw_item
+            score = np.nan
+        items.append({"name": name, "score": score})
+    return items[:limit]
 
 def julday(dt):
     return swe.julday(
@@ -759,6 +798,8 @@ dashboard_current = load_dashboard_current_state()
 dashboard_timeline = load_dashboard_timeline()
 dashboard_risk_calendar = load_dashboard_risk_calendar()
 dashboard_summary = load_dashboard_summary()
+taxonomy_attribution = load_taxonomy_attribution()
+taxonomy_feature_importance = load_taxonomy_feature_importance()
 
 price_df = df.dropna(subset=["price"]).copy()
 if price_df.empty:
@@ -788,11 +829,11 @@ forecast_days = st.sidebar.selectbox(
 
 taxonomy_filter_options = [
     "All",
-    "Constructive / Positive Drift",
-    "Neutral / Tactical",
-    "False Bull / Exhaustion Risk",
-    "Bearish",
-    "High Risk",
+    "Constructive Drift",
+    "Tactical Neutral",
+    "High Momentum Expansion",
+    "Defensive / Weak Trend",
+    "High Volatility Risk",
 ]
 taxonomy_filter = st.sidebar.selectbox("Taxonomy Filter", taxonomy_filter_options, index=0)
 show_turning_points = st.sidebar.checkbox("Show Turning Points", value=True)
@@ -871,6 +912,99 @@ if dashboard_current:
         match = window_df[window_df["taxonomy_v2"] == taxonomy_label]
         return match.iloc[0].to_dict() if not match.empty else {}
 
+    def get_taxonomy_attribution_row(taxonomy_label):
+        if taxonomy_attribution.empty or "taxonomy_v3" not in taxonomy_attribution.columns:
+            return {}
+        match = taxonomy_attribution[taxonomy_attribution["taxonomy_v3"] == taxonomy_label]
+        return match.iloc[0].to_dict() if not match.empty else {}
+
+    def get_top_feature_rows(taxonomy_label, limit=5):
+        if taxonomy_feature_importance.empty or "taxonomy_v3" not in taxonomy_feature_importance.columns:
+            return pd.DataFrame()
+        match = taxonomy_feature_importance[taxonomy_feature_importance["taxonomy_v3"] == taxonomy_label].copy()
+        if match.empty:
+            return match
+        sort_col = "abs_zscore_diff" if "abs_zscore_diff" in match.columns else "differential"
+        match = match.sort_values(sort_col, ascending=False).head(limit).copy()
+        return match
+
+    def render_driver_list(title, items, empty_text="No strong drivers detected."):
+        st.caption(title.upper())
+        if not items:
+            st.write(empty_text)
+            return
+        for item in items:
+            score = item.get("score", np.nan)
+            score_text = "" if pd.isna(score) else f" ({score:+.2f})"
+            st.write(f"• {item.get('name', 'Unknown')}{score_text}")
+
+    def render_contribution_bars(feature_df, key_suffix):
+        if feature_df.empty or "feature" not in feature_df.columns:
+            st.info("Contribution bars are unavailable for this taxonomy.")
+            return
+        plot_df = feature_df.copy()
+        if "zscore_diff" in plot_df.columns:
+            plot_df["contribution_value"] = plot_df["zscore_diff"].fillna(plot_df.get("differential", 0.0))
+        else:
+            plot_df["contribution_value"] = plot_df.get("differential", 0.0)
+        plot_df["bar_color"] = np.where(plot_df["contribution_value"] >= 0, "#2E7D32", "#C62828")
+        plot_df = plot_df.sort_values("contribution_value", ascending=True)
+
+        fig = go.Figure(
+            go.Bar(
+                x=plot_df["contribution_value"],
+                y=plot_df["feature"],
+                orientation="h",
+                marker=dict(color=plot_df["bar_color"]),
+                text=plot_df["contribution_value"].map(lambda x: f"{x:+.2f}"),
+                textposition="outside",
+                hovertemplate=(
+                    "Feature: %{y}<br>"
+                    "Contribution: %{x:+.2f}<extra></extra>"
+                ),
+            )
+        )
+        fig.update_layout(
+            height=max(240, 52 * len(plot_df)),
+            margin=dict(l=12, r=12, t=8, b=8),
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
+            xaxis_title="Relative Contribution",
+            yaxis_title="",
+            font=dict(color="#111827"),
+            showlegend=False,
+        )
+        fig.update_xaxes(showgrid=True, gridcolor="rgba(148,163,184,0.18)", zeroline=True, zerolinecolor="#CBD5E1")
+        fig.update_yaxes(showgrid=False)
+        st.plotly_chart(fig, use_container_width=True, key=f"contribution_{key_suffix}")
+
+    def render_state_explanation_card(title, taxonomy_label, confidence_value, probability_value, summary_text, key_suffix):
+        attribution_row = get_taxonomy_attribution_row(taxonomy_label)
+        feature_rows = get_top_feature_rows(taxonomy_label, limit=5)
+        planets = parse_ranked_items(attribution_row.get("most_influential_planets"), limit=3)
+        aspects = parse_ranked_items(attribution_row.get("most_influential_aspects"), limit=3)
+        positive_features = parse_ranked_items(attribution_row.get("top_positive_astro_features"), limit=3)
+        with card_container():
+            st.caption(title.upper())
+            st.markdown(taxonomy_badge_html(taxonomy_label), unsafe_allow_html=True)
+            st.markdown(f"**{taxonomy_label}**")
+            st.caption(
+                f"Confidence {format_pct(confidence_value)} | Probability {format_pct(probability_value)}"
+            )
+            if summary_text:
+                st.write(summary_text)
+            if positive_features:
+                st.caption("DOMINANT DRIVERS")
+                st.write(", ".join(item["name"] for item in positive_features))
+            if planets:
+                st.caption("DOMINANT PLANETS")
+                st.write(", ".join(item["name"] for item in planets))
+            if aspects:
+                st.caption("DOMINANT ASPECTS")
+                st.write(", ".join(item["name"] for item in aspects))
+            if not feature_rows.empty:
+                render_contribution_bars(feature_rows.head(3), key_suffix)
+
     top_dashboard_windows = pd.DataFrame(dashboard_timeline.get("windows", []))
     top_turning_points = pd.DataFrame(dashboard_risk_calendar.get("turning_points", []))
     top_risk_windows = pd.DataFrame(dashboard_risk_calendar.get("risk_windows", []))
@@ -911,8 +1045,8 @@ if dashboard_current:
         st.warning(f"No forecast windows match the taxonomy filter `{taxonomy_filter}` for the selected horizon.")
 
     next_risk_window = top_risk_windows.iloc[0].to_dict() if not top_risk_windows.empty else {}
-    next_bearish_window = first_window_by_taxonomy(top_dashboard_windows, "Bearish")
-    next_false_bull_window = first_window_by_taxonomy(top_dashboard_windows, "False Bull / Exhaustion Risk")
+    next_bearish_window = first_window_by_taxonomy(top_dashboard_windows, "Defensive / Weak Trend")
+    next_momentum_window = first_window_by_taxonomy(top_dashboard_windows, "High Momentum Expansion")
     st.subheader("Evidence-based BTC forecast timeline powered by Robust Astro Engine v1")
     st.caption(f"Forecast generated: {forecast_generated_date}")
     st.caption("Research tool only. Not financial advice.")
@@ -958,7 +1092,7 @@ if dashboard_current:
                     price_fig.add_vrect(
                         x0=x0,
                         x1=x1,
-                        fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.10 if row["taxonomy_v2"] != "High Risk" else 0.15),
+                        fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.10 if row["taxonomy_v2"] != "High Volatility Risk" else 0.15),
                         layer="below",
                         line_width=0,
                     )
@@ -1125,6 +1259,87 @@ if dashboard_current:
     with outlook_cols[2]:
         render_outlook_card("365D Outlook", top_365d)
 
+    st.markdown("#### Why The Model Thinks This")
+    current_taxonomy = dashboard_current.get("current_taxonomy", "N/A")
+    current_attr = get_taxonomy_attribution_row(current_taxonomy)
+    current_features = get_top_feature_rows(current_taxonomy, limit=5)
+    current_planets = parse_ranked_items(current_attr.get("most_influential_planets"), limit=5)
+    current_aspects = parse_ranked_items(current_attr.get("most_influential_aspects"), limit=5)
+
+    explain_cols = st.columns([1.1, 1.3])
+    with explain_cols[0]:
+        with card_container():
+            st.caption("CURRENT STATE".upper())
+            st.markdown(taxonomy_badge_html(current_taxonomy), unsafe_allow_html=True)
+            st.markdown(f"**{current_taxonomy}**")
+            metric_cols = st.columns(2)
+            with metric_cols[0]:
+                st.metric(
+                    "Astro Momentum",
+                    fmt_num(latest.get("astro_momentum_v2_smooth", np.nan)),
+                    help="Latest smoothed astro momentum from the live feature frame.",
+                )
+            with metric_cols[1]:
+                st.metric(
+                    "ML Probability",
+                    format_pct(dashboard_current.get("current_probability", np.nan)),
+                    help="Current forecast probability from the Robust Astro Engine v1 ML layer.",
+                )
+            st.caption(
+                f"Typical taxonomy momentum range: {current_attr.get('typical_momentum_range', 'N/A')}"
+            )
+            st.caption(
+                f"Typical taxonomy probability range: {current_attr.get('typical_probability_range', 'N/A')}"
+            )
+            render_driver_list("Top 5 Contributing Features", [
+                {
+                    "name": row["feature"],
+                    "score": row["zscore_diff"] if "zscore_diff" in row else row.get("differential", np.nan),
+                }
+                for _, row in current_features.iterrows()
+            ])
+            driver_cols = st.columns(2)
+            with driver_cols[0]:
+                render_driver_list("Top Planets", current_planets, empty_text="No strong planetary concentration.")
+            with driver_cols[1]:
+                render_driver_list("Top Aspects", current_aspects, empty_text="No strong aspect concentration.")
+
+    with explain_cols[1]:
+        with card_container():
+            st.caption("CONTRIBUTION BARS")
+            st.write("These show the strongest feature-level pushes behind the current taxonomy state.")
+            render_contribution_bars(current_features, "current_state")
+
+    st.markdown("##### Outlook Drivers")
+    outlook_driver_cols = st.columns(3)
+    with outlook_driver_cols[0]:
+        render_state_explanation_card(
+            "30D Outlook",
+            top_30d.get("dominant_taxonomy", "N/A"),
+            top_30d.get("average_confidence", np.nan),
+            top_30d.get("average_probability", np.nan),
+            top_30d.get("summary", ""),
+            "30d",
+        )
+    with outlook_driver_cols[1]:
+        render_state_explanation_card(
+            "90D Outlook",
+            top_90d.get("dominant_taxonomy", "N/A"),
+            top_90d.get("average_confidence", np.nan),
+            top_90d.get("average_probability", np.nan),
+            top_90d.get("summary", ""),
+            "90d",
+        )
+    with outlook_driver_cols[2]:
+        render_state_explanation_card(
+            "365D Outlook",
+            top_365d.get("dominant_taxonomy", "N/A"),
+            top_365d.get("average_confidence", np.nan),
+            top_365d.get("average_probability", np.nan),
+            top_365d.get("summary", ""),
+            "365d",
+        )
+
     if show_detail_tables:
         st.markdown("#### Forecast Windows Detail")
         st.caption("Detailed forecast windows remain available for auditability, with taxonomy and risk filters.")
@@ -1139,9 +1354,9 @@ if dashboard_current:
                 st.caption(f"Taxonomy filter: {taxonomy_filter}")
 
             if only_risk:
-                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["High Risk", "Bearish", "False Bull / Exhaustion Risk"])].copy()
+                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["High Volatility Risk", "Defensive / Weak Trend"])].copy()
             if only_constructive:
-                detail_df = detail_df[detail_df["taxonomy_v2"] == "Constructive / Positive Drift"].copy()
+                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["Constructive Drift", "High Momentum Expansion"])].copy()
 
             detail_display = detail_df.copy()
             detail_display["start_date"] = detail_display["start_date"].map(format_date)
@@ -1175,7 +1390,7 @@ if dashboard_current:
         turn_cols = st.columns(3)
         for idx, (_, row) in enumerate(turn_cards.iterrows()):
             new_signal = str(row["new_signal"]).strip()
-            direction_color = taxonomy_color("Constructive / Positive Drift") if new_signal.lower() == "bullish" else taxonomy_color("Bearish") if new_signal.lower() == "bearish" else "#6B7280"
+            direction_color = taxonomy_color("Constructive Drift") if new_signal.lower() == "bullish" else taxonomy_color("Defensive / Weak Trend") if new_signal.lower() == "bearish" else "#6B7280"
             with turn_cols[idx]:
                 with card_container():
                     st.markdown(
@@ -1212,11 +1427,11 @@ if dashboard_current:
     st.markdown("#### Risk Calendar")
     st.caption("Compact risk cards keep the next major caution windows visible without repeating the same information unnecessarily.")
     risk_card_specs = [
-        ("Next Risk Window", next_risk_window, next_risk_window.get("taxonomy_v2", dashboard_current.get("current_taxonomy", "Neutral / Tactical"))),
-        ("Next Constructive Window", top_next_constructive, top_next_constructive.get("taxonomy_v2", "Constructive / Positive Drift")),
-        ("Next False Bull Window", next_false_bull_window, next_false_bull_window.get("taxonomy_v2", "False Bull / Exhaustion Risk")),
-        ("Next Bearish Window", next_bearish_window, next_bearish_window.get("taxonomy_v2", "Bearish")),
-        ("Next High Risk Window", top_next_high_risk, top_next_high_risk.get("taxonomy_v2", "High Risk")),
+        ("Next Risk Window", next_risk_window, next_risk_window.get("taxonomy_v2", dashboard_current.get("current_taxonomy", "Tactical Neutral"))),
+        ("Next Constructive Window", top_next_constructive, top_next_constructive.get("taxonomy_v2", "Constructive Drift")),
+        ("Next Momentum Expansion", next_momentum_window, next_momentum_window.get("taxonomy_v2", "High Momentum Expansion")),
+        ("Next Weak Trend Window", next_bearish_window, next_bearish_window.get("taxonomy_v2", "Defensive / Weak Trend")),
+        ("Next Volatility Risk", top_next_high_risk, top_next_high_risk.get("taxonomy_v2", "High Volatility Risk")),
     ]
     risk_cols = st.columns(5)
     for idx, (title, row, taxonomy_label) in enumerate(risk_card_specs):
@@ -1610,7 +1825,7 @@ if dashboard_current and False:
             risk_window_card_html(
                 "Next Constructive Window",
                 f"{top_next_constructive.get('start_date', 'N/A')} to {top_next_constructive.get('end_date', 'N/A')}",
-                top_next_constructive.get("taxonomy_v2", "Constructive / Positive Drift"),
+                top_next_constructive.get("taxonomy_v2", "Constructive Drift"),
                 top_next_constructive.get("taxonomy_reason", "Constructive window details unavailable."),
             ),
             unsafe_allow_html=True,
@@ -1620,7 +1835,7 @@ if dashboard_current and False:
             risk_window_card_html(
                 "Next High-Risk Window",
                 f"{top_next_high_risk.get('start_date', 'N/A')} to {top_next_high_risk.get('end_date', 'N/A')}",
-                top_next_high_risk.get("taxonomy_v2", "High Risk"),
+                top_next_high_risk.get("taxonomy_v2", "High Volatility Risk"),
                 top_next_high_risk.get("taxonomy_reason", "High-risk window details unavailable."),
             ),
             unsafe_allow_html=True,

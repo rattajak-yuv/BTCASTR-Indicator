@@ -1,0 +1,3 @@
+stage,best_horizon_days,balanced_score,return_drawdown_ratio,accuracy,trades,selected_features,selected_aspect_features,selected_aspect_feature_list,delta_balanced_score,delta_return_drawdown_ratio,delta_accuracy,delta_selected_features,delta_selected_aspect_features,delta_trades
+production,14,319.05932068461226,788.4417869572391,0.5826210826210826,222,147,5,"conjunction_strength, opposition_strength, sextile_strength, square_strength, trine_strength",,,,,,
+aspect_optimized,3,150.58951323543,379.1788985199665,0.5356125356125356,244,152,5,"conjunction_strength, opposition_strength, sextile_strength, square_strength, trine_strength",-168.46980744918227,-409.2628884372726,-0.04700854700854695,5.0,0.0,22.0

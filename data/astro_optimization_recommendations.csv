@@ -1,0 +1,17 @@
+component_type,component_name,rank,total_importance,importance_share,feature_count,selected_feature_count,selected_feature_ratio,recommendation,rationale
+planet,pluto,1,0.2494805227658061,0.04740389692967947,4,4,1.0,Increase weight,pluto ranks #1 with 4.74% importance share and 4/4 selected features.
+planet,jupiter,2,0.0628453683787032,0.0119412743411972,2,2,1.0,Increase weight,jupiter ranks #2 with 1.19% importance share and 2/2 selected features.
+planet,saturn,3,0.0234756029445569,0.0044606089886644286,1,1,1.0,Increase weight,saturn ranks #3 with 0.45% importance share and 1/1 selected features.
+planet,uranus,4,0.0,0.0,0,0,0.0,Remove,uranus has no selected astro features contributing importance in the current model run.
+planet,neptune,5,0.0,0.0,0,0,0.0,Remove,neptune has no selected astro features contributing importance in the current model run.
+planet,moon,6,0.0,0.0,0,0,0.0,Remove,moon has no selected astro features contributing importance in the current model run.
+planet,mars,7,0.0,0.0,0,0,0.0,Remove,mars has no selected astro features contributing importance in the current model run.
+planet,venus,8,0.0,0.0,0,0,0.0,Remove,venus has no selected astro features contributing importance in the current model run.
+planet,mercury,9,0.0,0.0,0,0,0.0,Remove,mercury has no selected astro features contributing importance in the current model run.
+planet,sun,10,0.0,0.0,0,0,0.0,Remove,sun has no selected astro features contributing importance in the current model run.
+aspect,conjunction,1,0.0,0.0,0,0,0.0,Remove,conjunction has no selected astro features contributing importance in the current model run.
+aspect,opposition,2,0.0,0.0,0,0,0.0,Remove,opposition has no selected astro features contributing importance in the current model run.
+aspect,sextile,3,0.0,0.0,0,0,0.0,Remove,sextile has no selected astro features contributing importance in the current model run.
+aspect,square,4,0.0,0.0,0,0,0.0,Remove,square has no selected astro features contributing importance in the current model run.
+aspect,trine,5,0.0,0.0,0,0,0.0,Remove,trine has no selected astro features contributing importance in the current model run.
+aspect,house_position,6,0.0,0.0,0,0,0.0,Remove,house_position has no selected astro features contributing importance in the current model run.

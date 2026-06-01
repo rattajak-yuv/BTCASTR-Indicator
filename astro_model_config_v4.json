@@ -1,0 +1,589 @@
+{
+  "model_version": "astro_v4_regime_aware",
+  "aspects": {
+    "conjunction": {
+      "angle": 0,
+      "weight": 1.0
+    },
+    "opposition": {
+      "angle": 180,
+      "weight": 0.9
+    },
+    "square": {
+      "angle": 90,
+      "weight": 0.85
+    },
+    "trine": {
+      "angle": 120,
+      "weight": 0.75
+    },
+    "sextile": {
+      "angle": 60,
+      "weight": 0.55
+    },
+    "quincunx": {
+      "angle": 150,
+      "weight": 0.35
+    }
+  },
+  "max_orb_by_planet": {
+    "Jupiter": 3.0,
+    "Saturn": 3.0,
+    "Uranus": 3.0,
+    "Neptune": 3.0,
+    "Pluto": 3.0,
+    "Mars": 2.0,
+    "Mercury": 1.5,
+    "Venus": 1.5,
+    "Moon": 1.0,
+    "Sun": 1.5
+  },
+  "target_weights": {
+    "Asc": 1.25,
+    "MC": 1.25,
+    "Sun": 1.1,
+    "Moon": 1.0,
+    "Jupiter": 1.15,
+    "Saturn": 1.1,
+    "Mars": 0.85,
+    "Mercury": 0.75,
+    "Venus": 0.7
+  },
+  "rules": [
+    {
+      "name": "Jupiter expansion to core points",
+      "planet": "Jupiter",
+      "targets": [
+        "Sun",
+        "Jupiter",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "conjunction",
+        "trine",
+        "sextile"
+      ],
+      "scores": {
+        "bullish": 2.0,
+        "trend_start": 1.2,
+        "volatility": 0.2
+      }
+    },
+    {
+      "name": "Jupiter overextension",
+      "planet": "Jupiter",
+      "targets": [
+        "Sun",
+        "Jupiter",
+        "Moon",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "opposition",
+        "square"
+      ],
+      "scores": {
+        "bullish": 0.8,
+        "reversal": 1.4,
+        "trend_end": 1.2,
+        "volatility": 0.6
+      }
+    },
+    {
+      "name": "Saturn hard pressure",
+      "planet": "Saturn",
+      "targets": [
+        "Sun",
+        "Moon",
+        "Jupiter",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "conjunction",
+        "opposition",
+        "square"
+      ],
+      "scores": {
+        "bearish": 2.0,
+        "compression": 1.2,
+        "reversal": 0.8,
+        "trend_end": 1.0
+      }
+    },
+    {
+      "name": "Saturn constructive structure",
+      "planet": "Saturn",
+      "targets": [
+        "Saturn",
+        "Jupiter",
+        "Sun",
+        "MC"
+      ],
+      "aspects": [
+        "trine",
+        "sextile"
+      ],
+      "scores": {
+        "bullish": 0.6,
+        "compression": 0.8,
+        "trend_start": 0.6
+      }
+    },
+    {
+      "name": "Uranus breakout shock",
+      "planet": "Uranus",
+      "targets": [
+        "Asc",
+        "MC",
+        "Sun",
+        "Jupiter"
+      ],
+      "aspects": [
+        "conjunction",
+        "square",
+        "opposition"
+      ],
+      "scores": {
+        "bullish": 1.0,
+        "volatility": 1.8,
+        "reversal": 1.2,
+        "trend_start": 1.0
+      }
+    },
+    {
+      "name": "Uranus smooth innovation trend",
+      "planet": "Uranus",
+      "targets": [
+        "Sun",
+        "Jupiter",
+        "MC"
+      ],
+      "aspects": [
+        "trine",
+        "sextile"
+      ],
+      "scores": {
+        "bullish": 1.2,
+        "trend_start": 0.8,
+        "volatility": 0.5
+      }
+    },
+    {
+      "name": "Neptune bubble risk",
+      "planet": "Neptune",
+      "targets": [
+        "Moon",
+        "Jupiter",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "conjunction",
+        "opposition",
+        "square"
+      ],
+      "scores": {
+        "bullish": 0.4,
+        "bearish": 0.6,
+        "reversal": 1.2,
+        "trend_end": 1.0,
+        "volatility": 0.8
+      }
+    },
+    {
+      "name": "Neptune narrative support",
+      "planet": "Neptune",
+      "targets": [
+        "Sun",
+        "Jupiter",
+        "MC"
+      ],
+      "aspects": [
+        "trine",
+        "sextile"
+      ],
+      "scores": {
+        "bullish": 0.8,
+        "trend_start": 0.5,
+        "compression": 0.3
+      }
+    },
+    {
+      "name": "Pluto regime shift",
+      "planet": "Pluto",
+      "targets": [
+        "Sun",
+        "Jupiter",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "conjunction",
+        "opposition",
+        "square"
+      ],
+      "scores": {
+        "bullish": 1.0,
+        "bearish": 1.0,
+        "reversal": 2.0,
+        "volatility": 1.0,
+        "trend_start": 1.0,
+        "trend_end": 1.0
+      }
+    },
+    {
+      "name": "Pluto constructive transformation",
+      "planet": "Pluto",
+      "targets": [
+        "Sun",
+        "Jupiter",
+        "MC"
+      ],
+      "aspects": [
+        "trine",
+        "sextile"
+      ],
+      "scores": {
+        "bullish": 1.2,
+        "trend_start": 0.8,
+        "reversal": 0.5
+      }
+    },
+    {
+      "name": "Mars acceleration",
+      "planet": "Mars",
+      "targets": [
+        "Sun",
+        "Jupiter",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "conjunction",
+        "trine",
+        "sextile"
+      ],
+      "scores": {
+        "bullish": 0.8,
+        "volatility": 1.0,
+        "trend_start": 0.5
+      }
+    },
+    {
+      "name": "Mars conflict",
+      "planet": "Mars",
+      "targets": [
+        "Moon",
+        "Saturn",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "opposition",
+        "square"
+      ],
+      "scores": {
+        "bearish": 0.9,
+        "volatility": 1.4,
+        "reversal": 0.6
+      }
+    },
+    {
+      "name": "Mercury noise",
+      "planet": "Mercury",
+      "targets": [
+        "Moon",
+        "Asc",
+        "MC"
+      ],
+      "aspects": [
+        "conjunction",
+        "opposition",
+        "square"
+      ],
+      "scores": {
+        "volatility": 0.6,
+        "compression": 0.4,
+        "reversal": 0.3
+      }
+    },
+    {
+      "name": "Moon sentiment trigger",
+      "planet": "Moon",
+      "targets": [
+        "Moon",
+        "Asc",
+        "MC",
+        "Jupiter"
+      ],
+      "aspects": [
+        "conjunction",
+        "opposition",
+        "square",
+        "trine"
+      ],
+      "scores": {
+        "volatility": 0.4,
+        "reversal": 0.25
+      }
+    }
+  ],
+  "house_rules": [
+    {
+      "planet": "Jupiter",
+      "houses": [
+        2,
+        10,
+        11
+      ],
+      "scores": {
+        "bullish": 0.8,
+        "trend_start": 0.4
+      }
+    },
+    {
+      "planet": "Saturn",
+      "houses": [
+        8,
+        12
+      ],
+      "scores": {
+        "bearish": 0.9,
+        "compression": 0.8
+      }
+    },
+    {
+      "planet": "Uranus",
+      "houses": [
+        5,
+        10,
+        11
+      ],
+      "scores": {
+        "volatility": 0.8,
+        "trend_start": 0.5
+      }
+    },
+    {
+      "planet": "Neptune",
+      "houses": [
+        2,
+        8,
+        12
+      ],
+      "scores": {
+        "reversal": 0.5,
+        "trend_end": 0.5,
+        "volatility": 0.4
+      }
+    },
+    {
+      "planet": "Pluto",
+      "houses": [
+        8,
+        10,
+        11
+      ],
+      "scores": {
+        "reversal": 0.8,
+        "volatility": 0.5,
+        "trend_start": 0.4,
+        "trend_end": 0.4
+      }
+    }
+  ],
+  "regime_thresholds": {
+    "strong_uptrend": 3.0,
+    "uptrend": 1.5,
+    "sideways_upper": 1.5,
+    "sideways_lower": -1.5,
+    "downtrend": -1.5,
+    "crash_risk": -3.0,
+    "reversal_zone": 2.5,
+    "exhaustion_zone": 2.5,
+    "compression_zone": 2.0
+  },
+  "base_config_path": "astro_model_config.json",
+  "dynamic_weight_profiles": {
+    "market_regimes": {
+      "Bull Market": {
+        "planets": {
+          "Uranus": 1.057287,
+          "Pluto": 1.0,
+          "Jupiter": 1.0,
+          "Saturn": 1.0,
+          "Neptune": 1.0,
+          "Mars": 1.0,
+          "Moon": 0.979026,
+          "Mercury": 0.959639,
+          "Sun": 1.0,
+          "Venus": 1.0
+        },
+        "aspects": {
+          "sextile": 1.09555,
+          "conjunction": 0.970616,
+          "square": 1.096449,
+          "opposition": 0.964396,
+          "trine": 0.979504
+        },
+        "natal_targets": {
+          "Sun": 1.0,
+          "Asc": 1.140437,
+          "MC": 1.0,
+          "Moon": 0.931922
+        }
+      },
+      "Bear Market": {
+        "planets": {
+          "Pluto": 1.0,
+          "Jupiter": 1.0,
+          "Uranus": 1.0,
+          "Neptune": 1.100332,
+          "Saturn": 0.95534,
+          "Mars": 1.047773,
+          "Mercury": 1.0,
+          "Moon": 0.977458,
+          "Sun": 1.0,
+          "Venus": 1.0
+        },
+        "aspects": {
+          "conjunction": 1.152121,
+          "opposition": 1.047798,
+          "sextile": 0.939943,
+          "trine": 0.963049,
+          "square": 0.927801
+        },
+        "natal_targets": {
+          "Sun": 1.050826,
+          "MC": 1.0,
+          "Asc": 0.952729,
+          "Moon": 0.953289
+        }
+      },
+      "Sideways": {
+        "planets": {
+          "Jupiter": 1.041513,
+          "Pluto": 1.0,
+          "Uranus": 0.948444,
+          "Saturn": 1.0,
+          "Neptune": 0.981637,
+          "Mars": 1.0,
+          "Mercury": 1.084891,
+          "Moon": 1.042217,
+          "Sun": 1.0,
+          "Venus": 1.0
+        },
+        "aspects": {
+          "conjunction": 0.970827,
+          "opposition": 1.059241,
+          "sextile": 0.967244,
+          "trine": 1.0,
+          "square": 0.937457
+        },
+        "natal_targets": {
+          "Sun": 0.952916,
+          "MC": 1.0,
+          "Moon": 1.152194,
+          "Asc": 1.0
+        }
+      }
+    },
+    "volatility_states": {
+      "High Volatility": {
+        "planets": {
+          "Uranus": 1.0,
+          "Pluto": 1.0,
+          "Saturn": 1.0,
+          "Jupiter": 0.968128,
+          "Neptune": 1.0,
+          "Mars": 1.0,
+          "Mercury": 1.0,
+          "Moon": 0.971999,
+          "Sun": 1.0,
+          "Venus": 1.0
+        },
+        "aspects": {
+          "conjunction": 0.970776,
+          "square": 1.167899,
+          "trine": 1.054395,
+          "sextile": 0.964761,
+          "opposition": 0.967535
+        },
+        "natal_targets": {
+          "Sun": 0.954337,
+          "MC": 1.0,
+          "Moon": 1.136851,
+          "Asc": 1.0
+        }
+      },
+      "Low Volatility": {
+        "planets": {
+          "Uranus": 1.0,
+          "Pluto": 1.0,
+          "Saturn": 1.0,
+          "Jupiter": 1.0,
+          "Neptune": 0.975177,
+          "Mars": 0.963139,
+          "Moon": 1.039336,
+          "Mercury": 0.979945,
+          "Sun": 1.0,
+          "Venus": 1.0
+        },
+        "aspects": {
+          "sextile": 1.084468,
+          "conjunction": 0.971965,
+          "trine": 1.0,
+          "opposition": 1.0,
+          "square": 0.950207
+        },
+        "natal_targets": {
+          "Sun": 1.050437,
+          "MC": 1.0,
+          "Asc": 0.961222,
+          "Moon": 0.9
+        }
+      }
+    },
+    "volatility_overlay_strength": 0.6,
+    "caps": {
+      "planets": [
+        0.75,
+        1.35
+      ],
+      "aspects": [
+        0.75,
+        1.35
+      ],
+      "natal_targets": [
+        0.75,
+        1.3
+      ]
+    }
+  },
+  "market_regime_detector": {
+    "trend_sma_window_days": 200,
+    "trend_distance_threshold": 0.05,
+    "trend_return_window_days": 30,
+    "trend_return_threshold": 0.05,
+    "bull_label": "Bull Market",
+    "bear_label": "Bear Market",
+    "sideways_label": "Sideways"
+  },
+  "volatility_state_detector": {
+    "volatility_window_days": 30,
+    "low_quantile": 0.3,
+    "high_quantile": 0.7,
+    "low_label": "Low Volatility",
+    "high_label": "High Volatility",
+    "midpoint_resolution": "nearest_anchor"
+  },
+  "analysis_inputs": {
+    "regime_planet_importance": "data\\regime_planet_importance.csv",
+    "regime_aspect_importance": "data\\regime_aspect_importance.csv",
+    "regime_natal_importance": "data\\regime_natal_importance.csv",
+    "regime_summary": "data\\regime_astro_summary.md"
+  }
+}

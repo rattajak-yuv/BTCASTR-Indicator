@@ -11,6 +11,30 @@ TOP_N_PER_HORIZON = 50
 def classify_feature(feature):
     f = feature.lower()
 
+    if "conjunction_strength" in f:
+        return "conjunction"
+
+    if "trine_strength" in f:
+        return "trine"
+
+    if "sextile_strength" in f:
+        return "sextile"
+
+    if "square_strength" in f:
+        return "square"
+
+    if "opposition_strength" in f:
+        return "opposition"
+
+    if "asc_target_strength" in f:
+        return "asc"
+
+    if "mc_target_strength" in f:
+        return "mc"
+
+    if "house_activation_strength" in f:
+        return "house_position"
+
     if "jupiter" in f:
         return "jupiter"
 

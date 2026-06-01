@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 
+DATASET_PATH = "data/ml_dataset.csv"
 STABILITY_PATH = "data/feature_stability.csv"
 OUTPUT_PATH = "data/selected_features.csv"
 
@@ -13,11 +14,34 @@ MAX_NOISY_ALLOW = False
 # Keep extra features that are useful across horizons
 MIN_HORIZON_COVERAGE = 0.50
 
+RAW_RECOVERY_FEATURES = [
+    "sun_signal",
+    "moon_signal",
+    "mercury_signal",
+    "venus_signal",
+    "mars_signal",
+    "jupiter_signal",
+    "saturn_signal",
+    "uranus_signal",
+    "neptune_signal",
+    "pluto_signal",
+    "conjunction_strength",
+    "trine_strength",
+    "sextile_strength",
+    "square_strength",
+    "opposition_strength",
+    "sun_target_strength",
+    "moon_target_strength",
+    "asc_target_strength",
+    "mc_target_strength",
+]
+
 
 def main():
     print("Loading feature stability data...")
 
     df = pd.read_csv(STABILITY_PATH)
+    dataset = pd.read_csv(DATASET_PATH, nrows=1)
 
     if df.empty:
         raise ValueError("feature_stability.csv is empty")
@@ -91,7 +115,36 @@ def main():
         )
     ].copy()
 
-    selected = pd.concat([selected, always_keep], ignore_index=True)
+    raw_recovery_keep = df[
+        df["feature"].astype(str).isin(RAW_RECOVERY_FEATURES)
+    ].copy()
+
+    # Ensure compact raw astro recovery features survive selection even if
+    # they were not prominent enough to appear in the top-N stability slice.
+    missing_recovery_features = [
+        feature
+        for feature in RAW_RECOVERY_FEATURES
+        if feature in dataset.columns and feature not in raw_recovery_keep["feature"].astype(str).tolist()
+    ]
+
+    if missing_recovery_features:
+        placeholders = pd.DataFrame(
+            {
+                "feature": missing_recovery_features,
+                "mean_importance": 0.0,
+                "robustness_score": 0.0,
+                "horizon_coverage": 0.0,
+                "noisy_feature": False,
+                "stable_feature": False,
+                "high_importance_feature": False,
+                "cross_horizon_feature": False,
+                "dominant_horizon_type": "raw_recovery",
+                "feature_group": "raw_recovery",
+            }
+        )
+        raw_recovery_keep = pd.concat([raw_recovery_keep, placeholders], ignore_index=True)
+
+    selected = pd.concat([selected, always_keep, raw_recovery_keep], ignore_index=True)
     selected = selected.drop_duplicates(subset=["feature"])
 
     selected = selected.sort_values(

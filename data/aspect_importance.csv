@@ -1,0 +1,8 @@
+aspect,total_importance,mean_importance,median_importance,max_feature_importance,feature_count,selected_feature_count,total_horizon_coverage,selected_feature_ratio,importance_share,rank
+none,5.262869488048501,0.006961467576783732,0.006837026721061609,0.0208443223874459,126,126,756,1.0,1.0,1
+conjunction,0.0,0.0,0.0,0.0,0,0,0,0.0,0.0,2
+opposition,0.0,0.0,0.0,0.0,0,0,0,0.0,0.0,3
+sextile,0.0,0.0,0.0,0.0,0,0,0,0.0,0.0,4
+square,0.0,0.0,0.0,0.0,0,0,0,0.0,0.0,5
+trine,0.0,0.0,0.0,0.0,0,0,0,0.0,0.0,6
+house_position,0.0,0.0,0.0,0.0,0,0,0,0.0,0.0,7

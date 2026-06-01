@@ -1,0 +1,3 @@
+stage,best_horizon_days,balanced_score,return_drawdown_ratio,accuracy,trades,selected_features,delta_balanced_score,delta_return_drawdown_ratio,delta_accuracy,delta_trades,delta_selected_features
+production,14,149.93495507917314,326.55851078266,0.5512820512820513,206,148,,,,,
+regime_aware_v4,7,271.4743210905864,677.7616496770747,0.5404558404558405,239,153,121.53936601141325,351.20313889441474,-0.010826210826210825,33.0,5.0

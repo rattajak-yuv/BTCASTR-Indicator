@@ -6,6 +6,72 @@ DAILY_PATH = "data/bitcoin_astro_daily_score.csv"
 RAW_PATH = "data/astro_aspects_raw.csv"
 OUTPUT_PATH = "data/ml_dataset.csv"
 
+RAW_SCORE_COLUMNS = [
+    "bullish",
+    "bearish",
+    "reversal",
+    "volatility",
+    "compression",
+    "trend_start",
+    "trend_end",
+]
+
+PLANET_SIGNAL_COLUMNS = [
+    "sun_signal",
+    "moon_signal",
+    "mercury_signal",
+    "venus_signal",
+    "mars_signal",
+    "jupiter_signal",
+    "saturn_signal",
+    "uranus_signal",
+    "neptune_signal",
+    "pluto_signal",
+]
+
+ASPECT_STRENGTH_COLUMNS = [
+    "conjunction_strength",
+    "trine_strength",
+    "sextile_strength",
+    "square_strength",
+    "opposition_strength",
+]
+
+NATAL_TARGET_STRENGTH_COLUMNS = [
+    "sun_target_strength",
+    "moon_target_strength",
+    "asc_target_strength",
+    "mc_target_strength",
+]
+
+PLANET_NAME_MAP = {
+    "sun": "Sun",
+    "moon": "Moon",
+    "mercury": "Mercury",
+    "venus": "Venus",
+    "mars": "Mars",
+    "jupiter": "Jupiter",
+    "saturn": "Saturn",
+    "uranus": "Uranus",
+    "neptune": "Neptune",
+    "pluto": "Pluto",
+}
+
+ASPECT_NAME_MAP = {
+    "conjunction_strength": "conjunction",
+    "trine_strength": "trine",
+    "sextile_strength": "sextile",
+    "square_strength": "square",
+    "opposition_strength": "opposition",
+}
+
+TARGET_NAME_MAP = {
+    "sun_target_strength": "Sun",
+    "moon_target_strength": "Moon",
+    "asc_target_strength": "Asc",
+    "mc_target_strength": "MC",
+}
+
 
 def add_rolling_features(df, col):
     for span in [3, 5, 10, 21, 30, 60]:
@@ -21,29 +87,30 @@ def add_rolling_features(df, col):
 
 
 def build_raw_aspect_features(raw):
-    score_cols = [
-        "bullish",
-        "bearish",
-        "reversal",
-        "volatility",
-        "compression",
-        "trend_start",
-        "trend_end",
-    ]
-
     raw["date"] = pd.to_datetime(raw["date"])
+    raw["transit_planet"] = raw["transit_planet"].astype(str)
+    raw["target"] = raw["target"].astype(str)
+    raw["aspect"] = raw["aspect"].astype(str)
 
-    for c in score_cols:
+    for c in RAW_SCORE_COLUMNS:
         raw[c] = pd.to_numeric(raw[c], errors="coerce").fillna(0)
 
+    raw["raw_directional_signal"] = (
+        raw["bullish"]
+        + raw["trend_start"]
+        - raw["bearish"]
+        - raw["trend_end"]
+    )
+    raw["raw_strength"] = raw[RAW_SCORE_COLUMNS].abs().sum(axis=1)
+
     # Aggregate by date
-    daily_score = raw.groupby("date")[score_cols].sum().reset_index()
+    daily_score = raw.groupby("date")[RAW_SCORE_COLUMNS].sum().reset_index()
 
     # Planet-level impact
     planet_pivot = raw.pivot_table(
         index="date",
         columns="transit_planet",
-        values=score_cols,
+        values=RAW_SCORE_COLUMNS,
         aggfunc="sum",
         fill_value=0,
     )
@@ -67,8 +134,87 @@ def build_raw_aspect_features(raw):
     aspect_count.columns = [f"aspect_count_{c}" for c in aspect_count.columns]
     aspect_count = aspect_count.reset_index()
 
+    # Compact raw astro recovery aggregates.
+    planet_signal = raw.pivot_table(
+        index="date",
+        columns="transit_planet",
+        values="raw_directional_signal",
+        aggfunc="sum",
+        fill_value=0,
+    )
+    planet_signal.columns = [
+        f"{str(planet).strip().lower()}_signal"
+        for planet in planet_signal.columns
+    ]
+    planet_signal = planet_signal.reset_index()
+
+    aspect_strength = raw[raw["aspect"].isin(ASPECT_NAME_MAP.values())].pivot_table(
+        index="date",
+        columns="aspect",
+        values="raw_strength",
+        aggfunc="sum",
+        fill_value=0,
+    )
+    aspect_strength.columns = [
+        f"{str(aspect).strip().lower()}_strength"
+        for aspect in aspect_strength.columns
+    ]
+    aspect_strength = aspect_strength.reset_index()
+
+    natal_target_strength = raw[raw["target"].isin(TARGET_NAME_MAP.values())].pivot_table(
+        index="date",
+        columns="target",
+        values="raw_strength",
+        aggfunc="sum",
+        fill_value=0,
+    )
+    natal_target_strength.columns = [
+        f"{str(target).strip().lower()}_target_strength"
+        for target in natal_target_strength.columns
+    ]
+    natal_target_strength = natal_target_strength.reset_index()
+
+    house_activation = (
+        raw[raw["aspect"] == "house_position"]
+        .groupby("date", as_index=False)["raw_strength"]
+        .sum()
+        .rename(columns={"raw_strength": "house_activation_strength"})
+    )
+
+    raw_totals = raw.groupby("date", as_index=False).agg(
+        raw_astro_total_strength=("raw_strength", "sum"),
+        raw_astro_directional_signal=("raw_directional_signal", "sum"),
+        raw_astro_event_count=("rule_name", "count"),
+    )
+
     out = daily_score.merge(planet_pivot, on="date", how="left")
     out = out.merge(aspect_count, on="date", how="left")
+    out = out.merge(planet_signal, on="date", how="left")
+    out = out.merge(aspect_strength, on="date", how="left")
+    out = out.merge(natal_target_strength, on="date", how="left")
+    out = out.merge(house_activation, on="date", how="left")
+    out = out.merge(raw_totals, on="date", how="left")
+
+    for column in PLANET_SIGNAL_COLUMNS:
+        if column not in out.columns:
+            out[column] = 0.0
+
+    for column in ASPECT_STRENGTH_COLUMNS:
+        if column not in out.columns:
+            out[column] = 0.0
+
+    for column in NATAL_TARGET_STRENGTH_COLUMNS:
+        if column not in out.columns:
+            out[column] = 0.0
+
+    for column in [
+        "house_activation_strength",
+        "raw_astro_total_strength",
+        "raw_astro_directional_signal",
+        "raw_astro_event_count",
+    ]:
+        if column not in out.columns:
+            out[column] = 0.0
 
     return out
 
@@ -86,7 +232,22 @@ def main():
     df = df.merge(raw_features, on="date", how="left", suffixes=("", "_raw"))
 
     # Fill raw feature gaps
-    raw_feature_cols = [c for c in df.columns if c.startswith("planet_") or c.startswith("aspect_count_")]
+    raw_feature_cols = [
+        c for c in df.columns
+        if (
+            c.startswith("planet_")
+            or c.startswith("aspect_count_")
+            or c in PLANET_SIGNAL_COLUMNS
+            or c in ASPECT_STRENGTH_COLUMNS
+            or c in NATAL_TARGET_STRENGTH_COLUMNS
+            or c in {
+                "house_activation_strength",
+                "raw_astro_total_strength",
+                "raw_astro_directional_signal",
+                "raw_astro_event_count",
+            }
+        )
+    ]
     df[raw_feature_cols] = df[raw_feature_cols].fillna(0)
 
     # Ensure numeric price

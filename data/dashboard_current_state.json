@@ -1,48 +1,40 @@
 {
   "forecast_date": "2026-06-02",
   "current_signal": "Neutral",
-  "current_probability": 0.5071401743281863,
-  "current_confidence": 0.2447389553978351,
+  "current_probability": 0.5053358146843915,
+  "current_confidence": 0.2468005551628034,
   "current_taxonomy": "Constructive Drift",
   "market_view": "Balanced consolidation",
   "risk_level": "Moderate",
   "recommended_bias": "Neutral",
   "current_window": {
-    "start_date": "2026-05-31",
-    "end_date": "2026-06-04",
+    "start_date": "2026-06-02",
+    "end_date": "2026-06-05",
     "window_class": "Transition",
     "taxonomy_v2": "Constructive Drift",
-    "average_confidence": 0.2946128471807154,
-    "average_ml_probability": 0.5288445066982769,
-    "average_astro_score": 1.6499690753542224,
+    "average_confidence": 0.2916008122248796,
+    "average_ml_probability": 0.5395601330210521,
+    "average_astro_score": 1.7418296430198197,
     "v2_posture": "Measured long bias",
-    "narrative_v2": "From 2026-05-31 to 2026-06-04, the outlook is constructive drift. Stable positive drift. Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing. Investor posture: measured long bias. Exposure language: moderate risk-on. Caveat: Broadly positive and more stable than the faster expansion state."
+    "narrative_v2": "From 2026-06-02 to 2026-06-05, the outlook is constructive drift. Stable positive drift. Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing. Investor posture: measured long bias. Exposure language: moderate risk-on. Caveat: Broadly positive and more stable than the faster expansion state."
   },
   "next_turning_point": {
-    "turning_point_date": "2026-06-05",
+    "turning_point_date": "2026-06-06",
     "turning_point_type": "signal_flip",
     "old_signal": "Neutral",
     "new_signal": "Bullish",
-    "confidence": 0.3282883637923919,
-    "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5732.",
+    "confidence": 0.3337965108480485,
+    "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5749.",
     "severity": "high"
   },
   "next_constructive_window": {
-    "start_date": "2026-05-31",
-    "end_date": "2026-06-04",
+    "start_date": "2026-06-02",
+    "end_date": "2026-06-05",
     "taxonomy_v2": "Constructive Drift",
-    "average_confidence": 0.2946128471807154,
-    "average_ml_probability": 0.5288445066982769,
+    "average_confidence": 0.2916008122248796,
+    "average_ml_probability": 0.5395601330210521,
     "v2_posture": "Measured long bias",
     "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
   },
-  "next_high_risk_window": {
-    "start_date": "2026-11-15",
-    "end_date": "2026-11-22",
-    "taxonomy_v2": "Volatility Caution",
-    "average_confidence": 0.3995969753095416,
-    "average_ml_probability": 0.4237595165873582,
-    "v2_posture": "Capital preservation",
-    "taxonomy_reason": "Historical returns are weakest here (30D=1.23%, 60D=6.81%, 90D=11.86%) and stability is fragile. Volatility dominates directional edge."
-  }
+  "next_high_risk_window": null
 }

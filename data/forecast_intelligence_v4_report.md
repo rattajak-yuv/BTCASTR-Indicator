@@ -63,32 +63,32 @@ The regime audit showed that `Defensive / Weak Trend` had strong forward returns
 ## Current Forecast Windows Under v4
 | start_date | end_date | taxonomy_v4 | v4_posture | average_confidence | average_ml_probability | taxonomy_v4_exposure_language |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-06-02 | 2026-06-04 | Transition / Low Conviction | Tactical / wait | 0.2744 | 0.5308 | Selective exposure only |
-| 2026-06-05 | 2026-07-03 | Transition / Low Conviction | Tactical / wait | 0.3697 | 0.5995 | Selective exposure only |
-| 2026-07-04 | 2026-07-29 | Transition / Low Conviction | Tactical / wait | 0.2868 | 0.5148 | Selective exposure only |
-| 2026-07-30 | 2026-07-30 | Transition / Low Conviction | Tactical / wait | 0.3029 | 0.4185 | Selective exposure only |
-| 2026-07-31 | 2026-08-15 | Transition / Low Conviction | Tactical / wait | 0.2645 | 0.5199 | Selective exposure only |
-| 2026-08-16 | 2026-09-26 | Transition / Low Conviction | Tactical / wait | 0.3987 | 0.6034 | Selective exposure only |
-| 2026-09-27 | 2026-10-05 | Constructive Drift | Measured long bias | 0.3185 | 0.5277 | Moderate risk-on |
-| 2026-10-06 | 2026-10-11 | Transition / Low Conviction | Tactical / wait | 0.3973 | 0.5870 | Selective exposure only |
-| 2026-10-12 | 2026-10-26 | Transition / Low Conviction | Tactical / wait | 0.3390 | 0.4731 | Selective exposure only |
-| 2026-10-27 | 2026-10-27 | Constructive Drift | Measured long bias | 0.3349 | 0.5742 | Moderate risk-on |
-| 2026-10-28 | 2026-10-29 | Constructive Drift | Measured long bias | 0.3311 | 0.5674 | Moderate risk-on |
-| 2026-10-30 | 2026-11-01 | Transition / Low Conviction | Tactical / wait | 0.3454 | 0.5936 | Selective exposure only |
-| 2026-11-02 | 2026-11-14 | Transition / Low Conviction | Tactical / wait | 0.3067 | 0.4734 | Selective exposure only |
-| 2026-11-15 | 2026-11-23 | Transition / Low Conviction | Tactical / wait | 0.4211 | 0.4026 | Selective exposure only |
-| 2026-11-24 | 2026-11-24 | Transition / Low Conviction | Tactical / wait | 0.3733 | 0.4315 | Selective exposure only |
-| 2026-11-25 | 2026-11-25 | Transition / Low Conviction | Tactical / wait | 0.3774 | 0.4297 | Selective exposure only |
-| 2026-11-26 | 2027-01-21 | Transition / Low Conviction | Tactical / wait | 0.3348 | 0.5179 | Selective exposure only |
-| 2027-01-22 | 2027-02-06 | Transition / Low Conviction | Tactical / wait | 0.2995 | 0.5910 | Selective exposure only |
-| 2027-02-07 | 2027-02-21 | Constructive Drift | Measured long bias | 0.3070 | 0.4451 | Moderate risk-on |
-| 2027-02-22 | 2027-02-27 | Transition / Low Conviction | Tactical / wait | 0.3305 | 0.4269 | Selective exposure only |
+| 2026-06-02 | 2026-06-05 | Constructive Drift | Measured long bias | 0.2916 | 0.5396 | Moderate risk-on |
+| 2026-06-06 | 2026-07-05 | Transition / Low Conviction | Tactical / wait | 0.3660 | 0.5946 | Selective exposure only |
+| 2026-07-06 | 2026-07-08 | Transition / Low Conviction | Tactical / wait | 0.3107 | 0.5595 | Selective exposure only |
+| 2026-07-09 | 2026-07-09 | Transition / Low Conviction | Tactical / wait | 0.3242 | 0.5705 | Selective exposure only |
+| 2026-07-10 | 2026-08-15 | Constructive Drift | Measured long bias | 0.2688 | 0.5205 | Moderate risk-on |
+| 2026-08-16 | 2026-09-26 | Transition / Low Conviction | Tactical / wait | 0.3976 | 0.6061 | Selective exposure only |
+| 2026-09-27 | 2026-10-06 | Constructive Drift | Measured long bias | 0.3112 | 0.5281 | Moderate risk-on |
+| 2026-10-07 | 2026-10-11 | Transition / Low Conviction | Tactical / wait | 0.3858 | 0.5830 | Selective exposure only |
+| 2026-10-12 | 2026-10-25 | Constructive Drift | Measured long bias | 0.3429 | 0.4633 | Moderate risk-on |
+| 2026-10-26 | 2026-11-01 | Transition / Low Conviction | Tactical / wait | 0.3533 | 0.5965 | Selective exposure only |
+| 2026-11-02 | 2026-11-14 | Constructive Drift | Measured long bias | 0.3034 | 0.4819 | Moderate risk-on |
+| 2026-11-15 | 2026-11-23 | Transition / Low Conviction | Tactical / wait | 0.4120 | 0.4086 | Selective exposure only |
+| 2026-11-24 | 2027-01-16 | Constructive Drift | Measured long bias | 0.3400 | 0.5056 | Moderate risk-on |
+| 2027-01-17 | 2027-02-06 | Transition / Low Conviction | Tactical / wait | 0.3218 | 0.6077 | Selective exposure only |
+| 2027-02-07 | 2027-02-12 | Constructive Drift | Measured long bias | 0.2817 | 0.4592 | Moderate risk-on |
+| 2027-02-13 | 2027-03-01 | Transition / Low Conviction | Tactical / wait | 0.3407 | 0.4230 | Selective exposure only |
+| 2027-03-02 | 2027-03-30 | Constructive Drift | Measured long bias | 0.2964 | 0.4843 | Moderate risk-on |
+| 2027-03-31 | 2027-04-02 | Transition / Low Conviction | Tactical / wait | 0.3486 | 0.5781 | Selective exposure only |
+| 2027-04-03 | 2027-04-27 | Constructive Drift | Measured long bias | 0.3256 | 0.4711 | Moderate risk-on |
+| 2027-04-28 | 2027-04-28 | Transition / Low Conviction | Tactical / wait | 0.3708 | 0.4297 | Selective exposure only |
 
 ## Supporting Files Refreshed
-- `data\dashboard_current_state.json`
-- `data\dashboard_summary.json`
-- `data\dashboard_timeline.json`
-- `data\dashboard_risk_calendar.json`
+- `data/dashboard_current_state.json`
+- `data/dashboard_summary.json`
+- `data/dashboard_timeline.json`
+- `data/dashboard_risk_calendar.json`
 
 ## Source Note
 # Taxonomy Regime Audit Engine v1

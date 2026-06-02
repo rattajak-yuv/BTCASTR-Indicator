@@ -17,12 +17,12 @@ This version updates taxonomy names and investor interpretation to match the Ast
 | High Risk | High Volatility Risk | Defensive / Volatility Control | #7F1D1D | -0.0011 | 0.0012 | 0.0214 | 0.5000 | 572 | Volatility dominates directional edge in this state. Historical outcomes are weaker and less reliable (7D=-0.11%, 14D=0.12%, 30D=2.14%). |
 
 ## Current Read
-- Current taxonomy v3: `Tactical Neutral`
-- Current posture: `Tactical / Wait`
-- Current narrative: From 2026-06-02 to 2026-06-04, the outlook is tactical neutral. Historical returns are mixed to mildly positive (7D=0.81%, 14D=1.12%, 30D=0.53%), so the state is best treated tactically rather than as a high-conviction trend. Flexibility and selective positioning matter more than full directional commitment.
+- Current taxonomy v3: `Constructive Drift`
+- Current posture: `Constructive Long Bias`
+- Current narrative: From 2026-06-02 to 2026-06-05, the outlook is constructive drift. Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside. The evidence supports measured long exposure with patience rather than chase behavior.
 
 ## Next Windows
-- Next positive window: `Constructive Drift` from `2026-09-27` to `2026-10-05`
+- Next positive window: `Constructive Drift` from `2026-06-02` to `2026-06-05`
 - Next defensive window: none
 
 ## Supporting Audit Snapshots

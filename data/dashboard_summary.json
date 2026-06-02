@@ -1,7 +1,7 @@
 {
   "forecast_date": "2026-06-02",
   "Current Signal": "Neutral",
-  "Current Confidence": 0.2447389553978353,
+  "Current Confidence": 0.2447389553978351,
   "Current Taxonomy": "Tactical Neutral",
   "Next Turning Point": "2026-06-05",
   "Next Constructive Window": "2026-09-27",
@@ -10,7 +10,7 @@
     "label": "30D Outlook",
     "horizon_days": 30,
     "dominant_taxonomy": "Tactical Neutral",
-    "average_confidence": 0.32201787822160577,
+    "average_confidence": 0.3220178782216057,
     "average_probability": 0.5651306594572851,
     "window_count": 2,
     "summary": "Dominant state is tactical neutral with mean confidence 32.20% and mean probability 56.51%."
@@ -19,7 +19,7 @@
     "label": "90D Outlook",
     "horizon_days": 90,
     "dominant_taxonomy": "Tactical Neutral",
-    "average_confidence": 0.31614607169256803,
+    "average_confidence": 0.316146071692568,
     "average_probability": 0.5311401332571598,
     "window_count": 6,
     "summary": "Dominant state is tactical neutral with mean confidence 31.61% and mean probability 53.11%."

@@ -5,342 +5,342 @@
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bullish",
-      "confidence": 0.3507633163788466,
+      "confidence": 0.3282883637923919,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5786."
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5732."
     },
     {
-      "turning_point_date": "2026-07-05",
+      "turning_point_date": "2026-07-04",
       "turning_point_type": "bullish_window_break",
       "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.3271261318895935,
+      "confidence": 0.3407094236067124,
       "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5626."
-    },
-    {
-      "turning_point_date": "2026-07-15",
-      "turning_point_type": "signal_flip",
-      "old_signal": "Neutral",
-      "new_signal": "Bearish",
-      "confidence": 0.2811525552809793,
-      "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4260."
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5700."
     },
     {
       "turning_point_date": "2026-07-22",
       "turning_point_type": "momentum_breakdown_down",
-      "old_signal": "Bearish",
-      "new_signal": "Bearish",
-      "confidence": 0.3911569993906064,
+      "old_signal": "Neutral",
+      "new_signal": "Neutral",
+      "confidence": 0.23796990345698,
       "severity": "high",
-      "explanation": "Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.2639."
+      "explanation": "Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2553."
     },
     {
       "turning_point_date": "2026-07-29",
       "turning_point_type": "momentum_neutral_cross",
-      "old_signal": "Bearish",
-      "new_signal": "Bearish",
-      "confidence": 0.4757900046980515,
+      "old_signal": "Neutral",
+      "new_signal": "Neutral",
+      "confidence": 0.2848784290945179,
       "severity": "low",
-      "explanation": "Astro momentum crossed the neutral line and is now -0.0929."
+      "explanation": "Astro momentum crossed the neutral line and is now -0.1163."
     },
     {
-      "turning_point_date": "2026-08-01",
+      "turning_point_date": "2026-07-30",
+      "turning_point_type": "signal_flip",
+      "old_signal": "Neutral",
+      "new_signal": "Bearish",
+      "confidence": 0.3028734222309557,
+      "severity": "high",
+      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4185."
+    },
+    {
+      "turning_point_date": "2026-07-31",
       "turning_point_type": "bearish_window_relief",
       "old_signal": "Bearish",
       "new_signal": "Neutral",
-      "confidence": 0.2546888170312676,
+      "confidence": 0.2817870336307055,
       "severity": "medium",
-      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4567."
+      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4387."
     },
     {
       "turning_point_date": "2026-08-02",
       "turning_point_type": "momentum_neutral_cross",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.2353284611783125,
+      "confidence": 0.247062417144398,
       "severity": "low",
-      "explanation": "Astro momentum crossed the neutral line and is now 0.0900."
+      "explanation": "Astro momentum crossed the neutral line and is now 0.0687."
     },
     {
-      "turning_point_date": "2026-08-20",
+      "turning_point_date": "2026-08-16",
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bullish",
-      "confidence": 0.3549403494722615,
+      "confidence": 0.3328941090157794,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5850."
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5753."
     },
     {
-      "turning_point_date": "2026-09-28",
+      "turning_point_date": "2026-09-27",
       "turning_point_type": "bullish_window_break",
       "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.3779902654502187,
+      "confidence": 0.3632118103448101,
       "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5683."
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5660."
     },
     {
-      "turning_point_date": "2026-10-03",
+      "turning_point_date": "2026-10-06",
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bullish",
-      "confidence": 0.3827882085708262,
+      "confidence": 0.3752497613450134,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5729."
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5719."
     },
     {
-      "turning_point_date": "2026-10-13",
+      "turning_point_date": "2026-10-12",
       "turning_point_type": "bullish_window_break",
       "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.3506166772100789,
+      "confidence": 0.3263417217589167,
       "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5527."
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5345."
     },
     {
       "turning_point_date": "2026-10-20",
       "turning_point_type": "momentum_breakout_up",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.3481399225242488,
+      "confidence": 0.3600229530134614,
       "severity": "medium",
-      "explanation": "Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.8050."
+      "explanation": "Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.8091."
+    },
+    {
+      "turning_point_date": "2026-10-27",
+      "turning_point_type": "signal_flip",
+      "old_signal": "Neutral",
+      "new_signal": "Bullish",
+      "confidence": 0.3348744359983454,
+      "severity": "high",
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5742."
+    },
+    {
+      "turning_point_date": "2026-10-28",
+      "turning_point_type": "bullish_window_break",
+      "old_signal": "Bullish",
+      "new_signal": "Neutral",
+      "confidence": 0.3318459613387339,
+      "severity": "high",
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5672."
+    },
+    {
+      "turning_point_date": "2026-10-30",
+      "turning_point_type": "signal_flip",
+      "old_signal": "Neutral",
+      "new_signal": "Bullish",
+      "confidence": 0.335065444455263,
+      "severity": "high",
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5852."
+    },
+    {
+      "turning_point_date": "2026-11-02",
+      "turning_point_type": "bullish_window_break",
+      "old_signal": "Bullish",
+      "new_signal": "Neutral",
+      "confidence": 0.2930476418379014,
+      "severity": "high",
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5565."
     },
     {
       "turning_point_date": "2026-11-15",
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bearish",
-      "confidence": 0.3999454756534496,
+      "confidence": 0.3955416069659342,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4187."
+      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4177."
     },
     {
-      "turning_point_date": "2026-11-23",
+      "turning_point_date": "2026-11-24",
       "turning_point_type": "bearish_window_relief",
       "old_signal": "Bearish",
       "new_signal": "Neutral",
-      "confidence": 0.3892952067391481,
+      "confidence": 0.3733424137263741,
       "severity": "medium",
-      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4343."
+      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4315."
     },
     {
-      "turning_point_date": "2026-11-23",
+      "turning_point_date": "2026-11-24",
       "turning_point_type": "momentum_breakdown_down",
       "old_signal": "Bearish",
       "new_signal": "Neutral",
-      "confidence": 0.3892952067391481,
+      "confidence": 0.3733424137263741,
       "severity": "high",
-      "explanation": "Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.2792."
+      "explanation": "Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2832."
     },
     {
-      "turning_point_date": "2026-12-13",
+      "turning_point_date": "2026-11-25",
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
-      "new_signal": "Bullish",
-      "confidence": 0.384772656178461,
+      "new_signal": "Bearish",
+      "confidence": 0.3773804406614901,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5716."
+      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4297."
     },
     {
-      "turning_point_date": "2026-12-14",
-      "turning_point_type": "bullish_window_break",
-      "old_signal": "Bullish",
+      "turning_point_date": "2026-11-26",
+      "turning_point_type": "bearish_window_relief",
+      "old_signal": "Bearish",
       "new_signal": "Neutral",
-      "confidence": 0.3822541682318452,
-      "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5690."
+      "confidence": 0.3647732606460207,
+      "severity": "medium",
+      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4352."
     },
     {
-      "turning_point_date": "2026-12-15",
-      "turning_point_type": "signal_flip",
-      "old_signal": "Neutral",
-      "new_signal": "Bullish",
-      "confidence": 0.3823819845606367,
-      "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5704."
-    },
-    {
-      "turning_point_date": "2026-12-16",
-      "turning_point_type": "bullish_window_break",
-      "old_signal": "Bullish",
-      "new_signal": "Neutral",
-      "confidence": 0.3838390980703691,
-      "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5699."
-    },
-    {
-      "turning_point_date": "2026-12-22",
-      "turning_point_type": "signal_flip",
-      "old_signal": "Neutral",
-      "new_signal": "Bullish",
-      "confidence": 0.3860302291766703,
-      "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5716."
-    },
-    {
-      "turning_point_date": "2026-12-23",
-      "turning_point_type": "bullish_window_break",
-      "old_signal": "Bullish",
-      "new_signal": "Neutral",
-      "confidence": 0.3808257301064193,
-      "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5676."
-    },
-    {
-      "turning_point_date": "2026-12-28",
-      "turning_point_type": "signal_flip",
-      "old_signal": "Neutral",
-      "new_signal": "Bullish",
-      "confidence": 0.3877968767186344,
-      "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5725."
-    },
-    {
-      "turning_point_date": "2027-01-04",
-      "turning_point_type": "bullish_window_break",
-      "old_signal": "Bullish",
-      "new_signal": "Neutral",
-      "confidence": 0.3351144772271515,
-      "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5384."
-    },
-    {
-      "turning_point_date": "2027-01-08",
+      "turning_point_date": "2027-01-06",
       "turning_point_type": "momentum_breakout_up",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.3228737416845875,
+      "confidence": 0.3453195563863286,
       "severity": "medium",
-      "explanation": "Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.8250."
+      "explanation": "Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.7960."
     },
     {
-      "turning_point_date": "2027-01-19",
+      "turning_point_date": "2027-01-22",
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bullish",
-      "confidence": 0.326630138469095,
+      "confidence": 0.2919598413572692,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5713."
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5744."
     },
     {
       "turning_point_date": "2027-02-07",
       "turning_point_type": "bullish_window_break",
       "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.2091479968632108,
+      "confidence": 0.2298630167870826,
       "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5037."
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.4869."
     },
     {
-      "turning_point_date": "2027-02-13",
+      "turning_point_date": "2027-02-22",
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bearish",
-      "confidence": 0.3462933744757606,
+      "confidence": 0.3316749395018624,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4292."
+      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4262."
     },
     {
-      "turning_point_date": "2027-02-14",
+      "turning_point_date": "2027-02-28",
       "turning_point_type": "bearish_window_relief",
       "old_signal": "Bearish",
       "new_signal": "Neutral",
-      "confidence": 0.3439602321728631,
+      "confidence": 0.3139014726105467,
       "severity": "medium",
-      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4314."
+      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4376."
     },
     {
-      "turning_point_date": "2027-02-15",
-      "turning_point_type": "signal_flip",
-      "old_signal": "Neutral",
-      "new_signal": "Bearish",
-      "confidence": 0.3506911687501117,
-      "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4276."
-    },
-    {
-      "turning_point_date": "2027-02-16",
-      "turning_point_type": "bearish_window_relief",
-      "old_signal": "Bearish",
-      "new_signal": "Neutral",
-      "confidence": 0.3370478467926141,
-      "severity": "medium",
-      "explanation": "Signal shifted from Bearish to Neutral as ML probability moved to 0.4381."
-    },
-    {
-      "turning_point_date": "2027-03-02",
+      "turning_point_date": "2027-03-12",
       "turning_point_type": "momentum_breakout_up",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.2884941253458196,
+      "confidence": 0.2932773164619314,
       "severity": "medium",
-      "explanation": "Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.7692."
-    },
-    {
-      "turning_point_date": "2027-03-28",
-      "turning_point_type": "momentum_breakdown_down",
-      "old_signal": "Neutral",
-      "new_signal": "Bullish",
-      "confidence": 0.3529589421852592,
-      "severity": "high",
-      "explanation": "Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.3154."
+      "explanation": "Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.7869."
     },
     {
       "turning_point_date": "2027-03-28",
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bullish",
-      "confidence": 0.3529589421852592,
+      "confidence": 0.3271316740409213,
       "severity": "high",
-      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5701."
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5702."
+    },
+    {
+      "turning_point_date": "2027-03-30",
+      "turning_point_type": "momentum_breakdown_down",
+      "old_signal": "Bullish",
+      "new_signal": "Bullish",
+      "confidence": 0.33677004069404,
+      "severity": "high",
+      "explanation": "Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.3183."
     },
     {
       "turning_point_date": "2027-04-03",
       "turning_point_type": "bullish_window_break",
       "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.3633989402166255,
+      "confidence": 0.3150312890541174,
       "severity": "high",
-      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5699."
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5404."
     },
     {
       "turning_point_date": "2027-04-19",
       "turning_point_type": "momentum_breakout_up",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.356463803415859,
+      "confidence": 0.3586255136508068,
       "severity": "medium",
-      "explanation": "Astro momentum crossed above the upper historical threshold (1.7638), reaching 1.7881."
+      "explanation": "Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.8002."
     },
     {
-      "turning_point_date": "2027-05-10",
+      "turning_point_date": "2027-05-08",
       "turning_point_type": "momentum_breakdown_down",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.326104089965217,
+      "confidence": 0.3195037487748241,
       "severity": "high",
-      "explanation": "Astro momentum dropped through the lower historical threshold (0.3338), falling to 0.2865."
+      "explanation": "Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2494."
+    },
+    {
+      "turning_point_date": "2027-05-11",
+      "turning_point_type": "signal_flip",
+      "old_signal": "Neutral",
+      "new_signal": "Bullish",
+      "confidence": 0.3631873138365458,
+      "severity": "high",
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5758."
+    },
+    {
+      "turning_point_date": "2027-05-12",
+      "turning_point_type": "momentum_neutral_cross",
+      "old_signal": "Bullish",
+      "new_signal": "Bullish",
+      "confidence": 0.3609179565358755,
+      "severity": "low",
+      "explanation": "Astro momentum crossed the neutral line and is now -0.0405."
     },
     {
       "turning_point_date": "2027-05-16",
-      "turning_point_type": "momentum_neutral_cross",
-      "old_signal": "Neutral",
+      "turning_point_type": "bullish_window_break",
+      "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.3164817694775973,
-      "severity": "low",
-      "explanation": "Astro momentum crossed the neutral line and is now -0.0010."
+      "confidence": 0.3536458472381836,
+      "severity": "high",
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5698."
     },
     {
       "turning_point_date": "2027-05-17",
+      "turning_point_type": "signal_flip",
+      "old_signal": "Neutral",
+      "new_signal": "Bullish",
+      "confidence": 0.3536917242204901,
+      "severity": "high",
+      "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5715."
+    },
+    {
+      "turning_point_date": "2027-05-20",
+      "turning_point_type": "bullish_window_break",
+      "old_signal": "Bullish",
+      "new_signal": "Neutral",
+      "confidence": 0.3509619334823537,
+      "severity": "high",
+      "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5674."
+    },
+    {
+      "turning_point_date": "2027-05-22",
       "turning_point_type": "momentum_neutral_cross",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.3205431646119848,
+      "confidence": 0.3347526312497465,
       "severity": "low",
-      "explanation": "Astro momentum crossed the neutral line and is now 0.0058."
+      "explanation": "Astro momentum crossed the neutral line and is now 0.0419."
     }
   ],
   "risk_windows": [

@@ -20,10 +20,10 @@ Update the taxonomy interpretation layer so the dashboard language matches valid
 | High Volatility Risk | Volatility Caution | Volatility dominates directional edge | Capital preservation | Low exposure / defensive | This remains the clearest caution state in the current taxonomy family. | #7F1D1D | 2 | 645 | 0.2389 | 0.3694 | 1.1743 | 0.0123 | 0.0681 | 0.1186 | 0.4698 | Fragile | optional soft rename | Volatility Caution | Semantics are directionally correct. | 30D return is only 1.23% and 30D return/volatility is 0.0695. |
 
 ## Current Dashboard Context
-- Current taxonomy before JSON refresh: ``
-- 30D dominant outlook after semantic revision: ``
-- 90D dominant outlook after semantic revision: ``
-- 365D dominant outlook after semantic revision: ``
+- Current taxonomy before JSON refresh: `Constructive Drift`
+- 30D dominant outlook after semantic revision: `High Conviction Expansion`
+- 90D dominant outlook after semantic revision: `Transition / Low Conviction`
+- 365D dominant outlook after semantic revision: `Constructive Drift`
 
 ## Why The Major Rename Matters
 The regime audit showed that `Defensive / Weak Trend` had strong forward returns and an 85.71% 30D win rate. That is inconsistent with a defensive label, so the new name emphasizes recovery and reversal opportunity instead of weakness.
@@ -63,26 +63,26 @@ The regime audit showed that `Defensive / Weak Trend` had strong forward returns
 ## Current Forecast Windows Under v4
 | start_date | end_date | taxonomy_v4 | v4_posture | average_confidence | average_ml_probability | taxonomy_v4_exposure_language |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-05-31 | 2026-06-04 | Constructive Drift | Measured long bias | 0.2946 | 0.5288 | Moderate risk-on |
-| 2026-06-05 | 2026-07-04 | High Conviction Expansion | Risk-on with confirmation | 0.4011 | 0.6125 | Moderate to aggressive risk-on |
-| 2026-07-05 | 2026-07-14 | Constructive Drift | Measured long bias | 0.2700 | 0.4584 | Moderate risk-on |
-| 2026-07-15 | 2026-07-31 | Recovery / Reversal Setup | Opportunistic accumulation | 0.3806 | 0.3449 | High opportunity but confirm with price action |
-| 2026-08-01 | 2026-08-19 | Constructive Drift | Measured long bias | 0.2772 | 0.5350 | Moderate risk-on |
-| 2026-08-20 | 2026-09-27 | Transition / Low Conviction | Tactical / wait | 0.4012 | 0.5983 | Selective exposure only |
-| 2026-09-28 | 2026-10-02 | Constructive Drift | Measured long bias | 0.3760 | 0.5678 | Moderate risk-on |
-| 2026-10-03 | 2026-10-12 | Transition / Low Conviction | Tactical / wait | 0.3942 | 0.5812 | Selective exposure only |
-| 2026-10-13 | 2026-11-14 | Constructive Drift | Measured long bias | 0.3130 | 0.4996 | Moderate risk-on |
-| 2026-11-15 | 2026-11-22 | Volatility Caution | Capital preservation | 0.3996 | 0.4238 | Low exposure / defensive |
-| 2026-11-23 | 2026-12-12 | Constructive Drift | Measured long bias | 0.3375 | 0.5005 | Moderate risk-on |
-| 2026-12-13 | 2026-12-13 | Constructive Drift | Measured long bias | 0.3848 | 0.5716 | Moderate risk-on |
-| 2026-12-14 | 2026-12-14 | Constructive Drift | Measured long bias | 0.3823 | 0.5690 | Moderate risk-on |
-| 2026-12-15 | 2026-12-15 | Constructive Drift | Measured long bias | 0.3824 | 0.5704 | Moderate risk-on |
-| 2026-12-16 | 2026-12-21 | Constructive Drift | Measured long bias | 0.3809 | 0.5673 | Moderate risk-on |
-| 2026-12-22 | 2026-12-22 | Constructive Drift | Measured long bias | 0.3860 | 0.5716 | Moderate risk-on |
-| 2026-12-23 | 2026-12-27 | Constructive Drift | Measured long bias | 0.3799 | 0.5679 | Moderate risk-on |
-| 2026-12-28 | 2027-01-03 | Transition / Low Conviction | Tactical / wait | 0.3901 | 0.5761 | Selective exposure only |
-| 2027-01-04 | 2027-01-18 | Constructive Drift | Measured long bias | 0.3272 | 0.4973 | Moderate risk-on |
-| 2027-01-19 | 2027-02-06 | Transition / Low Conviction | Tactical / wait | 0.3271 | 0.6115 | Selective exposure only |
+| 2026-06-02 | 2026-06-04 | Transition / Low Conviction | Tactical / wait | 0.2744 | 0.5308 | Selective exposure only |
+| 2026-06-05 | 2026-07-03 | Transition / Low Conviction | Tactical / wait | 0.3697 | 0.5995 | Selective exposure only |
+| 2026-07-04 | 2026-07-29 | Transition / Low Conviction | Tactical / wait | 0.2868 | 0.5148 | Selective exposure only |
+| 2026-07-30 | 2026-07-30 | Transition / Low Conviction | Tactical / wait | 0.3029 | 0.4185 | Selective exposure only |
+| 2026-07-31 | 2026-08-15 | Transition / Low Conviction | Tactical / wait | 0.2645 | 0.5199 | Selective exposure only |
+| 2026-08-16 | 2026-09-26 | Transition / Low Conviction | Tactical / wait | 0.3987 | 0.6034 | Selective exposure only |
+| 2026-09-27 | 2026-10-05 | Constructive Drift | Measured long bias | 0.3185 | 0.5277 | Moderate risk-on |
+| 2026-10-06 | 2026-10-11 | Transition / Low Conviction | Tactical / wait | 0.3973 | 0.5870 | Selective exposure only |
+| 2026-10-12 | 2026-10-26 | Transition / Low Conviction | Tactical / wait | 0.3390 | 0.4731 | Selective exposure only |
+| 2026-10-27 | 2026-10-27 | Constructive Drift | Measured long bias | 0.3349 | 0.5742 | Moderate risk-on |
+| 2026-10-28 | 2026-10-29 | Constructive Drift | Measured long bias | 0.3311 | 0.5674 | Moderate risk-on |
+| 2026-10-30 | 2026-11-01 | Transition / Low Conviction | Tactical / wait | 0.3454 | 0.5936 | Selective exposure only |
+| 2026-11-02 | 2026-11-14 | Transition / Low Conviction | Tactical / wait | 0.3067 | 0.4734 | Selective exposure only |
+| 2026-11-15 | 2026-11-23 | Transition / Low Conviction | Tactical / wait | 0.4211 | 0.4026 | Selective exposure only |
+| 2026-11-24 | 2026-11-24 | Transition / Low Conviction | Tactical / wait | 0.3733 | 0.4315 | Selective exposure only |
+| 2026-11-25 | 2026-11-25 | Transition / Low Conviction | Tactical / wait | 0.3774 | 0.4297 | Selective exposure only |
+| 2026-11-26 | 2027-01-21 | Transition / Low Conviction | Tactical / wait | 0.3348 | 0.5179 | Selective exposure only |
+| 2027-01-22 | 2027-02-06 | Transition / Low Conviction | Tactical / wait | 0.2995 | 0.5910 | Selective exposure only |
+| 2027-02-07 | 2027-02-21 | Constructive Drift | Measured long bias | 0.3070 | 0.4451 | Moderate risk-on |
+| 2027-02-22 | 2027-02-27 | Transition / Low Conviction | Tactical / wait | 0.3305 | 0.4269 | Selective exposure only |
 
 ## Supporting Files Refreshed
 - `data\dashboard_current_state.json`

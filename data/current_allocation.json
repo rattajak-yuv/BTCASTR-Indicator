@@ -1,0 +1,21 @@
+{
+  "current_date": "2026-06-02",
+  "current_taxonomy": "Constructive Drift",
+  "current_signal": "Neutral",
+  "current_ml_probability": 0.5418074135866741,
+  "current_confidence": 0.2998386836317978,
+  "current_risk_level": "Low",
+  "current_astro_momentum": 1.3583586196105717,
+  "base_btc_allocation": 70.0,
+  "adjusted_btc_allocation": 55.0,
+  "cash_allocation": 45.0,
+  "allocation_posture": "Constructive accumulation",
+  "explanation": "Base BTC allocation starts at 70.0% from the `Constructive Drift` rule. Confidence is low at 29.98%, so BTC allocation is reduced by 15 percentage points. ML probability at 54.18% does not trigger an additional change. Astro momentum is neutral-to-positive at 1.36, so no momentum adjustment was applied. The 30D, 90D, and 365D outlooks do not all align positively, so no alignment bonus is applied.",
+  "key_risks": [
+    "Broadly positive and more stable than the faster expansion state.",
+    "30D outlook: High Conviction Expansion",
+    "90D outlook: Transition / Low Conviction",
+    "365D outlook: Constructive Drift"
+  ],
+  "next_review_date": "2026-06-05"
+}

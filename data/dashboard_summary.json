@@ -5,24 +5,24 @@
   "Current Taxonomy": "Constructive Drift",
   "Next Turning Point": "2026-06-05",
   "Next Constructive Window": "2026-05-31",
-  "Next High Risk Window": "2026-07-15",
+  "Next High Risk Window": "2026-11-15",
   "30D Outlook": {
     "label": "30D Outlook",
     "horizon_days": 30,
-    "dominant_taxonomy": "High Momentum Expansion",
+    "dominant_taxonomy": "High Conviction Expansion",
     "average_confidence": 0.34785411949375006,
     "average_probability": 0.5706691224694599,
     "window_count": 2,
-    "summary": "Dominant state is high momentum expansion with mean confidence 34.79% and mean probability 57.07%. The horizon starts in constructive drift and rotates toward high momentum expansion."
+    "summary": "Dominant state is high conviction expansion with mean confidence 34.79% and mean probability 57.07%. The horizon starts in constructive drift and rotates toward high conviction expansion."
   },
   "90D Outlook": {
     "label": "90D Outlook",
     "horizon_days": 90,
-    "dominant_taxonomy": "Tactical Neutral",
+    "dominant_taxonomy": "Transition / Low Conviction",
     "average_confidence": 0.337450464936574,
     "average_probability": 0.5129954197149281,
     "window_count": 6,
-    "summary": "Dominant state is tactical neutral with mean confidence 33.75% and mean probability 51.30%. The horizon starts in constructive drift and rotates toward tactical neutral."
+    "summary": "Dominant state is transition / low conviction with mean confidence 33.75% and mean probability 51.30%. The horizon starts in constructive drift and rotates toward transition / low conviction."
   },
   "365D Outlook": {
     "label": "365D Outlook",

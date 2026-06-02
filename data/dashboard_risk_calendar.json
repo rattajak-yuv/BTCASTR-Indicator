@@ -345,40 +345,31 @@
   ],
   "risk_windows": [
     {
-      "start_date": "2026-07-15",
-      "end_date": "2026-07-31",
-      "taxonomy_v2": "Defensive / Weak Trend",
-      "duration_days": 17,
-      "average_confidence": 0.3805683042911,
-      "average_ml_probability": 0.3448980321170745,
-      "taxonomy_reason": "Historical downside and weak follow-through remain the base case here (7D=-1.35%, 14D=-1.54%, 30D=3.31%)."
-    },
-    {
       "start_date": "2026-11-15",
       "end_date": "2026-11-22",
-      "taxonomy_v2": "High Volatility Risk",
+      "taxonomy_v2": "Volatility Caution",
       "duration_days": 8,
       "average_confidence": 0.3995969753095416,
       "average_ml_probability": 0.4237595165873582,
-      "taxonomy_reason": "Volatility dominates directional edge in this state. Historical outcomes are weaker and less reliable (7D=-0.11%, 14D=0.12%, 30D=2.14%)."
+      "taxonomy_reason": "Historical returns are weakest here (30D=1.23%, 60D=6.81%, 90D=11.86%) and stability is fragile. Volatility dominates directional edge."
     },
     {
       "start_date": "2027-02-13",
       "end_date": "2027-02-13",
-      "taxonomy_v2": "High Volatility Risk",
+      "taxonomy_v2": "Volatility Caution",
       "duration_days": 1,
       "average_confidence": 0.3462933744757606,
       "average_ml_probability": 0.4291547221408482,
-      "taxonomy_reason": "Volatility dominates directional edge in this state. Historical outcomes are weaker and less reliable (7D=-0.11%, 14D=0.12%, 30D=2.14%)."
+      "taxonomy_reason": "Historical returns are weakest here (30D=1.23%, 60D=6.81%, 90D=11.86%) and stability is fragile. Volatility dominates directional edge."
     },
     {
       "start_date": "2027-02-15",
       "end_date": "2027-02-15",
-      "taxonomy_v2": "High Volatility Risk",
+      "taxonomy_v2": "Volatility Caution",
       "duration_days": 1,
       "average_confidence": 0.3506911687501117,
       "average_ml_probability": 0.4276156605048275,
-      "taxonomy_reason": "Volatility dominates directional edge in this state. Historical outcomes are weaker and less reliable (7D=-0.11%, 14D=0.12%, 30D=2.14%)."
+      "taxonomy_reason": "Historical returns are weakest here (30D=1.23%, 60D=6.81%, 90D=11.86%) and stability is fragile. Volatility dominates directional edge."
     }
   ],
   "constructive_windows": [
@@ -389,16 +380,16 @@
       "duration_days": 5,
       "average_confidence": 0.2946128471807154,
       "average_ml_probability": 0.5288445066982769,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-06-05",
       "end_date": "2026-07-04",
-      "taxonomy_v2": "High Momentum Expansion",
+      "taxonomy_v2": "High Conviction Expansion",
       "duration_days": 30,
       "average_confidence": 0.4010953918067847,
       "average_ml_probability": 0.6124937382406429,
-      "taxonomy_reason": "Alpha audit evidence is positive rather than fragile: 7D=3.55%, 14D=7.20%, 30D=16.82%, with 30D win rate 73.44%. Strength should be respected, not faded."
+      "taxonomy_reason": "Historical outcomes are strong (30D=10.70%, 60D=16.16%) with 30D win rate 63.77%, but stability is fragile because the active sample is concentrated."
     },
     {
       "start_date": "2026-07-05",
@@ -407,7 +398,16 @@
       "duration_days": 10,
       "average_confidence": 0.2700484756640656,
       "average_ml_probability": 0.4584276100126921,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
+    },
+    {
+      "start_date": "2026-07-15",
+      "end_date": "2026-07-31",
+      "taxonomy_v2": "Recovery / Reversal Setup",
+      "duration_days": 17,
+      "average_confidence": 0.3805683042911,
+      "average_ml_probability": 0.3448980321170745,
+      "taxonomy_reason": "Historical forward returns are unexpectedly strong after stress (30D=13.62%, 60D=30.82%, 90D=31.99%) with 30D win rate 85.71%. This behaves like a recovery / reversal setup, not a defensive trend."
     },
     {
       "start_date": "2026-08-01",
@@ -416,7 +416,7 @@
       "duration_days": 19,
       "average_confidence": 0.2771938732793727,
       "average_ml_probability": 0.5350015293610205,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-09-28",
@@ -425,7 +425,7 @@
       "duration_days": 5,
       "average_confidence": 0.3760236188139446,
       "average_ml_probability": 0.5678010048353761,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-10-13",
@@ -434,7 +434,7 @@
       "duration_days": 33,
       "average_confidence": 0.3129660543423301,
       "average_ml_probability": 0.4996439747852414,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-11-23",
@@ -443,7 +443,7 @@
       "duration_days": 20,
       "average_confidence": 0.3374921178077709,
       "average_ml_probability": 0.5004525797637425,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-12-13",
@@ -452,7 +452,7 @@
       "duration_days": 1,
       "average_confidence": 0.384772656178461,
       "average_ml_probability": 0.5715908396708752,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-12-14",
@@ -461,7 +461,7 @@
       "duration_days": 1,
       "average_confidence": 0.3822541682318452,
       "average_ml_probability": 0.5690004660629036,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-12-15",
@@ -470,7 +470,7 @@
       "duration_days": 1,
       "average_confidence": 0.3823819845606367,
       "average_ml_probability": 0.5703614095301367,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-12-16",
@@ -479,7 +479,7 @@
       "duration_days": 6,
       "average_confidence": 0.3808677734699948,
       "average_ml_probability": 0.5673357561003916,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-12-22",
@@ -488,7 +488,7 @@
       "duration_days": 1,
       "average_confidence": 0.3860302291766703,
       "average_ml_probability": 0.5716267341883866,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2026-12-23",
@@ -497,7 +497,7 @@
       "duration_days": 5,
       "average_confidence": 0.3799200359373462,
       "average_ml_probability": 0.5678679156207153,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2027-01-04",
@@ -506,7 +506,7 @@
       "duration_days": 15,
       "average_confidence": 0.327168357744309,
       "average_ml_probability": 0.4972749960317895,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2027-02-07",
@@ -515,7 +515,7 @@
       "duration_days": 6,
       "average_confidence": 0.2831389560736219,
       "average_ml_probability": 0.4593325430527157,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2027-02-14",
@@ -524,7 +524,7 @@
       "duration_days": 1,
       "average_confidence": 0.3439602321728631,
       "average_ml_probability": 0.4313873584286473,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2027-02-16",
@@ -533,7 +533,7 @@
       "duration_days": 40,
       "average_confidence": 0.3011492147035719,
       "average_ml_probability": 0.4712502324796432,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
       "start_date": "2027-04-03",
@@ -542,7 +542,7 @@
       "duration_days": 58,
       "average_confidence": 0.3332418752798318,
       "average_ml_probability": 0.5134102204195938,
-      "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+      "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     }
   ]
 }

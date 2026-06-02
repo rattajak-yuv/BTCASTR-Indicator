@@ -15,8 +15,8 @@
     "average_confidence": 0.2946128471807154,
     "average_ml_probability": 0.5288445066982769,
     "average_astro_score": 1.6499690753542224,
-    "v2_posture": "Constructive Long Bias",
-    "narrative_v2": "From 2026-05-31 to 2026-06-04, the outlook is constructive drift. Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside. The evidence supports measured long exposure with patience rather than chase behavior."
+    "v2_posture": "Measured long bias",
+    "narrative_v2": "From 2026-05-31 to 2026-06-04, the outlook is constructive drift. Stable positive drift. Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing. Investor posture: measured long bias. Exposure language: moderate risk-on. Caveat: Broadly positive and more stable than the faster expansion state."
   },
   "next_turning_point": {
     "turning_point_date": "2026-06-05",
@@ -33,16 +33,16 @@
     "taxonomy_v2": "Constructive Drift",
     "average_confidence": 0.2946128471807154,
     "average_ml_probability": 0.5288445066982769,
-    "v2_posture": "Constructive Long Bias",
-    "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+    "v2_posture": "Measured long bias",
+    "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
   },
   "next_high_risk_window": {
-    "start_date": "2026-07-15",
-    "end_date": "2026-07-31",
-    "taxonomy_v2": "Defensive / Weak Trend",
-    "average_confidence": 0.3805683042911,
-    "average_ml_probability": 0.3448980321170745,
-    "v2_posture": "Defensive / Short Bias",
-    "taxonomy_reason": "Historical downside and weak follow-through remain the base case here (7D=-1.35%, 14D=-1.54%, 30D=3.31%)."
+    "start_date": "2026-11-15",
+    "end_date": "2026-11-22",
+    "taxonomy_v2": "Volatility Caution",
+    "average_confidence": 0.3995969753095416,
+    "average_ml_probability": 0.4237595165873582,
+    "v2_posture": "Capital preservation",
+    "taxonomy_reason": "Historical returns are weakest here (30D=1.23%, 60D=6.81%, 90D=11.86%) and stability is fragile. Volatility dominates directional edge."
   }
 }

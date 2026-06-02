@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import swisseph as swe
 import json
+from io import StringIO
 from datetime import datetime, timezone
 
 st.set_page_config(page_title="Bitcoin Astro Indicator", layout="wide")
@@ -406,7 +407,12 @@ def load_csv_safe(path, default=None, parse_date_cols=None):
     if default is None:
         default = pd.DataFrame()
     try:
-        df = pd.read_csv(path)
+        with open(path, "r", encoding="utf-8", errors="ignore") as handle:
+            cleaned_text = "\n".join(
+                line for line in handle.read().splitlines()
+                if not line.startswith(("<<<<<<<", "=======", ">>>>>>>"))
+            )
+        df = pd.read_csv(StringIO(cleaned_text), on_bad_lines="skip")
         for col in parse_date_cols or []:
             if col in df.columns:
                 df[col] = pd.to_datetime(df[col], errors="coerce")
@@ -472,6 +478,31 @@ def load_taxonomy_attribution():
 def load_taxonomy_feature_importance():
     return load_csv_safe("data/taxonomy_feature_importance.csv")
 
+@st.cache_data(ttl=3600)
+def load_forecast_intelligence_v4():
+    return load_csv_safe(
+        "data/forecast_intelligence_v4.csv",
+        parse_date_cols=["start_date", "end_date"],
+    )
+
+@st.cache_data(ttl=3600)
+def load_future_forecast_timeline():
+    return load_csv_safe(
+        "data/future_forecast_timeline.csv",
+        parse_date_cols=["date"],
+    )
+
+@st.cache_data(ttl=3600)
+def load_allocation_timeline_v2():
+    return load_csv_safe(
+        "data/allocation_timeline_v2.csv",
+        parse_date_cols=["start_date", "end_date"],
+    )
+
+@st.cache_data(ttl=3600)
+def load_current_allocation_v2():
+    return load_json_safe("data/current_allocation_v2.json")
+
 # =========================================================
 # HELPERS
 # =========================================================
@@ -526,9 +557,13 @@ def signal_color(sig):
 
 def taxonomy_color(label):
     return {
+        "High Conviction Expansion": "#D97706",
         "High Momentum Expansion": "#D97706",
         "Constructive Drift": "#2E7D32",
+        "Transition / Low Conviction": "#C9A227",
         "Tactical Neutral": "#C9A227",
+        "Recovery / Reversal Setup": "#7C3AED",
+        "Volatility Caution": "#7F1D1D",
         "High Volatility Risk": "#7F1D1D",
         "Defensive / Weak Trend": "#C62828",
         "Constructive / Positive Drift": "#2E7D32",
@@ -540,9 +575,13 @@ def taxonomy_color(label):
 
 def taxonomy_bg(label):
     return {
+        "High Conviction Expansion": "linear-gradient(135deg, #432510 0%, #D97706 100%)",
         "High Momentum Expansion": "linear-gradient(135deg, #432510 0%, #D97706 100%)",
         "Constructive Drift": "linear-gradient(135deg, #16351d 0%, #2E7D32 100%)",
+        "Transition / Low Conviction": "linear-gradient(135deg, #453f18 0%, #C9A227 100%)",
         "Tactical Neutral": "linear-gradient(135deg, #453f18 0%, #C9A227 100%)",
+        "Recovery / Reversal Setup": "linear-gradient(135deg, #2c1a53 0%, #7C3AED 100%)",
+        "Volatility Caution": "linear-gradient(135deg, #2b0a0a 0%, #7F1D1D 100%)",
         "High Volatility Risk": "linear-gradient(135deg, #2b0a0a 0%, #7F1D1D 100%)",
         "Defensive / Weak Trend": "linear-gradient(135deg, #3b0a0f 0%, #C62828 100%)",
         "Constructive / Positive Drift": "linear-gradient(135deg, #16351d 0%, #2E7D32 100%)",
@@ -568,6 +607,14 @@ def taxonomy_badge_html(label):
         f" border:1px solid {taxonomy_rgba(label, 0.28)};'>"
         f"{label}</span>"
     )
+
+TAXONOMY_ATTRIBUTION_LABEL_MAP = {
+    "Constructive Drift": "Constructive Drift",
+    "High Conviction Expansion": "High Momentum Expansion",
+    "Transition / Low Conviction": "Tactical Neutral",
+    "Recovery / Reversal Setup": "Defensive / Weak Trend",
+    "Volatility Caution": "High Volatility Risk",
+}
 
 def risk_level_color(level):
     return {
@@ -643,6 +690,41 @@ def parse_ranked_items(value, limit=5):
 
 def safe_record(value):
     return value if isinstance(value, dict) else {}
+
+def normalize_taxonomy_columns(frame):
+    if frame is None or frame.empty:
+        return pd.DataFrame()
+    df_norm = frame.copy()
+    for source_col in ["taxonomy_v4", "taxonomy_v2", "dominant_taxonomy", "current_taxonomy"]:
+        if source_col in df_norm.columns:
+            df_norm["taxonomy_label"] = df_norm[source_col]
+            break
+    if "taxonomy_label" not in df_norm.columns:
+        df_norm["taxonomy_label"] = "N/A"
+    if "start_date" in df_norm.columns:
+        df_norm["start_date"] = pd.to_datetime(df_norm["start_date"], errors="coerce")
+    if "end_date" in df_norm.columns:
+        df_norm["end_date"] = pd.to_datetime(df_norm["end_date"], errors="coerce")
+    if "date" in df_norm.columns:
+        df_norm["date"] = pd.to_datetime(df_norm["date"], errors="coerce")
+    return df_norm
+
+def merge_historical_and_future_frames(historical_df, future_df, on="date"):
+    historical_df = historical_df.copy() if historical_df is not None else pd.DataFrame()
+    future_df = future_df.copy() if future_df is not None else pd.DataFrame()
+    if not historical_df.empty and on in historical_df.columns:
+        historical_df[on] = pd.to_datetime(historical_df[on], errors="coerce")
+    if not future_df.empty and on in future_df.columns:
+        future_df[on] = pd.to_datetime(future_df[on], errors="coerce")
+    if historical_df.empty:
+        merged = future_df
+    elif future_df.empty:
+        merged = historical_df
+    else:
+        merged = pd.concat([historical_df, future_df], ignore_index=True, sort=False)
+    if not merged.empty and on in merged.columns:
+        merged = merged.dropna(subset=[on]).sort_values(on).reset_index(drop=True)
+    return merged
 
 def julday(dt):
     return swe.julday(
@@ -803,6 +885,10 @@ dashboard_risk_calendar = load_dashboard_risk_calendar()
 dashboard_summary = load_dashboard_summary()
 taxonomy_attribution = load_taxonomy_attribution()
 taxonomy_feature_importance = load_taxonomy_feature_importance()
+forecast_intelligence_v4 = load_forecast_intelligence_v4()
+future_forecast_timeline = load_future_forecast_timeline()
+allocation_timeline_v2 = load_allocation_timeline_v2()
+current_allocation_v2 = load_current_allocation_v2()
 
 price_df = df.dropna(subset=["price"]).copy()
 if price_df.empty:
@@ -833,14 +919,18 @@ forecast_days = st.sidebar.selectbox(
 taxonomy_filter_options = [
     "All",
     "Constructive Drift",
-    "Tactical Neutral",
-    "High Momentum Expansion",
-    "Defensive / Weak Trend",
-    "High Volatility Risk",
+    "High Conviction Expansion",
+    "Transition / Low Conviction",
+    "Recovery / Reversal Setup",
+    "Volatility Caution",
 ]
 taxonomy_filter = st.sidebar.selectbox("Taxonomy Filter", taxonomy_filter_options, index=0)
 show_turning_points = st.sidebar.checkbox("Show Turning Points", value=True)
 show_taxonomy_overlay = st.sidebar.checkbox("Show Taxonomy Overlay", value=True)
+show_ml_probability = st.sidebar.checkbox("Show ML Probability", value=True)
+show_allocation_panel = st.sidebar.checkbox("Show Allocation Panel", value=True)
+show_astro_environment = st.sidebar.checkbox("Show Astro Environment", value=True)
+show_future_forecast_zone = st.sidebar.checkbox("Show Future Forecast Zone", value=True)
 show_detail_tables = st.sidebar.checkbox("Show Detailed Tables", value=True)
 
 with st.sidebar.expander("Research Chart Controls", expanded=False):
@@ -918,13 +1008,15 @@ if dashboard_current:
     def get_taxonomy_attribution_row(taxonomy_label):
         if taxonomy_attribution.empty or "taxonomy_v3" not in taxonomy_attribution.columns:
             return {}
-        match = taxonomy_attribution[taxonomy_attribution["taxonomy_v3"] == taxonomy_label]
+        attribution_label = TAXONOMY_ATTRIBUTION_LABEL_MAP.get(taxonomy_label, taxonomy_label)
+        match = taxonomy_attribution[taxonomy_attribution["taxonomy_v3"] == attribution_label]
         return match.iloc[0].to_dict() if not match.empty else {}
 
     def get_top_feature_rows(taxonomy_label, limit=5):
         if taxonomy_feature_importance.empty or "taxonomy_v3" not in taxonomy_feature_importance.columns:
             return pd.DataFrame()
-        match = taxonomy_feature_importance[taxonomy_feature_importance["taxonomy_v3"] == taxonomy_label].copy()
+        attribution_label = TAXONOMY_ATTRIBUTION_LABEL_MAP.get(taxonomy_label, taxonomy_label)
+        match = taxonomy_feature_importance[taxonomy_feature_importance["taxonomy_v3"] == attribution_label].copy()
         if match.empty:
             return match
         sort_col = "abs_zscore_diff" if "abs_zscore_diff" in match.columns else "differential"
@@ -1048,8 +1140,8 @@ if dashboard_current:
         st.warning(f"No forecast windows match the taxonomy filter `{taxonomy_filter}` for the selected horizon.")
 
     next_risk_window = top_risk_windows.iloc[0].to_dict() if not top_risk_windows.empty else {}
-    next_bearish_window = first_window_by_taxonomy(top_dashboard_windows, "Defensive / Weak Trend")
-    next_momentum_window = first_window_by_taxonomy(top_dashboard_windows, "High Momentum Expansion")
+    next_recovery_window = first_window_by_taxonomy(top_dashboard_windows, "Recovery / Reversal Setup")
+    next_momentum_window = first_window_by_taxonomy(top_dashboard_windows, "High Conviction Expansion")
     st.subheader("Evidence-based BTC forecast timeline powered by Robust Astro Engine v1")
     st.caption(f"Forecast generated: {forecast_generated_date}")
     st.caption("Research tool only. Not financial advice.")
@@ -1067,6 +1159,537 @@ if dashboard_current:
     for col, (label, value, helper_text, accent, badge_label) in zip(summary_cols, summary_cards):
         with col:
             render_light_metric(label, value, helper_text, accent=accent, badge_label=badge_label)
+
+    st.markdown("#### Integrated BTC Market Regime Map")
+    st.caption(
+        "A unified market-environment map combining BTC price history, ML probability, Taxonomy v4, Portfolio Allocation v2, and the future forecast regime."
+    )
+
+    integrated_current_allocation = safe_record(current_allocation_v2)
+    integrated_forecast_windows = normalize_taxonomy_columns(forecast_intelligence_v4)
+    if integrated_forecast_windows.empty:
+        integrated_forecast_windows = normalize_taxonomy_columns(top_dashboard_windows)
+    integrated_allocation_windows = allocation_timeline_v2.copy() if not allocation_timeline_v2.empty else pd.DataFrame()
+    integrated_future_forecast = future_forecast_timeline.copy() if not future_forecast_timeline.empty else pd.DataFrame()
+    integrated_missing_inputs = []
+    if ml_pred.empty:
+        integrated_missing_inputs.append("historical ML probability")
+    if integrated_forecast_windows.empty:
+        integrated_missing_inputs.append("forecast taxonomy windows")
+    if integrated_allocation_windows.empty:
+        integrated_missing_inputs.append("allocation_timeline_v2")
+    if integrated_future_forecast.empty:
+        integrated_missing_inputs.append("future_forecast_timeline")
+    if integrated_missing_inputs:
+        st.warning(
+            "Integrated view is using partial data because these inputs are missing or malformed: "
+            + ", ".join(integrated_missing_inputs)
+            + "."
+        )
+
+    current_summary_cols = st.columns(7)
+    current_summary_cards = [
+        ("Current Taxonomy v4", integrated_current_allocation.get("current_taxonomy", dashboard_current.get("current_taxonomy", "N/A")), dashboard_current.get("market_view", "N/A"), taxonomy_color(integrated_current_allocation.get("current_taxonomy", dashboard_current.get("current_taxonomy", "N/A"))), integrated_current_allocation.get("current_taxonomy", dashboard_current.get("current_taxonomy", "N/A"))),
+        ("Current Signal", integrated_current_allocation.get("current_signal", dashboard_current.get("current_signal", "N/A")), dashboard_current.get("recommended_bias", "N/A"), "#2563EB", None),
+        ("Current ML Probability", format_pct(integrated_current_allocation.get("current_ml_probability", dashboard_current.get("current_probability", np.nan))), "Robust Astro Engine v1 probability", "#2563EB", None),
+        ("Current Confidence", format_pct(integrated_current_allocation.get("current_confidence", dashboard_current.get("current_confidence", np.nan))), dashboard_current.get("risk_level", "N/A"), "#2563EB", None),
+        ("Current BTC Allocation v2", format_pct((integrated_current_allocation.get("adjusted_btc_allocation", np.nan) or 0) / 100.0), integrated_current_allocation.get("allocation_posture", "N/A"), "#2E7D32", None),
+        ("Current Cash Allocation", format_pct((integrated_current_allocation.get("cash_allocation", np.nan) or 0) / 100.0), integrated_current_allocation.get("recommended_variant", "N/A"), "#6B7280", None),
+        ("Next Review Date", format_date(integrated_current_allocation.get("next_review_date", top_next_turning.get("turning_point_date"))), "Allocation review checkpoint", "#7C3AED", None),
+    ]
+    for col, (label, value, helper_text, accent, badge_label) in zip(current_summary_cols, current_summary_cards):
+        with col:
+            render_light_metric(label, value, helper_text, accent=accent, badge_label=badge_label)
+
+    recommended_variant_key = integrated_allocation_windows["variant_key"].iloc[0] if not integrated_allocation_windows.empty else None
+    if integrated_current_allocation.get("recommended_variant") and not integrated_allocation_windows.empty:
+        recommended_matches = integrated_allocation_windows[
+            integrated_allocation_windows["variant_key"].astype(str).str.contains(
+                str(integrated_current_allocation.get("recommended_variant", "")).split()[0],
+                case=False,
+                na=False,
+            )
+        ]
+        if not recommended_matches.empty:
+            recommended_variant_key = recommended_matches["variant_key"].iloc[0]
+    if recommended_variant_key and not integrated_allocation_windows.empty:
+        integrated_allocation_windows = integrated_allocation_windows[
+            integrated_allocation_windows["variant_key"] == recommended_variant_key
+        ].copy()
+
+    if not integrated_forecast_windows.empty:
+        integrated_forecast_windows = integrated_forecast_windows[
+            integrated_forecast_windows["start_date"] <= forecast_cutoff
+        ].copy()
+    if not integrated_allocation_windows.empty:
+        integrated_allocation_windows = integrated_allocation_windows[
+            integrated_allocation_windows["start_date"] <= forecast_cutoff
+        ].copy()
+    if not integrated_future_forecast.empty:
+        integrated_future_forecast = integrated_future_forecast[
+            integrated_future_forecast["date"] <= forecast_cutoff
+        ].copy()
+
+    historical_ml = pd.DataFrame()
+    if not ml_pred.empty and {"date", "horizon", "ml_prob_up"}.issubset(ml_pred.columns):
+        historical_ml = ml_pred.copy()
+        historical_ml["date"] = pd.to_datetime(historical_ml["date"], errors="coerce")
+        historical_ml["ml_prob_up"] = pd.to_numeric(historical_ml["ml_prob_up"], errors="coerce")
+        historical_ml = historical_ml.dropna(subset=["date", "ml_prob_up"])
+        historical_ml = historical_ml[historical_ml["horizon"].isin([7, 14, 30, 60])]
+        if historical_ml.empty:
+            historical_ml = ml_pred.copy()
+            historical_ml["date"] = pd.to_datetime(historical_ml["date"], errors="coerce")
+            historical_ml["ml_prob_up"] = pd.to_numeric(historical_ml["ml_prob_up"], errors="coerce")
+            historical_ml = historical_ml.dropna(subset=["date", "ml_prob_up"])
+        historical_ml = historical_ml.groupby("date", as_index=False)["ml_prob_up"].mean()
+
+    future_taxonomy_daily_rows = []
+    if not integrated_forecast_windows.empty:
+        for _, row in integrated_forecast_windows.iterrows():
+            if pd.isna(row.get("start_date")) or pd.isna(row.get("end_date")):
+                continue
+            daily_range = pd.date_range(row["start_date"], row["end_date"], freq="D")
+            for dt in daily_range:
+                future_taxonomy_daily_rows.append(
+                    {
+                        "date": dt,
+                        "taxonomy_label": row.get("taxonomy_label", "N/A"),
+                        "confidence": row.get("average_confidence", np.nan),
+                        "ml_probability": row.get("average_ml_probability", np.nan),
+                        "astro_score": row.get("average_astro_score", np.nan),
+                        "window_explanation": row.get("narrative_v4", row.get("taxonomy_reason", "")),
+                    }
+                )
+    future_taxonomy_daily = pd.DataFrame(future_taxonomy_daily_rows)
+
+    future_allocation_daily_rows = []
+    if not integrated_allocation_windows.empty:
+        for _, row in integrated_allocation_windows.iterrows():
+            if pd.isna(row.get("start_date")) or pd.isna(row.get("end_date")):
+                continue
+            daily_range = pd.date_range(row["start_date"], row["end_date"], freq="D")
+            for dt in daily_range:
+                future_allocation_daily_rows.append(
+                    {
+                        "date": dt,
+                        "btc_allocation": row.get("btc_allocation", np.nan),
+                        "cash_allocation": row.get("cash_allocation", np.nan),
+                        "allocation_posture": row.get("allocation_posture", ""),
+                        "allocation_explanation": row.get("explanation", ""),
+                    }
+                )
+    future_allocation_daily = pd.DataFrame(future_allocation_daily_rows)
+
+    integrated_context = merge_historical_and_future_frames(
+        historical_ml.rename(columns={"ml_prob_up": "historical_ml_probability"}),
+        integrated_future_forecast.rename(
+            columns={
+                "ml_probability": "future_ml_probability",
+                "confidence_score": "future_confidence",
+                "astro_score": "future_astro_score",
+            }
+        ),
+    )
+    if not future_taxonomy_daily.empty:
+        integrated_context = integrated_context.merge(future_taxonomy_daily, on="date", how="outer")
+    if not future_allocation_daily.empty:
+        integrated_context = integrated_context.merge(future_allocation_daily, on="date", how="outer")
+    integrated_context = integrated_context.sort_values("date").drop_duplicates(subset=["date"], keep="last") if not integrated_context.empty else pd.DataFrame()
+
+    panel_flags = [
+        ("BTCUSD Price", True),
+        ("Taxonomy v4 Regime", True),
+        ("ML Probability", show_ml_probability),
+        ("Portfolio Allocation v2", show_allocation_panel),
+        ("Astro / Forecast Environment", show_astro_environment),
+    ]
+    active_panels = [name for name, flag in panel_flags if flag]
+    row_height_map = {
+        "BTCUSD Price": 0.34,
+        "Taxonomy v4 Regime": 0.12,
+        "ML Probability": 0.18,
+        "Portfolio Allocation v2": 0.18,
+        "Astro / Forecast Environment": 0.18,
+    }
+    total_height_units = sum(row_height_map[name] for name in active_panels)
+    row_heights = [row_height_map[name] / total_height_units for name in active_panels]
+    row_lookup = {name: idx + 1 for idx, name in enumerate(active_panels)}
+
+    chart_price = price_df[(price_df["date"] >= start_date) & (price_df["date"] <= last_price_date)].copy()
+    if chart_price.empty:
+        st.warning("Historical BTC price data is unavailable for the integrated regime map.")
+    else:
+        integrated_fig = make_subplots(
+            rows=len(active_panels),
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.03,
+            row_heights=row_heights,
+            subplot_titles=active_panels,
+        )
+        integrated_chart_end = safe_datetime(max(forecast_cutoff, last_price_date)) or safe_datetime(last_price_date)
+        forecast_start_dt = safe_datetime(last_price_date)
+        forecast_end_dt = safe_datetime(forecast_cutoff)
+
+        if show_future_forecast_zone and forecast_start_dt and forecast_end_dt:
+            integrated_fig.add_shape(
+                type="rect",
+                x0=forecast_start_dt,
+                x1=forecast_end_dt,
+                y0=0,
+                y1=1,
+                xref="x",
+                yref="paper",
+                fillcolor="rgba(148,163,184,0.10)",
+                line=dict(width=0),
+                layer="below",
+            )
+
+        if "BTCUSD Price" in row_lookup:
+            price_context = chart_price[["date", "price"]].copy()
+            if not integrated_context.empty:
+                price_context = price_context.merge(integrated_context, on="date", how="left")
+            price_context["taxonomy_label"] = price_context.get("taxonomy_label", pd.Series(index=price_context.index)).fillna("Historical")
+            price_context["display_probability"] = price_context.get("historical_ml_probability", pd.Series(index=price_context.index)).fillna(price_context.get("future_ml_probability", np.nan))
+            price_context["display_confidence"] = price_context.get("future_confidence", pd.Series(index=price_context.index))
+            price_context["window_explanation"] = price_context.get("window_explanation", pd.Series(index=price_context.index)).fillna("Historical BTC price history.")
+            price_custom = np.column_stack(
+                [
+                    price_context["taxonomy_label"].astype(str),
+                    price_context["display_probability"].map(format_pct),
+                    price_context["display_confidence"].map(format_pct),
+                    price_context["window_explanation"].astype(str),
+                ]
+            )
+            integrated_fig.add_trace(
+                go.Scatter(
+                    x=price_context["date"].dt.to_pydatetime(),
+                    y=price_context["price"],
+                    mode="lines",
+                    name="BTCUSD Price",
+                    line=dict(color="#2563EB", width=2.4),
+                    customdata=price_custom,
+                    hovertemplate=(
+                        "Date: %{x|%Y-%m-%d}<br>"
+                        "BTC Price: $%{y:,.0f}<br>"
+                        "Taxonomy: %{customdata[0]}<br>"
+                        "ML Probability: %{customdata[1]}<br>"
+                        "Confidence: %{customdata[2]}<br>"
+                        "Explanation: %{customdata[3]}<extra></extra>"
+                    ),
+                ),
+                row=row_lookup["BTCUSD Price"],
+                col=1,
+            )
+            if show_taxonomy_overlay and not integrated_forecast_windows.empty:
+                for _, row in integrated_forecast_windows.iterrows():
+                    x0 = safe_datetime(max(row["start_date"], start_date))
+                    x1 = safe_datetime(min(row["end_date"], forecast_cutoff))
+                    if x0 is None or x1 is None:
+                        continue
+                    integrated_fig.add_vrect(
+                        x0=x0,
+                        x1=x1,
+                        fillcolor=taxonomy_rgba(row["taxonomy_label"], 0.10),
+                        layer="below",
+                        line_width=0,
+                        row=row_lookup["BTCUSD Price"],
+                        col=1,
+                    )
+
+        if "Taxonomy v4 Regime" in row_lookup:
+            if not integrated_forecast_windows.empty:
+                for _, row in integrated_forecast_windows.iterrows():
+                    integrated_fig.add_trace(
+                        go.Scatter(
+                            x=[row["start_date"], row["end_date"]],
+                            y=[1, 1],
+                            mode="lines",
+                            line=dict(color=taxonomy_color(row["taxonomy_label"]), width=20),
+                            name=row["taxonomy_label"],
+                            customdata=[[row.get("narrative_v4", row.get("taxonomy_reason", ""))]] * 2,
+                            hovertemplate=(
+                                "Window: %{x|%Y-%m-%d}<br>"
+                                "Taxonomy: " + str(row["taxonomy_label"]) + "<br>"
+                                "Explanation: %{customdata[0]}<extra></extra>"
+                            ),
+                            showlegend=False,
+                        ),
+                        row=row_lookup["Taxonomy v4 Regime"],
+                        col=1,
+                    )
+            integrated_fig.update_yaxes(
+                row=row_lookup["Taxonomy v4 Regime"],
+                col=1,
+                range=[0.7, 1.3],
+                showticklabels=False,
+                showgrid=False,
+                zeroline=False,
+            )
+
+        if "ML Probability" in row_lookup:
+            if not historical_ml.empty:
+                integrated_fig.add_trace(
+                    go.Scatter(
+                        x=historical_ml["date"].dt.to_pydatetime(),
+                        y=historical_ml["ml_prob_up"],
+                        mode="lines",
+                        name="Historical ML Probability",
+                        line=dict(color="#0F766E", width=2),
+                        hovertemplate=(
+                            "Date: %{x|%Y-%m-%d}<br>"
+                            "ML Probability: %{y:.2%}<extra></extra>"
+                        ),
+                    ),
+                    row=row_lookup["ML Probability"],
+                    col=1,
+                )
+            if not integrated_future_forecast.empty:
+                integrated_fig.add_trace(
+                    go.Scatter(
+                        x=integrated_future_forecast["date"].dt.to_pydatetime(),
+                        y=integrated_future_forecast["ml_probability"],
+                        mode="lines",
+                        name="Future ML Probability",
+                        line=dict(color="#14B8A6", width=2, dash="dot"),
+                        customdata=np.column_stack(
+                            [
+                                integrated_future_forecast["confidence_score"].map(format_pct),
+                                integrated_future_forecast["signal"].astype(str),
+                                integrated_future_forecast["risk_level"].astype(str),
+                            ]
+                        ),
+                        hovertemplate=(
+                            "Date: %{x|%Y-%m-%d}<br>"
+                            "ML Probability: %{y:.2%}<br>"
+                            "Confidence: %{customdata[0]}<br>"
+                            "Signal: %{customdata[1]}<br>"
+                            "Risk: %{customdata[2]}<extra></extra>"
+                        ),
+                    ),
+                    row=row_lookup["ML Probability"],
+                    col=1,
+                )
+            for threshold, color in [(0.45, "#C9A227"), (0.50, "#64748B"), (0.60, "#D97706")]:
+                try:
+                    integrated_fig.add_hline(
+                        y=threshold,
+                        line_width=1,
+                        line_dash="dot",
+                        line_color=color,
+                        row=row_lookup["ML Probability"],
+                        col=1,
+                    )
+                except Exception:
+                    pass
+            integrated_fig.update_yaxes(
+                row=row_lookup["ML Probability"],
+                col=1,
+                range=[0, 1],
+                tickformat=".0%",
+            )
+
+        if "Portfolio Allocation v2" in row_lookup:
+            allocation_start_line = pd.DataFrame(
+                [
+                    {
+                        "date": last_price_date,
+                        "btc_allocation": integrated_current_allocation.get("adjusted_btc_allocation", np.nan),
+                        "cash_allocation": integrated_current_allocation.get("cash_allocation", np.nan),
+                        "allocation_posture": integrated_current_allocation.get("allocation_posture", "N/A"),
+                        "allocation_explanation": integrated_current_allocation.get("explanation", ""),
+                    }
+                ]
+            )
+            allocation_plot = merge_historical_and_future_frames(allocation_start_line, future_allocation_daily)
+            if not allocation_plot.empty:
+                integrated_fig.add_trace(
+                    go.Scatter(
+                        x=allocation_plot["date"].dt.to_pydatetime(),
+                        y=allocation_plot["btc_allocation"],
+                        mode="lines",
+                        name="BTC Allocation %",
+                        line=dict(color="#7C3AED", width=2.2, shape="hv"),
+                        customdata=np.column_stack(
+                            [
+                                allocation_plot["cash_allocation"].fillna(100 - allocation_plot["btc_allocation"]).map(lambda x: "N/A" if pd.isna(x) else f"{x:.0f}%"),
+                                allocation_plot["allocation_posture"].fillna("N/A").astype(str),
+                                allocation_plot["allocation_explanation"].fillna("").astype(str),
+                            ]
+                        ),
+                        hovertemplate=(
+                            "Date: %{x|%Y-%m-%d}<br>"
+                            "BTC Allocation: %{y:.0f}%<br>"
+                            "Cash Allocation: %{customdata[0]}<br>"
+                            "Posture: %{customdata[1]}<br>"
+                            "Explanation: %{customdata[2]}<extra></extra>"
+                        ),
+                    ),
+                    row=row_lookup["Portfolio Allocation v2"],
+                    col=1,
+                )
+            integrated_fig.update_yaxes(
+                row=row_lookup["Portfolio Allocation v2"],
+                col=1,
+                range=[0, 100],
+                ticksuffix="%",
+            )
+
+        if "Astro / Forecast Environment" in row_lookup:
+            astro_hist = hist.copy()
+            astro_hist["astro_env_value"] = pd.to_numeric(
+                astro_hist.get("astro_momentum_v2_smooth", astro_hist.get("astro_score")),
+                errors="coerce",
+            )
+            astro_hist = astro_hist.dropna(subset=["date", "astro_env_value"])
+            if not astro_hist.empty:
+                integrated_fig.add_trace(
+                    go.Scatter(
+                        x=astro_hist["date"].dt.to_pydatetime(),
+                        y=astro_hist["astro_env_value"],
+                        mode="lines",
+                        name="Historical Astro Environment",
+                        line=dict(color="#8B5CF6", width=2),
+                        hovertemplate=(
+                            "Date: %{x|%Y-%m-%d}<br>"
+                            "Astro Environment: %{y:.2f}<extra></extra>"
+                        ),
+                    ),
+                    row=row_lookup["Astro / Forecast Environment"],
+                    col=1,
+                )
+            if not integrated_future_forecast.empty:
+                integrated_fig.add_trace(
+                    go.Scatter(
+                        x=integrated_future_forecast["date"].dt.to_pydatetime(),
+                        y=integrated_future_forecast["astro_score"],
+                        mode="lines",
+                        name="Future Astro Environment",
+                        line=dict(color="#A78BFA", width=2, dash="dot"),
+                        customdata=np.column_stack(
+                            [
+                                integrated_future_forecast["signal"].astype(str),
+                                integrated_future_forecast["risk_level"].astype(str),
+                                integrated_future_forecast["confidence_score"].map(format_pct),
+                            ]
+                        ),
+                        hovertemplate=(
+                            "Date: %{x|%Y-%m-%d}<br>"
+                            "Astro Score: %{y:.2f}<br>"
+                            "Signal: %{customdata[0]}<br>"
+                            "Risk: %{customdata[1]}<br>"
+                            "Confidence: %{customdata[2]}<extra></extra>"
+                        ),
+                    ),
+                    row=row_lookup["Astro / Forecast Environment"],
+                    col=1,
+                )
+
+        if forecast_start_dt:
+            try:
+                integrated_fig.add_shape(
+                    type="line",
+                    x0=forecast_start_dt,
+                    x1=forecast_start_dt,
+                    y0=0,
+                    y1=1,
+                    xref="x",
+                    yref="paper",
+                    line=dict(color="#6B7280", width=1.5, dash="dash"),
+                )
+                integrated_fig.add_annotation(
+                    x=forecast_start_dt,
+                    y=1,
+                    xref="x",
+                    yref="paper",
+                    text="Forecast Start",
+                    showarrow=False,
+                    xanchor="left",
+                    yanchor="bottom",
+                    font=dict(color="#6B7280", size=11),
+                    bgcolor="rgba(255,255,255,0.92)",
+                )
+            except Exception:
+                pass
+
+        integrated_fig.update_layout(
+            height=920,
+            margin=dict(l=24, r=24, t=42, b=20),
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
+            hovermode="x unified",
+            legend=dict(orientation="h", y=1.02, x=0, bgcolor="rgba(255,255,255,0.9)"),
+            font=dict(color="#111827"),
+        )
+        integrated_fig.update_xaxes(
+            range=[safe_datetime(start_date), integrated_chart_end],
+            showgrid=True,
+            gridcolor="rgba(148,163,184,0.18)",
+            zeroline=False,
+        )
+        integrated_fig.update_yaxes(showgrid=True, gridcolor="rgba(148,163,184,0.18)", zeroline=False)
+        st.plotly_chart(integrated_fig, use_container_width=True)
+
+    st.caption(
+        "This chart does not forecast BTC price directly. It forecasts the market environment and recommended BTC/Cash exposure. Future BTC price is intentionally not drawn."
+    )
+
+    st.markdown("#### Future Regime Roadmap")
+    roadmap_df = integrated_allocation_windows.copy()
+    if not roadmap_df.empty:
+        if not integrated_forecast_windows.empty:
+            roadmap_df = roadmap_df.merge(
+                integrated_forecast_windows[
+                    [
+                        "start_date",
+                        "end_date",
+                        "taxonomy_label",
+                        "average_confidence",
+                        "average_ml_probability",
+                        "narrative_v4",
+                    ]
+                ],
+                on=["start_date", "end_date"],
+                how="left",
+            )
+        roadmap_df["display_taxonomy"] = roadmap_df.get("taxonomy_v4", roadmap_df.get("taxonomy_label", "N/A"))
+        roadmap_df["display_confidence"] = roadmap_df.get("confidence", roadmap_df.get("average_confidence", np.nan))
+        roadmap_df["display_probability"] = roadmap_df.get("ml_probability", roadmap_df.get("average_ml_probability", np.nan))
+        roadmap_df["display_explanation"] = roadmap_df.get("narrative_v4", roadmap_df.get("explanation", ""))
+        roadmap_display = roadmap_df[
+            [
+                "start_date",
+                "end_date",
+                "display_taxonomy",
+                "btc_allocation",
+                "cash_allocation",
+                "display_probability",
+                "display_confidence",
+                "allocation_posture",
+                "display_explanation",
+            ]
+        ].copy()
+        roadmap_display.columns = [
+            "start_date",
+            "end_date",
+            "taxonomy_v4",
+            "BTC allocation",
+            "Cash allocation",
+            "ML probability",
+            "confidence",
+            "allocation posture",
+            "explanation",
+        ]
+        roadmap_display["start_date"] = roadmap_display["start_date"].map(format_date)
+        roadmap_display["end_date"] = roadmap_display["end_date"].map(format_date)
+        roadmap_display["BTC allocation"] = roadmap_display["BTC allocation"].map(lambda x: "N/A" if pd.isna(x) else f"{x:.0f}%")
+        roadmap_display["Cash allocation"] = roadmap_display["Cash allocation"].map(lambda x: "N/A" if pd.isna(x) else f"{x:.0f}%")
+        roadmap_display["ML probability"] = roadmap_display["ML probability"].map(format_pct)
+        roadmap_display["confidence"] = roadmap_display["confidence"].map(format_pct)
+        st.dataframe(roadmap_display, use_container_width=True, hide_index=True)
+    else:
+        st.info("Future allocation roadmap is unavailable because `allocation_timeline_v2.csv` could not be loaded.")
 
     st.markdown("#### BTC Price + Forecast Taxonomy Overlay")
     st.caption("Historical range comes from the sidebar control. Forecast horizon controls future taxonomy windows and turning points.")
@@ -1095,7 +1718,7 @@ if dashboard_current:
                     price_fig.add_vrect(
                         x0=x0,
                         x1=x1,
-                        fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.10 if row["taxonomy_v2"] != "High Volatility Risk" else 0.15),
+                        fillcolor=taxonomy_rgba(row["taxonomy_v2"], 0.10 if row["taxonomy_v2"] not in {"High Volatility Risk", "Volatility Caution"} else 0.15),
                         layer="below",
                         line_width=0,
                     )
@@ -1357,9 +1980,9 @@ if dashboard_current:
                 st.caption(f"Taxonomy filter: {taxonomy_filter}")
 
             if only_risk:
-                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["High Volatility Risk", "Defensive / Weak Trend"])].copy()
+                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["Volatility Caution", "High Volatility Risk"])].copy()
             if only_constructive:
-                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["Constructive Drift", "High Momentum Expansion"])].copy()
+                detail_df = detail_df[detail_df["taxonomy_v2"].isin(["Constructive Drift", "High Conviction Expansion", "Recovery / Reversal Setup"])].copy()
 
             detail_display = detail_df.copy()
             detail_display["start_date"] = detail_display["start_date"].map(format_date)
@@ -1393,7 +2016,7 @@ if dashboard_current:
         turn_cols = st.columns(3)
         for idx, (_, row) in enumerate(turn_cards.iterrows()):
             new_signal = str(row["new_signal"]).strip()
-            direction_color = taxonomy_color("Constructive Drift") if new_signal.lower() == "bullish" else taxonomy_color("Defensive / Weak Trend") if new_signal.lower() == "bearish" else "#6B7280"
+            direction_color = taxonomy_color("Constructive Drift") if new_signal.lower() == "bullish" else taxonomy_color("Volatility Caution") if new_signal.lower() == "bearish" else "#6B7280"
             with turn_cols[idx]:
                 with card_container():
                     st.markdown(
@@ -1430,11 +2053,11 @@ if dashboard_current:
     st.markdown("#### Risk Calendar")
     st.caption("Compact risk cards keep the next major caution windows visible without repeating the same information unnecessarily.")
     risk_card_specs = [
-        ("Next Risk Window", next_risk_window, next_risk_window.get("taxonomy_v2", dashboard_current.get("current_taxonomy", "Tactical Neutral"))),
+        ("Next Risk Window", next_risk_window, next_risk_window.get("taxonomy_v2", dashboard_current.get("current_taxonomy", "Transition / Low Conviction"))),
         ("Next Constructive Window", top_next_constructive, top_next_constructive.get("taxonomy_v2", "Constructive Drift")),
-        ("Next Momentum Expansion", next_momentum_window, next_momentum_window.get("taxonomy_v2", "High Momentum Expansion")),
-        ("Next Weak Trend Window", next_bearish_window, next_bearish_window.get("taxonomy_v2", "Defensive / Weak Trend")),
-        ("Next Volatility Risk", top_next_high_risk, top_next_high_risk.get("taxonomy_v2", "High Volatility Risk")),
+        ("Next High Conviction Expansion", next_momentum_window, next_momentum_window.get("taxonomy_v2", "High Conviction Expansion")),
+        ("Next Recovery / Reversal Window", next_recovery_window, next_recovery_window.get("taxonomy_v2", "Recovery / Reversal Setup")),
+        ("Next Volatility Caution", top_next_high_risk, top_next_high_risk.get("taxonomy_v2", "Volatility Caution")),
     ]
     risk_cols = st.columns(5)
     for idx, (title, row, taxonomy_label) in enumerate(risk_card_specs):
@@ -1838,7 +2461,7 @@ if dashboard_current and False:
             risk_window_card_html(
                 "Next High-Risk Window",
                 f"{top_next_high_risk.get('start_date', 'N/A')} to {top_next_high_risk.get('end_date', 'N/A')}",
-                top_next_high_risk.get("taxonomy_v2", "High Volatility Risk"),
+                top_next_high_risk.get("taxonomy_v2", "Volatility Caution"),
                 top_next_high_risk.get("taxonomy_reason", "High-risk window details unavailable."),
             ),
             unsafe_allow_html=True,

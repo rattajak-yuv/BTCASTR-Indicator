@@ -3,20 +3,20 @@
   "current_signal": "Neutral",
   "current_probability": 0.5071401743281863,
   "current_confidence": 0.2447389553978351,
-  "current_taxonomy": "Tactical Neutral",
+  "current_taxonomy": "Constructive Drift",
   "market_view": "Balanced consolidation",
   "risk_level": "Moderate",
   "recommended_bias": "Neutral",
   "current_window": {
-    "start_date": "2026-06-02",
+    "start_date": "2026-05-31",
     "end_date": "2026-06-04",
     "window_class": "Transition",
-    "taxonomy_v2": "Tactical Neutral",
-    "average_confidence": 0.274362293602788,
-    "average_ml_probability": 0.5308017652360758,
-    "average_astro_score": 1.764177352607789,
-    "v2_posture": "Tactical / Wait",
-    "narrative_v2": "From 2026-06-02 to 2026-06-04, the outlook is tactical neutral. Historical returns are mixed to mildly positive (7D=0.81%, 14D=1.12%, 30D=0.53%), so the state is best treated tactically rather than as a high-conviction trend. Flexibility and selective positioning matter more than full directional commitment."
+    "taxonomy_v2": "Constructive Drift",
+    "average_confidence": 0.2946128471807154,
+    "average_ml_probability": 0.5288445066982769,
+    "average_astro_score": 1.6499690753542224,
+    "v2_posture": "Measured long bias",
+    "narrative_v2": "From 2026-05-31 to 2026-06-04, the outlook is constructive drift. Stable positive drift. Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing. Investor posture: measured long bias. Exposure language: moderate risk-on. Caveat: Broadly positive and more stable than the faster expansion state."
   },
   "next_turning_point": {
     "turning_point_date": "2026-06-05",
@@ -28,13 +28,21 @@
     "severity": "high"
   },
   "next_constructive_window": {
-    "start_date": "2026-09-27",
-    "end_date": "2026-10-05",
+    "start_date": "2026-05-31",
+    "end_date": "2026-06-04",
     "taxonomy_v2": "Constructive Drift",
-    "average_confidence": 0.3185292174946461,
-    "average_ml_probability": 0.5277115716381909,
-    "v2_posture": "Constructive Long Bias",
-    "taxonomy_reason": "Historical outcomes stay constructive across horizons (7D=1.81%, 14D=3.77%, 30D=8.07%) with steady follow-through rather than explosive upside."
+    "average_confidence": 0.2946128471807154,
+    "average_ml_probability": 0.5288445066982769,
+    "v2_posture": "Measured long bias",
+    "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
   },
-  "next_high_risk_window": null
+  "next_high_risk_window": {
+    "start_date": "2026-11-15",
+    "end_date": "2026-11-22",
+    "taxonomy_v2": "Volatility Caution",
+    "average_confidence": 0.3995969753095416,
+    "average_ml_probability": 0.4237595165873582,
+    "v2_posture": "Capital preservation",
+    "taxonomy_reason": "Historical returns are weakest here (30D=1.23%, 60D=6.81%, 90D=11.86%) and stability is fragile. Volatility dominates directional edge."
+  }
 }

@@ -1,0 +1,6 @@
+taxonomy_v3,current_label,recommended_action,suggested_label,primary_issue,allocation_ready,evidence_summary
+Constructive Drift,Constructive Drift,keep,Constructive Drift,State is broadly consistent and relatively stable.,True,Large sample share 40.11% and positive multi-horizon returns support the current label.
+High Momentum Expansion,High Momentum Expansion,soft rename,High Conviction Expansion,"State looks valid, but stability is fragile.",False,"30D edge is 10.70% with win rate 63.77%, but active years are only 1."
+Tactical Neutral,Tactical Neutral,rename or split,Transition / Low Conviction,Large share plus mild positive drift suggest catch-all behavior.,False,Observation share is 28.30% with 30D return 3.25% and only middling 30D win rate 49.35%.
+Defensive / Weak Trend,Defensive / Weak Trend,rename,Not truly Defensive,Label semantics conflict with strong positive forward returns.,False,30D/60D/90D returns are 13.62%/30.82%/31.99% despite low momentum -0.15 and low ML probability 28.63%.
+High Volatility Risk,High Volatility Risk,optional soft rename,Volatility Caution,Semantics are directionally correct.,False,30D return is only 1.23% and 30D return/volatility is 0.0695.

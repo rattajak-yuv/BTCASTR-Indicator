@@ -229,13 +229,22 @@ jobs:
             "forecast_taxonomy_v3.py"
 
           PIPELINE_OUTPUTS=(
+            "data/forecast_taxonomy_v4_mapping.csv"
+            "data/forecast_intelligence_v4.csv"
+            "data/forecast_intelligence_v4_report.md"
+          )
+          run_python_step \
+            "15. Generate semantically revised forecast taxonomy outputs" \
+            "forecast_taxonomy_v4.py"
+
+          PIPELINE_OUTPUTS=(
             "data/dashboard_current_state.json"
             "data/dashboard_timeline.json"
             "data/dashboard_risk_calendar.json"
             "data/dashboard_summary.json"
           )
           run_python_step \
-            "15. Generate dashboard data layer outputs" \
+            "16. Generate dashboard data layer outputs" \
             "forecast_dashboard_layer_v1.py"
 
           log "Full research pipeline completed successfully"
@@ -268,6 +277,9 @@ jobs:
             data/forecast_taxonomy_v3_mapping.csv \
             data/forecast_intelligence_v3.csv \
             data/forecast_intelligence_v3_report.md \
+            data/forecast_taxonomy_v4_mapping.csv \
+            data/forecast_intelligence_v4.csv \
+            data/forecast_intelligence_v4_report.md \
             data/dashboard_current_state.json \
             data/dashboard_timeline.json \
             data/dashboard_risk_calendar.json \

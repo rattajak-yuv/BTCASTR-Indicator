@@ -503,6 +503,34 @@ def load_allocation_timeline_v2():
 def load_current_allocation_v2():
     return load_json_safe("data/current_allocation_v2.json")
 
+@st.cache_data(ttl=3600)
+def load_taxonomy_performance_validation():
+    return load_csv_safe("data/taxonomy_performance_validation.csv")
+
+@st.cache_data(ttl=3600)
+def load_taxonomy_performance_by_year():
+    return load_csv_safe("data/taxonomy_performance_by_year.csv")
+
+@st.cache_data(ttl=3600)
+def load_taxonomy_regime_audit():
+    return load_csv_safe("data/taxonomy_regime_audit.csv")
+
+@st.cache_data(ttl=3600)
+def load_allocation_variant_results():
+    return load_csv_safe("data/allocation_variant_results.csv")
+
+@st.cache_data(ttl=3600)
+def load_allocation_variant_annual():
+    return load_csv_safe("data/allocation_variant_annual.csv")
+
+@st.cache_data(ttl=3600)
+def load_allocation_variant_stress_test():
+    return load_csv_safe("data/allocation_variant_stress_test.csv")
+
+@st.cache_data(ttl=3600)
+def load_allocation_grid_search():
+    return load_csv_safe("data/allocation_grid_search.csv")
+
 # =========================================================
 # HELPERS
 # =========================================================
@@ -517,6 +545,9 @@ def fmt_pct(x):
 
 def format_pct(x):
     return fmt_pct(x)
+
+def format_return(x):
+    return "N/A" if pd.isna(x) else f"{x:+.2%}"
 
 def format_date(x):
     if pd.isna(x) or x in [None, ""]:
@@ -666,6 +697,12 @@ def card_container():
         return st.container(border=True)
     except TypeError:
         return st.container()
+
+def safe_plotly_chart(fig, key=None):
+    try:
+        st.plotly_chart(fig, use_container_width=True, key=key)
+    except Exception as exc:
+        st.warning(f"Unable to render chart safely: {exc}")
 
 def parse_ranked_items(value, limit=5):
     if pd.isna(value) or value in [None, ""]:
@@ -889,6 +926,13 @@ forecast_intelligence_v4 = load_forecast_intelligence_v4()
 future_forecast_timeline = load_future_forecast_timeline()
 allocation_timeline_v2 = load_allocation_timeline_v2()
 current_allocation_v2 = load_current_allocation_v2()
+taxonomy_performance_validation = load_taxonomy_performance_validation()
+taxonomy_performance_by_year = load_taxonomy_performance_by_year()
+taxonomy_regime_audit = load_taxonomy_regime_audit()
+allocation_variant_results = load_allocation_variant_results()
+allocation_variant_annual = load_allocation_variant_annual()
+allocation_variant_stress_test = load_allocation_variant_stress_test()
+allocation_grid_search = load_allocation_grid_search()
 
 price_df = df.dropna(subset=["price"]).copy()
 if price_df.empty:
@@ -1884,6 +1928,429 @@ if dashboard_current:
         render_outlook_card("90D Outlook", top_90d)
     with outlook_cols[2]:
         render_outlook_card("365D Outlook", top_365d)
+
+    st.markdown("#### Research Validation Layer")
+    st.caption(
+        "Institutional validation evidence for Taxonomy v4 edge, Portfolio Allocation Engine v2 behavior, and ML probability calibration."
+    )
+
+    validation_missing_inputs = []
+    if taxonomy_performance_validation.empty:
+        validation_missing_inputs.append("taxonomy_performance_validation.csv")
+    if allocation_variant_results.empty:
+        validation_missing_inputs.append("allocation_variant_results.csv")
+    if ml_pred.empty:
+        validation_missing_inputs.append("ml_predictions.csv")
+    if validation_missing_inputs:
+        st.warning(
+            "Some research validation inputs are missing or empty: "
+            + ", ".join(validation_missing_inputs)
+            + ". The section below will show partial evidence only."
+        )
+
+    st.markdown("##### Taxonomy Performance Analytics")
+    taxonomy_perf = taxonomy_performance_validation.copy()
+    taxonomy_audit = taxonomy_regime_audit.copy()
+    taxonomy_year = taxonomy_performance_by_year.copy()
+    strongest_edge_taxonomy = "N/A"
+    weakest_edge_taxonomy = "N/A"
+    most_stable_taxonomy = "N/A"
+    most_fragile_taxonomy = "N/A"
+    taxonomy_edge_positive = False
+
+    if not taxonomy_perf.empty and {"taxonomy_v3", "horizon_days", "average_return"}.issubset(taxonomy_perf.columns):
+        taxonomy_perf = taxonomy_perf.rename(columns={"taxonomy_v3": "taxonomy_label"})
+        return_pivot = taxonomy_perf.pivot_table(
+            index="taxonomy_label",
+            columns="horizon_days",
+            values="average_return",
+            aggfunc="first",
+        )
+        win_rate_30 = taxonomy_perf[taxonomy_perf["horizon_days"] == 30][["taxonomy_label", "win_rate", "sample_count", "volatility", "return_volatility_ratio"]].copy()
+        perf_table = return_pivot.rename(columns={
+            7: "7D avg return",
+            14: "14D avg return",
+            30: "30D avg return",
+            60: "60D avg return",
+            90: "90D avg return",
+        }).reset_index()
+        perf_table = perf_table.merge(win_rate_30, on="taxonomy_label", how="left")
+        perf_table = perf_table.rename(columns={
+            "taxonomy_label": "Taxonomy",
+            "win_rate": "30D win rate",
+            "sample_count": "sample count",
+            "volatility": "volatility",
+            "return_volatility_ratio": "return / volatility",
+        })
+        perf_display = perf_table.copy()
+        for col in ["7D avg return", "14D avg return", "30D avg return", "60D avg return", "90D avg return", "30D win rate", "volatility", "return / volatility"]:
+            if col in perf_display.columns:
+                perf_display[col] = perf_display[col].map(lambda x: "N/A" if pd.isna(x) else (f"{x:.2f}" if col == "return / volatility" else format_return(x) if "return" in col or col == "volatility" else format_pct(x)))
+        if "sample count" in perf_display.columns:
+            perf_display["sample count"] = perf_display["sample count"].map(lambda x: "N/A" if pd.isna(x) else f"{int(x):,}")
+        st.dataframe(perf_display, use_container_width=True, hide_index=True)
+
+        perf_30 = taxonomy_perf[taxonomy_perf["horizon_days"] == 30].copy()
+        if not perf_30.empty:
+            strongest_row = perf_30.sort_values("average_return", ascending=False).iloc[0]
+            weakest_row = perf_30.sort_values("average_return", ascending=True).iloc[0]
+            strongest_edge_taxonomy = strongest_row["taxonomy_label"]
+            weakest_edge_taxonomy = weakest_row["taxonomy_label"]
+            taxonomy_edge_positive = float(strongest_row["average_return"]) > 0
+
+            if not taxonomy_audit.empty and "taxonomy_v3" in taxonomy_audit.columns:
+                taxonomy_audit = taxonomy_audit.rename(columns={"taxonomy_v3": "taxonomy_label"})
+                audit_stable = taxonomy_audit.copy()
+                audit_stable["stability_rank"] = np.where(
+                    audit_stable.get("stability_assessment", "").astype(str).str.contains("Fragile", case=False, na=False),
+                    0,
+                    1,
+                )
+                audit_stable = audit_stable.sort_values(
+                    ["stability_rank", "positive_year_share", "sample_count"],
+                    ascending=[False, False, False],
+                )
+                most_stable_taxonomy = audit_stable.iloc[0]["taxonomy_label"]
+                most_fragile_taxonomy = audit_stable.sort_values(
+                    ["stability_rank", "sample_count", "active_years"],
+                    ascending=[True, True, True],
+                ).iloc[0]["taxonomy_label"]
+
+            chart_cols = st.columns(3)
+            chart_specs = [
+                ("30D Average Return by Taxonomy", "average_return", "#2563EB", "30d_return"),
+                ("30D Win Rate by Taxonomy", "win_rate", "#0F766E", "30d_win_rate"),
+                ("Sample Count by Taxonomy", "sample_count", "#7C3AED", "sample_count"),
+            ]
+            for col, (title, metric_col, color, key_suffix) in zip(chart_cols, chart_specs):
+                with col:
+                    plot_df = perf_30.sort_values(metric_col, ascending=False).copy()
+                    fig = go.Figure(
+                        go.Bar(
+                            x=plot_df["taxonomy_label"],
+                            y=plot_df[metric_col],
+                            marker=dict(color=[taxonomy_color(label) if metric_col != "sample_count" else color for label in plot_df["taxonomy_label"]]),
+                            text=plot_df[metric_col].map(lambda x: f"{x:.0f}" if metric_col == "sample_count" else format_pct(x)),
+                            textposition="outside",
+                            hovertemplate="Taxonomy: %{x}<br>Value: %{y}<extra></extra>",
+                        )
+                    )
+                    fig.update_layout(
+                        title=title,
+                        height=320,
+                        margin=dict(l=12, r=12, t=50, b=70),
+                        paper_bgcolor="#FFFFFF",
+                        plot_bgcolor="#FFFFFF",
+                        font=dict(color="#111827"),
+                        xaxis_title="",
+                        yaxis_title="",
+                        showlegend=False,
+                    )
+                    fig.update_xaxes(tickangle=-25, showgrid=False)
+                    fig.update_yaxes(showgrid=True, gridcolor="rgba(148,163,184,0.18)")
+                    safe_plotly_chart(fig, key=f"taxonomy_{key_suffix}")
+
+        insight_cols = st.columns(4)
+        insight_cards = [
+            ("Strongest Edge Taxonomy", strongest_edge_taxonomy, "Highest 30D average return", taxonomy_color(strongest_edge_taxonomy)),
+            ("Weakest Edge Taxonomy", weakest_edge_taxonomy, "Lowest 30D average return", taxonomy_color(weakest_edge_taxonomy)),
+            ("Most Stable Taxonomy", most_stable_taxonomy, "Best stability profile from regime audit", taxonomy_color(most_stable_taxonomy)),
+            ("Most Fragile Taxonomy", most_fragile_taxonomy, "Most sample/regime fragility", taxonomy_color(most_fragile_taxonomy)),
+        ]
+        for col, (label, value, helper, accent) in zip(insight_cols, insight_cards):
+            with col:
+                render_light_metric(label, value, helper, accent=accent, badge_label=value if value != "N/A" else None)
+    else:
+        st.warning("Taxonomy performance analytics are unavailable because the validation table is missing required columns.")
+
+    st.markdown("##### Portfolio Allocation v2 Backtest")
+    allocation_results = allocation_variant_results.copy()
+    allocation_annual = allocation_variant_annual.copy()
+    allocation_stress = allocation_variant_stress_test.copy()
+    recommended_variant_label = "Trend-Preserving v2"
+    recommended_variant_key = None
+    allocation_ready_for_paper = "Not execution-ready"
+    if not allocation_results.empty and {"variant_label", "buy_hold_total_return"}.issubset(allocation_results.columns):
+        recommended_match = allocation_results[allocation_results["variant_label"] == recommended_variant_label].copy()
+        if not recommended_match.empty:
+            recommended_row = recommended_match.iloc[0]
+            recommended_variant_key = recommended_row["variant_key"]
+            metric_cols = st.columns(7)
+            metric_cards = [
+                ("Variant", recommended_variant_label, "Recommended allocation research variant", "#7C3AED", None),
+                ("Total Return", format_return(recommended_row.get("total_return", np.nan)), f"Buy & Hold {format_return(recommended_row.get('buy_hold_total_return', np.nan))}", "#2563EB", None),
+                ("CAGR", format_return(recommended_row.get("CAGR", np.nan)), f"Buy & Hold {format_return(recommended_row.get('buy_hold_CAGR', np.nan))}", "#2563EB", None),
+                ("Max Drawdown", format_return(recommended_row.get("max_drawdown", np.nan)), f"Improvement {format_return(recommended_row.get('drawdown_improvement_points', np.nan))}", "#C62828", None),
+                ("Sharpe", "N/A" if pd.isna(recommended_row.get("Sharpe ratio", np.nan)) else f"{recommended_row.get('Sharpe ratio', np.nan):.2f}", f"Buy & Hold {recommended_row.get('buy_hold_sharpe', np.nan):.2f}", "#2E7D32", None),
+                ("Sortino", "N/A" if pd.isna(recommended_row.get("Sortino ratio", np.nan)) else f"{recommended_row.get('Sortino ratio', np.nan):.2f}", f"Buy & Hold {recommended_row.get('buy_hold_sortino', np.nan):.2f}", "#2E7D32", None),
+                ("Return Capture", format_pct(recommended_row.get("return_capture_ratio_vs_buy_hold", np.nan)), "Upside captured vs Buy & Hold", "#D97706", None),
+            ]
+            for col, (label, value, helper, accent, badge) in zip(metric_cols, metric_cards):
+                with col:
+                    render_light_metric(label, value, helper, accent=accent, badge_label=badge)
+
+            if not allocation_annual.empty and recommended_variant_key:
+                annual_curve = allocation_annual[
+                    allocation_annual["variant_key"] == recommended_variant_key
+                ].copy()
+                annual_curve["year"] = pd.to_numeric(annual_curve["year"], errors="coerce")
+                annual_curve["total_return"] = pd.to_numeric(annual_curve["total_return"], errors="coerce")
+                annual_curve = annual_curve.dropna(subset=["year", "total_return"])
+                if not annual_curve.empty:
+                    annual_curve = annual_curve.sort_values(["strategy", "year"])
+                    annual_curve["equity"] = annual_curve.groupby("strategy")["total_return"].transform(lambda s: (1 + s).cumprod())
+                    equity_fig = go.Figure()
+                    for strategy_name, line_color in [("Allocation Strategy", "#7C3AED"), ("Buy & Hold", "#2563EB")]:
+                        sub = annual_curve[annual_curve["strategy"] == strategy_name]
+                        if sub.empty:
+                            continue
+                        equity_fig.add_trace(
+                            go.Scatter(
+                                x=sub["year"].astype(int).astype(str),
+                                y=sub["equity"],
+                                mode="lines+markers",
+                                name=strategy_name,
+                                line=dict(color=line_color, width=2.4),
+                                hovertemplate="Year: %{x}<br>Equity: %{y:.2f}x<extra></extra>",
+                            )
+                        )
+                    equity_fig.update_layout(
+                        title="Allocation v2 Equity Curve vs Buy & Hold",
+                        height=360,
+                        margin=dict(l=12, r=12, t=50, b=20),
+                        paper_bgcolor="#FFFFFF",
+                        plot_bgcolor="#FFFFFF",
+                        font=dict(color="#111827"),
+                        yaxis_title="Cumulative equity",
+                        xaxis_title="Year",
+                    )
+                    equity_fig.update_yaxes(showgrid=True, gridcolor="rgba(148,163,184,0.18)")
+                    safe_plotly_chart(equity_fig, key="allocation_equity_curve")
+                else:
+                    st.info("Allocation equity curve could not be derived from the annual backtest table.")
+            else:
+                st.info("Allocation equity curve is unavailable from the current outputs, so the backtest is shown through summary metrics only.")
+
+            allocation_ready_for_paper = (
+                "Ready for paper trading only"
+                if (
+                    recommended_row.get("Sharpe ratio", -np.inf) > recommended_row.get("buy_hold_sharpe", np.inf)
+                    and recommended_row.get("drawdown_improvement_points", 0) > 0
+                )
+                else "Needs monitoring"
+            )
+    else:
+        st.warning("Allocation variant results are unavailable, so the backtest section is partially disabled.")
+
+    st.markdown("##### Stress Test")
+    if not allocation_stress.empty and recommended_variant_key:
+        stress_df = allocation_stress[allocation_stress["variant_key"] == recommended_variant_key].copy()
+        stress_display = stress_df[
+            [
+                "period",
+                "strategy_total_return",
+                "buy_hold_total_return",
+                "strategy_max_drawdown",
+                "buy_hold_max_drawdown",
+                "strategy_sharpe",
+                "buy_hold_sharpe",
+            ]
+        ].copy()
+        for col in ["strategy_total_return", "buy_hold_total_return", "strategy_max_drawdown", "buy_hold_max_drawdown"]:
+            stress_display[col] = stress_display[col].map(format_return)
+        for col in ["strategy_sharpe", "buy_hold_sharpe"]:
+            stress_display[col] = stress_display[col].map(lambda x: "N/A" if pd.isna(x) else f"{x:.2f}")
+        stress_display.columns = [
+            "Period",
+            "Strategy return",
+            "Buy & Hold return",
+            "Strategy max drawdown",
+            "Buy & Hold max drawdown",
+            "Strategy Sharpe",
+            "Buy & Hold Sharpe",
+        ]
+        st.dataframe(stress_display, use_container_width=True, hide_index=True)
+
+        helps_periods = stress_df[stress_df["strategy_max_drawdown"] > stress_df["buy_hold_max_drawdown"]]["period"].tolist()
+        underperform_periods = stress_df[stress_df["strategy_total_return"] < stress_df["buy_hold_total_return"]]["period"].tolist()
+        stress_cols = st.columns(3)
+        with stress_cols[0]:
+            render_light_metric(
+                "Where Allocation Helps",
+                helps_periods[0] if helps_periods else "N/A",
+                ", ".join(helps_periods[:3]) if helps_periods else "No drawdown improvement periods identified.",
+                accent="#2E7D32",
+            )
+        with stress_cols[1]:
+            render_light_metric(
+                "Where It Underperforms",
+                underperform_periods[0] if underperform_periods else "N/A",
+                ", ".join(underperform_periods[:3]) if underperform_periods else "No underperformance periods identified.",
+                accent="#D97706",
+            )
+        with stress_cols[2]:
+            render_light_metric(
+                "Behavior Profile",
+                "Risk-managed BTC",
+                "Drawdown control improves materially, but the strategy still trails full BTC upside in stronger trend years.",
+                accent="#7C3AED",
+            )
+    else:
+        st.warning("Stress-test evidence is unavailable for the recommended allocation variant.")
+
+    st.markdown("##### ML Probability Calibration")
+    calibration_df = ml_pred.copy()
+    calibration_summary = ml_summary.copy()
+    best_horizon = None
+    calibration_table = pd.DataFrame()
+    brier_score = np.nan
+    expected_calibration_error = np.nan
+    ml_calibration_status = "Needs monitoring"
+
+    if not calibration_summary.empty and {"feature_set", "balanced_score", "horizon_days"}.issubset(calibration_summary.columns):
+        best_summary = calibration_summary[calibration_summary["feature_set"].astype(str).str.contains("selected", case=False, na=False)].copy()
+        if best_summary.empty:
+            best_summary = calibration_summary.copy()
+        best_summary = best_summary.sort_values("balanced_score", ascending=False)
+        if not best_summary.empty:
+            best_horizon = int(best_summary.iloc[0]["horizon_days"])
+
+    if not calibration_df.empty and {"date", "horizon", "ml_prob_up", "price"}.issubset(calibration_df.columns) and best_horizon is not None:
+        calibration_df = calibration_df[calibration_df["horizon"] == best_horizon].copy()
+        calibration_df["date"] = pd.to_datetime(calibration_df["date"], errors="coerce")
+        calibration_df["ml_prob_up"] = pd.to_numeric(calibration_df["ml_prob_up"], errors="coerce")
+        calibration_df["price"] = pd.to_numeric(calibration_df["price"], errors="coerce")
+        calibration_df = calibration_df.dropna(subset=["date", "ml_prob_up", "price"]).sort_values("date").drop_duplicates("date")
+        calibration_df["forward_return"] = calibration_df["price"].shift(-best_horizon) / calibration_df["price"] - 1.0
+        if "actual_direction" in calibration_df.columns:
+            calibration_df["actual_hit"] = pd.to_numeric(calibration_df["actual_direction"], errors="coerce")
+        else:
+            calibration_df["actual_hit"] = np.where(calibration_df["forward_return"] > 0, 1.0, 0.0)
+        calibration_df = calibration_df.dropna(subset=["forward_return", "actual_hit"])
+        bucket_bins = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 1.01]
+        bucket_labels = ["40-45%", "45-50%", "50-55%", "55-60%", "60-65%", "65-70%", "70%+"]
+        calibration_df["probability_bucket"] = pd.cut(
+            calibration_df["ml_prob_up"],
+            bins=bucket_bins,
+            labels=bucket_labels,
+            include_lowest=True,
+            right=False,
+        )
+        calibration_table = calibration_df.dropna(subset=["probability_bucket"]).groupby("probability_bucket", observed=False).agg(
+            sample_count=("ml_prob_up", "size"),
+            average_predicted_probability=("ml_prob_up", "mean"),
+            actual_hit_rate=("actual_hit", "mean"),
+            average_forward_return=("forward_return", "mean"),
+        ).reset_index()
+        calibration_table["calibration_error"] = (
+            calibration_table["average_predicted_probability"] - calibration_table["actual_hit_rate"]
+        ).abs()
+        brier_score = float(np.mean((calibration_df["ml_prob_up"] - calibration_df["actual_hit"]) ** 2))
+        expected_calibration_error = float(
+            (
+                calibration_table["sample_count"] * calibration_table["calibration_error"]
+            ).sum() / max(calibration_table["sample_count"].sum(), 1)
+        ) if not calibration_table.empty else np.nan
+        ml_calibration_status = (
+            "Research validated" if not pd.isna(expected_calibration_error) and expected_calibration_error <= 0.05
+            else "Needs monitoring"
+        )
+
+    if not calibration_table.empty:
+        cal_cols = st.columns(3)
+        with cal_cols[0]:
+            render_light_metric(
+                "Calibration Horizon",
+                f"{best_horizon}D" if best_horizon is not None else "N/A",
+                "Best selected-features model by balanced score.",
+                accent="#2563EB",
+            )
+        with cal_cols[1]:
+            render_light_metric(
+                "Brier Score",
+                "N/A" if pd.isna(brier_score) else f"{brier_score:.4f}",
+                "Lower is better.",
+                accent="#0F766E",
+            )
+        with cal_cols[2]:
+            render_light_metric(
+                "Expected Calibration Error",
+                "N/A" if pd.isna(expected_calibration_error) else f"{expected_calibration_error:.4f}",
+                ml_calibration_status,
+                accent="#D97706",
+            )
+
+        reliability_fig = go.Figure()
+        reliability_fig.add_trace(
+            go.Scatter(
+                x=calibration_table["average_predicted_probability"],
+                y=calibration_table["actual_hit_rate"],
+                mode="lines+markers",
+                name="Observed",
+                line=dict(color="#2563EB", width=2.3),
+                marker=dict(size=9),
+                hovertemplate="Predicted: %{x:.2%}<br>Observed: %{y:.2%}<extra></extra>",
+            )
+        )
+        reliability_fig.add_trace(
+            go.Scatter(
+                x=[0.40, 0.80],
+                y=[0.40, 0.80],
+                mode="lines",
+                name="Perfect Calibration",
+                line=dict(color="#94A3B8", width=1.5, dash="dash"),
+                hoverinfo="skip",
+            )
+        )
+        reliability_fig.update_layout(
+            title="ML Probability Reliability Curve",
+            height=340,
+            margin=dict(l=12, r=12, t=50, b=20),
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
+            font=dict(color="#111827"),
+            xaxis_title="Average predicted probability",
+            yaxis_title="Observed hit rate",
+        )
+        reliability_fig.update_xaxes(tickformat=".0%", showgrid=True, gridcolor="rgba(148,163,184,0.18)")
+        reliability_fig.update_yaxes(tickformat=".0%", showgrid=True, gridcolor="rgba(148,163,184,0.18)")
+        safe_plotly_chart(reliability_fig, key="ml_reliability_curve")
+
+        calibration_display = calibration_table.copy()
+        for col in ["average_predicted_probability", "actual_hit_rate", "average_forward_return", "calibration_error"]:
+            calibration_display[col] = calibration_display[col].map(
+                lambda x: "N/A" if pd.isna(x) else (format_return(x) if col == "average_forward_return" else format_pct(x))
+            )
+        calibration_display["sample_count"] = calibration_display["sample_count"].map(lambda x: f"{int(x):,}")
+        st.dataframe(calibration_display, use_container_width=True, hide_index=True)
+    else:
+        st.warning("ML probability calibration could not be computed from the current prediction file and available target labels.")
+
+    st.markdown("##### Research Verdict")
+    allocation_capture_ok = False
+    allocation_risk_adjusted_ok = False
+    if not allocation_results.empty and "variant_label" in allocation_results.columns:
+        verdict_match = allocation_results[allocation_results["variant_label"] == recommended_variant_label]
+        if not verdict_match.empty:
+            verdict_row = verdict_match.iloc[0]
+            allocation_capture_ok = verdict_row.get("return_capture_ratio_vs_buy_hold", 0) >= 0.60
+            allocation_risk_adjusted_ok = (
+                verdict_row.get("Sharpe ratio", -np.inf) > verdict_row.get("buy_hold_sharpe", np.inf)
+                and verdict_row.get("Sortino ratio", -np.inf) > verdict_row.get("buy_hold_sortino", np.inf)
+                and verdict_row.get("drawdown_improvement_points", 0) > 0
+            )
+
+    verdict_cols = st.columns(5)
+    verdict_cards = [
+        ("A. Taxonomy v4 Edge", "Research validated" if taxonomy_edge_positive else "Needs monitoring", strongest_edge_taxonomy if strongest_edge_taxonomy != "N/A" else "No strong positive edge identified.", taxonomy_color(strongest_edge_taxonomy if strongest_edge_taxonomy != "N/A" else "Constructive Drift")),
+        ("B. Allocation v2 Risk-Adjusted Return", "Research validated" if allocation_risk_adjusted_ok else "Needs monitoring", "Sharpe / Sortino and drawdown are better than Buy & Hold." if allocation_risk_adjusted_ok else "Risk-adjusted improvement is partial or inconsistent.", "#7C3AED"),
+        ("C. Allocation v2 Upside Capture", "Needs monitoring" if allocation_capture_ok else "Not execution-ready", "Return capture clears the 60% threshold." if allocation_capture_ok else "Upside capture still trails a robust BTC substitute target.", "#D97706"),
+        ("D. ML Probability Calibration", ml_calibration_status, f"ECE {expected_calibration_error:.4f}" if not pd.isna(expected_calibration_error) else "Calibration evidence unavailable.", "#2563EB"),
+        ("E. Paper Trading Readiness", "Ready for paper trading only" if allocation_risk_adjusted_ok and taxonomy_edge_positive else "Not execution-ready", "Use for monitored research deployment, not live execution." if allocation_risk_adjusted_ok and taxonomy_edge_positive else "Evidence is promising but still needs tighter monitoring and alignment.", "#2E7D32" if allocation_risk_adjusted_ok and taxonomy_edge_positive else "#C62828"),
+    ]
+    for col, (label, value, helper, accent) in zip(verdict_cols, verdict_cards):
+        with col:
+            render_light_metric(label, value, helper, accent=accent)
 
     st.markdown("#### Why The Model Thinks This")
     current_taxonomy = dashboard_current.get("current_taxonomy", "N/A")

@@ -21,7 +21,7 @@ Update the taxonomy interpretation layer so the dashboard language matches valid
 
 ## Current Dashboard Context
 - Current taxonomy before JSON refresh: `Constructive Drift`
-- 30D dominant outlook after semantic revision: `High Conviction Expansion`
+- 30D dominant outlook after semantic revision: `Transition / Low Conviction`
 - 90D dominant outlook after semantic revision: `Transition / Low Conviction`
 - 365D dominant outlook after semantic revision: `Constructive Drift`
 

@@ -31836,3 +31836,7 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-06-11,aspect,Jupiter expansion to core points,Jupiter,MC,trine,120.0,0.3374,0.8875,0.75,1.25,0.8321,Sideways,Low Volatility,global,1.0,1.0,1.0,1.6641219254860395,0.0,0.0,0.16641219254860395,0.0,0.9984731552916237,0.0
 2028-06-11,house,Jupiter in house 10,Jupiter,House 10,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.8,0.0,0.0,0.0,0.0,0.4,0.0
 2028-06-11,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,0.687,0.771,0.85,1.0,0.6553,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,1.3106732825555862,0.5242693130222346,0.0,0.7864039695333517,0.0,0.6553366412777931
+2028-06-12,aspect,Mars acceleration,Mars,Jupiter,trine,120.0,1.2371,0.3814,0.75,1.15,0.329,Sideways,Low Volatility,global,1.0,1.0,1.0,0.2631871753656486,0.0,0.0,0.32898396920706074,0.0,0.16449198460353037,0.0
+2028-06-12,aspect,Jupiter expansion to core points,Jupiter,MC,trine,120.0,0.2559,0.9147,0.75,1.25,0.8575,Sideways,Low Volatility,global,1.0,1.0,1.0,1.715049620255904,0.0,0.0,0.1715049620255904,0.0,1.0290297721535424,0.0
+2028-06-12,house,Jupiter in house 10,Jupiter,House 10,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.8,0.0,0.0,0.0,0.0,0.4,0.0
+2028-06-12,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,0.7908,0.7364,0.85,1.0,0.626,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,1.2519007708454546,0.5007603083381819,0.0,0.7511404625072727,0.0,0.6259503854227273

@@ -1,8 +1,8 @@
 {
   "forecast_date": "2026-06-02",
   "current_signal": "Neutral",
-  "current_probability": 0.5053358146843914,
-  "current_confidence": 0.2468005551628033,
+  "current_probability": 0.5053358146843915,
+  "current_confidence": 0.2468005551628034,
   "current_taxonomy": "Constructive Drift",
   "market_view": "Balanced consolidation",
   "risk_level": "Moderate",
@@ -12,7 +12,7 @@
     "end_date": "2026-06-05",
     "window_class": "Transition",
     "taxonomy_v2": "Constructive Drift",
-    "average_confidence": 0.2916008122248795,
+    "average_confidence": 0.2916008122248796,
     "average_ml_probability": 0.5395601330210521,
     "average_astro_score": 1.7418296430198197,
     "v2_posture": "Measured long bias",
@@ -23,7 +23,7 @@
     "turning_point_type": "signal_flip",
     "old_signal": "Neutral",
     "new_signal": "Bullish",
-    "confidence": 0.3337965108480484,
+    "confidence": 0.3337965108480485,
     "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5749.",
     "severity": "high"
   },
@@ -31,7 +31,7 @@
     "start_date": "2026-06-02",
     "end_date": "2026-06-05",
     "taxonomy_v2": "Constructive Drift",
-    "average_confidence": 0.2916008122248795,
+    "average_confidence": 0.2916008122248796,
     "average_ml_probability": 0.5395601330210521,
     "v2_posture": "Measured long bias",
     "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."

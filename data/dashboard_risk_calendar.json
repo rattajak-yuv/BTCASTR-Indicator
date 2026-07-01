@@ -14,7 +14,7 @@
       "turning_point_type": "bullish_window_break",
       "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.3141646454028189,
+      "confidence": 0.314164645402819,
       "severity": "high",
       "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5614."
     },
@@ -23,7 +23,7 @@
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bullish",
-      "confidence": 0.324200198328698,
+      "confidence": 0.3242001983286979,
       "severity": "high",
       "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5705."
     },
@@ -32,7 +32,7 @@
       "turning_point_type": "bullish_window_break",
       "old_signal": "Bullish",
       "new_signal": "Neutral",
-      "confidence": 0.3148803866842692,
+      "confidence": 0.3148803866842691,
       "severity": "high",
       "explanation": "Signal shifted from Bullish to Neutral as ML probability moved to 0.5629."
     },
@@ -59,7 +59,7 @@
       "turning_point_type": "momentum_neutral_cross",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.2172617119888541,
+      "confidence": 0.2172617119888539,
       "severity": "low",
       "explanation": "Astro momentum crossed the neutral line and is now 0.0687."
     },
@@ -86,7 +86,7 @@
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bullish",
-      "confidence": 0.3748474475559515,
+      "confidence": 0.3748474475559513,
       "severity": "high",
       "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5753."
     },
@@ -131,7 +131,7 @@
       "turning_point_type": "signal_flip",
       "old_signal": "Neutral",
       "new_signal": "Bearish",
-      "confidence": 0.4039891966572107,
+      "confidence": 0.4039891966572106,
       "severity": "high",
       "explanation": "Signal shifted from Neutral to Bearish as ML probability moved to 0.4155."
     },
@@ -203,7 +203,7 @@
       "turning_point_type": "momentum_breakout_up",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.2832454360824308,
+      "confidence": 0.2832454360824307,
       "severity": "medium",
       "explanation": "Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.7869."
     },
@@ -212,7 +212,7 @@
       "turning_point_type": "momentum_breakdown_down",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.3332871845909644,
+      "confidence": 0.3332871845909645,
       "severity": "high",
       "explanation": "Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.3183."
     },
@@ -266,7 +266,7 @@
       "turning_point_type": "momentum_breakdown_down",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.314815695444385,
+      "confidence": 0.3148156954443848,
       "severity": "high",
       "explanation": "Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2494."
     },
@@ -275,7 +275,7 @@
       "turning_point_type": "momentum_neutral_cross",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.3609535295788277,
+      "confidence": 0.3609535295788278,
       "severity": "low",
       "explanation": "Astro momentum crossed the neutral line and is now -0.0405."
     },
@@ -284,7 +284,7 @@
       "turning_point_type": "momentum_neutral_cross",
       "old_signal": "Neutral",
       "new_signal": "Neutral",
-      "confidence": 0.3303452032035777,
+      "confidence": 0.3303452032035778,
       "severity": "low",
       "explanation": "Astro momentum crossed the neutral line and is now 0.0419."
     }
@@ -315,7 +315,7 @@
       "taxonomy_v2": "Constructive Drift",
       "duration_days": 10,
       "average_confidence": 0.3112466131072426,
-      "average_ml_probability": 0.5280889731931875,
+      "average_ml_probability": 0.5280889731931874,
       "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {
@@ -341,8 +341,8 @@
       "end_date": "2027-01-16",
       "taxonomy_v2": "Constructive Drift",
       "duration_days": 54,
-      "average_confidence": 0.3400188204968715,
-      "average_ml_probability": 0.505639281081446,
+      "average_confidence": 0.3400188204968716,
+      "average_ml_probability": 0.5056392810814458,
       "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
     },
     {

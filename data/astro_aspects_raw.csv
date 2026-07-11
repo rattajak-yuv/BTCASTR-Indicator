@@ -31948,3 +31948,8 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-07-09,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,0.4661,0.8446,0.75,1.1,0.6968,Sideways,Low Volatility,global,1.0,1.0,1.0,1.393668862322872,0.0,0.0,0.13936688623228718,0.0,0.8362013173937232,0.0
 2028-07-09,aspect,Jupiter expansion to core points,Jupiter,MC,trine,120.0,2.8227,0.0591,0.75,1.25,0.0554,Sideways,Low Volatility,global,1.0,1.0,1.0,0.11079483616605039,0.0,0.0,0.011079483616605039,0.0,0.06647690169963023,0.0
 2028-07-09,house,Jupiter in house 10,Jupiter,House 10,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.8,0.0,0.0,0.0,0.0,0.4,0.0
+2028-07-10,aspect,Mars acceleration,Mars,Asc,sextile,60.0,1.1445,0.4277,0.55,1.25,0.2941,Sideways,Low Volatility,global,1.0,1.0,1.0,0.23525091857210706,0.0,0.0,0.2940636482151338,0.0,0.1470318241075669,0.0
+2028-07-10,aspect,Mars conflict,Mars,Saturn,square,90.0,0.6891,0.6554,0.85,1.1,0.6128,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.5515499241007751,0.3676999494005167,0.8579665486012057,0.0,0.0,0.0
+2028-07-10,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,0.3231,0.8923,0.75,1.1,0.7361,Sideways,Low Volatility,global,1.0,1.0,1.0,1.472282027972304,0.0,0.0,0.1472282027972304,0.0,0.8833692167833823,0.0
+2028-07-10,aspect,Jupiter expansion to core points,Jupiter,MC,trine,120.0,2.9657,0.0114,0.75,1.25,0.0107,Sideways,Low Volatility,global,1.0,1.0,1.0,0.021461693382605132,0.0,0.0,0.002146169338260513,0.0,0.01287701602956308,0.0
+2028-07-10,house,Jupiter in house 10,Jupiter,House 10,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.8,0.0,0.0,0.0,0.0,0.4,0.0

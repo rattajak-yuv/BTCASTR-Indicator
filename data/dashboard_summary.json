@@ -1,7 +1,7 @@
 {
   "forecast_date": "2026-06-02",
   "Current Signal": "Neutral",
-  "Current Confidence": 0.2468005551628034,
+  "Current Confidence": 0.2468005551628033,
   "Current Taxonomy": "Constructive Drift",
   "Next Turning Point": "2026-06-06",
   "Next Constructive Window": "2026-06-02",
@@ -20,7 +20,7 @@
     "horizon_days": 90,
     "dominant_taxonomy": "Transition / Low Conviction",
     "average_confidence": 0.3264898338759949,
-    "average_probability": 0.5651388409828105,
+    "average_probability": 0.5651388409828106,
     "window_count": 6,
     "summary": "Dominant state is transition / low conviction with mean confidence 32.65% and mean probability 56.51%. The horizon starts in constructive drift and rotates toward transition / low conviction."
   },
@@ -28,8 +28,8 @@
     "label": "365D Outlook",
     "horizon_days": 365,
     "dominant_taxonomy": "Constructive Drift",
-    "average_confidence": 0.3346350799338628,
-    "average_probability": 0.5208209320840811,
+    "average_confidence": 0.3346350799338629,
+    "average_probability": 0.5208209320840812,
     "window_count": 21,
     "summary": "Dominant state is constructive drift with mean confidence 33.46% and mean probability 52.08%."
   }

@@ -31960,3 +31960,5 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-07-12,aspect,Mars acceleration,Mars,Asc,sextile,60.0,0.2265,0.8867,0.55,1.25,0.6096,Sideways,Low Volatility,global,1.0,1.0,1.0,0.4877019903648503,0.0,0.0,0.6096274879560628,0.0,0.3048137439780314,0.0
 2028-07-12,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,0.0318,0.9894,0.75,1.1,0.8162,Sideways,Low Volatility,global,1.0,1.0,1.0,1.6324849793974041,0.0,0.0,0.16324849793974042,0.0,0.9794909876384424,0.0
 2028-07-12,house,Jupiter in house 10,Jupiter,House 10,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.8,0.0,0.0,0.0,0.0,0.4,0.0
+2028-07-13,aspect,Mars acceleration,Mars,Asc,sextile,60.0,0.9107,0.5446,0.55,1.25,0.3744,Sideways,Low Volatility,global,1.0,1.0,1.0,0.29954417295417546,0.0,0.0,0.3744302161927193,0.0,0.18721510809635966,0.0
+2028-07-13,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,0.1165,0.9612,0.75,1.1,0.793,Sideways,Low Volatility,global,1.0,1.0,1.0,1.5859501802178955,0.0,0.0,0.15859501802178955,0.0,0.9515701081307373,0.0

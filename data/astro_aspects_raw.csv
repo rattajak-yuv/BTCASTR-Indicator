@@ -31970,3 +31970,5 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-07-16,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,0.5717,0.8094,0.75,1.1,0.6678,Sideways,Low Volatility,global,1.0,1.0,1.0,1.3355506207808063,0.0,0.0,0.13355506207808063,0.0,0.8013303724684838,0.0
 2028-07-17,aspect,Moon sentiment trigger,Moon,MC,conjunction,0.0,0.3224,0.6776,1.0,1.25,0.847,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.21174219775383696,0.33878751640613913,0.0,0.0,0.0
 2028-07-17,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,0.7269,0.7577,0.75,1.1,0.6251,Sideways,Low Volatility,global,1.0,1.0,1.0,1.2502236018593025,0.0,0.0,0.12502236018593024,0.0,0.7501341611155815,0.0
+2028-07-18,aspect,Moon sentiment trigger,Moon,Jupiter,trine,120.0,0.52,0.48,0.75,1.15,0.414,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.1035054792648772,0.16560876682380354,0.0,0.0,0.0
+2028-07-18,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,0.8837,0.7054,0.75,1.1,0.582,Sideways,Low Volatility,global,1.0,1.0,1.0,1.1639870549333935,0.0,0.0,0.11639870549333936,0.0,0.698392232960036,0.0

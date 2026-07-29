@@ -31982,3 +31982,4 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-07-26,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,2.1946,0.2685,0.75,1.1,0.2215,Sideways,Low Volatility,global,1.0,1.0,1.0,0.44294423357283685,0.0,0.0,0.04429442335728369,0.0,0.2657665401437021,0.0
 2028-07-27,aspect,Mercury noise,Mercury,Moon,conjunction,0.0,0.2492,0.8339,1.0,1.0,0.8339,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.2501627319345914,0.5003254638691828,0.3335503092461219,0.0,0.0
 2028-07-27,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,2.3652,0.2116,0.75,1.1,0.1746,Sideways,Low Volatility,global,1.0,1.0,1.0,0.3491368843414833,0.0,0.0,0.034913688434148334,0.0,0.20948213060489,0.0
+2028-07-28,aspect,Jupiter expansion to core points,Jupiter,Sun,trine,120.0,2.5372,0.1543,0.75,1.1,0.1273,Sideways,Low Volatility,global,1.0,1.0,1.0,0.25456317046382826,0.0,0.0,0.025456317046382827,0.0,0.15273790227829695,0.0

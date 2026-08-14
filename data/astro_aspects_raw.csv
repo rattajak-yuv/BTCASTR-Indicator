@@ -31990,3 +31990,4 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-08-02,aspect,Mercury noise,Mercury,MC,square,90.0,0.711,0.526,0.85,1.25,0.5589,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.16765508834184822,0.33531017668369645,0.22354011778913097,0.0,0.0
 2028-08-03,aspect,Mercury noise,Mercury,MC,square,90.0,1.2339,0.1774,0.85,1.25,0.1885,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.056542983679732116,0.11308596735946423,0.07539064490630949,0.0,0.0
 2028-08-05,aspect,Mercury noise,Mercury,Asc,conjunction,0.0,0.3341,0.7773,1.0,1.25,0.9716,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.29147015794902836,0.5829403158980567,0.3886268772653712,0.0,0.0
+2028-08-13,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0

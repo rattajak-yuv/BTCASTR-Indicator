@@ -1,33 +1,33 @@
 turning_point_date,old_signal,new_signal,turning_point_type,confidence,explanation
 2026-06-06,Neutral,Bullish,signal_flip,0.3337965108480484,Signal shifted from Neutral to Bullish as ML probability moved to 0.5749.
 2026-07-06,Bullish,Neutral,bullish_window_break,0.3141646454028189,Signal shifted from Bullish to Neutral as ML probability moved to 0.5614.
-2026-07-09,Neutral,Bullish,signal_flip,0.32420019832869795,Signal shifted from Neutral to Bullish as ML probability moved to 0.5705.
-2026-07-10,Bullish,Neutral,bullish_window_break,0.3148803866842691,Signal shifted from Bullish to Neutral as ML probability moved to 0.5629.
+2026-07-09,Neutral,Bullish,signal_flip,0.32420019832869806,Signal shifted from Neutral to Bullish as ML probability moved to 0.5705.
+2026-07-10,Bullish,Neutral,bullish_window_break,0.3148803866842692,Signal shifted from Bullish to Neutral as ML probability moved to 0.5629.
 2026-07-22,Neutral,Neutral,momentum_breakdown_down,0.219823063690237,"Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2553."
 2026-07-29,Neutral,Neutral,momentum_neutral_cross,0.2660125688476893,Astro momentum crossed the neutral line and is now -0.1163.
 2026-08-02,Neutral,Neutral,momentum_neutral_cross,0.2172617119888541,Astro momentum crossed the neutral line and is now 0.0687.
 2026-08-16,Neutral,Bullish,signal_flip,0.32549244668475297,Signal shifted from Neutral to Bullish as ML probability moved to 0.5709.
 2026-09-27,Bullish,Neutral,bullish_window_break,0.36669682160830425,Signal shifted from Bullish to Neutral as ML probability moved to 0.5693.
 2026-10-07,Neutral,Bullish,signal_flip,0.3748474475559515,Signal shifted from Neutral to Bullish as ML probability moved to 0.5753.
-2026-10-12,Bullish,Neutral,bullish_window_break,0.3215819697949757,Signal shifted from Bullish to Neutral as ML probability moved to 0.5361.
+2026-10-12,Bullish,Neutral,bullish_window_break,0.32158196979497583,Signal shifted from Bullish to Neutral as ML probability moved to 0.5361.
 2026-10-20,Neutral,Neutral,momentum_breakout_up,0.3701427392541368,"Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.8091."
 2026-10-26,Neutral,Bullish,signal_flip,0.33451395149764407,Signal shifted from Neutral to Bullish as ML probability moved to 0.5765.
 2026-11-02,Bullish,Neutral,bullish_window_break,0.31343885744667455,Signal shifted from Bullish to Neutral as ML probability moved to 0.5669.
 2026-11-15,Neutral,Bearish,signal_flip,0.4039891966572107,Signal shifted from Neutral to Bearish as ML probability moved to 0.4155.
-2026-11-24,Bearish,Neutral,bearish_window_relief,0.3754192516657284,Signal shifted from Bearish to Neutral as ML probability moved to 0.4345.
-2026-11-24,Bearish,Neutral,momentum_breakdown_down,0.3754192516657284,"Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2832."
-2027-01-06,Neutral,Neutral,momentum_breakout_up,0.37285662185420365,"Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.7960."
+2026-11-24,Bearish,Neutral,bearish_window_relief,0.37541925166572837,Signal shifted from Bearish to Neutral as ML probability moved to 0.4345.
+2026-11-24,Bearish,Neutral,momentum_breakdown_down,0.37541925166572837,"Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2832."
+2027-01-06,Neutral,Neutral,momentum_breakout_up,0.3728566218542035,"Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.7960."
 2027-01-17,Neutral,Bullish,signal_flip,0.32018991767742655,Signal shifted from Neutral to Bullish as ML probability moved to 0.5756.
-2027-02-07,Bullish,Neutral,bullish_window_break,0.20690297530418586,Signal shifted from Bullish to Neutral as ML probability moved to 0.5039.
+2027-02-07,Bullish,Neutral,bullish_window_break,0.20690297530418572,Signal shifted from Bullish to Neutral as ML probability moved to 0.5039.
 2027-02-13,Neutral,Bearish,signal_flip,0.33901941568137783,Signal shifted from Neutral to Bearish as ML probability moved to 0.4286.
 2027-03-02,Bearish,Neutral,bearish_window_relief,0.3284171064191908,Signal shifted from Bearish to Neutral as ML probability moved to 0.4328.
-2027-03-12,Neutral,Neutral,momentum_breakout_up,0.2832454360824308,"Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.7869."
+2027-03-12,Neutral,Neutral,momentum_breakout_up,0.28324543608243075,"Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.7869."
 2027-03-30,Neutral,Neutral,momentum_breakdown_down,0.33328718459096457,"Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.3183."
 2027-03-31,Neutral,Bullish,signal_flip,0.3437658170869389,Signal shifted from Neutral to Bullish as ML probability moved to 0.5755.
 2027-04-03,Bullish,Neutral,bullish_window_break,0.30812559187557925,Signal shifted from Bullish to Neutral as ML probability moved to 0.5382.
 2027-04-19,Neutral,Neutral,momentum_breakout_up,0.357789934118863,"Astro momentum crossed above the upper historical threshold (1.7493), reaching 1.8002."
 2027-04-28,Neutral,Bearish,signal_flip,0.3707546082386614,Signal shifted from Neutral to Bearish as ML probability moved to 0.4297.
 2027-04-29,Bearish,Neutral,bearish_window_relief,0.36619029266816344,Signal shifted from Bearish to Neutral as ML probability moved to 0.4366.
-2027-05-08,Neutral,Neutral,momentum_breakdown_down,0.314815695444385,"Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2494."
-2027-05-12,Neutral,Neutral,momentum_neutral_cross,0.36095352957882765,Astro momentum crossed the neutral line and is now -0.0405.
+2027-05-08,Neutral,Neutral,momentum_breakdown_down,0.31481569544438487,"Astro momentum dropped through the lower historical threshold (0.3279), falling to 0.2494."
+2027-05-12,Neutral,Neutral,momentum_neutral_cross,0.36095352957882776,Astro momentum crossed the neutral line and is now -0.0405.
 2027-05-22,Neutral,Neutral,momentum_neutral_cross,0.3303452032035777,Astro momentum crossed the neutral line and is now 0.0419.

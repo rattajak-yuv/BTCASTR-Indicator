@@ -19,7 +19,7 @@
     "label": "90D Outlook",
     "horizon_days": 90,
     "dominant_taxonomy": "Transition / Low Conviction",
-    "average_confidence": 0.3264898338759949,
+    "average_confidence": 0.32648983387599495,
     "average_probability": 0.5651388409828105,
     "window_count": 6,
     "summary": "Dominant state is transition / low conviction with mean confidence 32.65% and mean probability 56.51%. The horizon starts in constructive drift and rotates toward transition / low conviction."

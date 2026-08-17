@@ -31993,3 +31993,5 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-08-13,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
 2028-08-14,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
 2028-08-15,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
+2028-08-16,aspect,Mars acceleration,Mars,MC,sextile,60.0,1.6588,0.1706,0.55,1.25,0.1173,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0938219390393501,0.0,0.0,0.11727742379918761,0.0,0.058638711899593805,0.0
+2028-08-16,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0

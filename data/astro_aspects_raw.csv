@@ -31999,3 +31999,7 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-08-17,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
 2028-08-18,aspect,Mars acceleration,Mars,MC,sextile,60.0,0.3553,0.8224,0.55,1.25,0.5654,Sideways,Low Volatility,global,1.0,1.0,1.0,0.4523009772436686,0.0,0.0,0.5653762215545857,0.0,0.28268811077729283,0.0
 2028-08-18,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
+2028-08-19,aspect,Moon sentiment trigger,Moon,Moon,conjunction,0.0,0.1484,0.8516,1.0,1.0,0.8516,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.2129088303430997,0.34065412854895954,0.0,0.0,0.0
+2028-08-19,aspect,Mars acceleration,Mars,MC,sextile,60.0,0.2951,0.8524,0.55,1.25,0.5861,Sideways,Low Volatility,global,1.0,1.0,1.0,0.4688429396991586,0.0,0.0,0.5860536746239482,0.0,0.2930268373119741,0.0
+2028-08-19,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,2.8324,0.0559,0.75,1.15,0.0482,Sideways,Low Volatility,global,1.0,1.0,1.0,0.09636945261371103,0.0,0.0,0.009636945261371105,0.0,0.05782167156822662,0.0
+2028-08-19,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0

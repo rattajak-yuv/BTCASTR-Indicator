@@ -32009,3 +32009,5 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-08-21,aspect,Mars acceleration,Mars,MC,sextile,60.0,1.593,0.2035,0.55,1.25,0.1399,Sideways,Low Volatility,global,1.0,1.0,1.0,0.1119143157239913,0.0,0.0,0.1398928946549891,0.0,0.06994644732749455,0.0
 2028-08-21,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,2.4359,0.188,0.75,1.15,0.1622,Sideways,Low Volatility,global,1.0,1.0,1.0,0.32436789732033366,0.0,0.0,0.032436789732033365,0.0,0.1946207383922002,0.0
 2028-08-21,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
+2028-08-22,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,2.2363,0.2546,0.75,1.15,0.2196,Sideways,Low Volatility,global,1.0,1.0,1.0,0.43910618621971753,0.0,0.0,0.04391061862197176,0.0,0.26346371173183053,0.0
+2028-08-22,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0

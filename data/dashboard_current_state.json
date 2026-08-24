@@ -13,7 +13,7 @@
     "window_class": "Transition",
     "taxonomy_v2": "Constructive Drift",
     "average_confidence": 0.2916008122248796,
-    "average_ml_probability": 0.5395601330210522,
+    "average_ml_probability": 0.5395601330210521,
     "average_astro_score": 1.7418296430198197,
     "v2_posture": "Measured long bias",
     "narrative_v2": "From 2026-06-02 to 2026-06-05, the outlook is constructive drift. Stable positive drift. Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing. Investor posture: measured long bias. Exposure language: moderate risk-on. Caveat: Broadly positive and more stable than the faster expansion state."
@@ -32,7 +32,7 @@
     "end_date": "2026-06-05",
     "taxonomy_v2": "Constructive Drift",
     "average_confidence": 0.2916008122248796,
-    "average_ml_probability": 0.5395601330210522,
+    "average_ml_probability": 0.5395601330210521,
     "v2_posture": "Measured long bias",
     "taxonomy_reason": "Historical outcomes are steadily positive (30D=7.89%, 60D=11.93%, 90D=21.66%) with 30D win rate 62.23%. This supports a measured long bias rather than aggressive chasing."
   },

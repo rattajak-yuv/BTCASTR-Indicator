@@ -32021,3 +32021,6 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-08-26,aspect,Moon sentiment trigger,Moon,MC,opposition,180.0,0.8141,0.1859,0.9,1.25,0.2092,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.05229000588279309,0.08366400941246895,0.0,0.0,0.0
 2028-08-26,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,1.4302,0.5233,0.75,1.15,0.4513,Sideways,Low Volatility,global,1.0,1.0,1.0,0.9026505054208577,0.0,0.0,0.09026505054208578,0.0,0.5415903032525146,0.0
 2028-08-26,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
+2028-08-27,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,1.2268,0.5911,0.75,1.15,0.5098,Sideways,Low Volatility,global,1.0,1.0,1.0,1.0196144539201477,0.0,0.0,0.10196144539201478,0.0,0.6117686723520886,0.0
+2028-08-27,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
+2028-08-27,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5

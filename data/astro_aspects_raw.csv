@@ -32050,3 +32050,6 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-09-04,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,0.4242,0.8586,0.75,1.15,0.7405,Sideways,Low Volatility,global,1.0,1.0,1.0,1.4810850986782902,0.0,0.0,0.14810850986782903,0.0,0.8886510592069741,0.0
 2028-09-04,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
 2028-09-04,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
+2028-09-05,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,0.6332,0.7889,0.75,1.15,0.6804,Sideways,Low Volatility,global,1.0,1.0,1.0,1.3608900164570925,0.0,0.0,0.13608900164570925,0.0,0.8165340098742555,0.0
+2028-09-05,house,Uranus in house 5,Uranus,House 5,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.0,0.8,0.0,0.5,0.0
+2028-09-05,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5

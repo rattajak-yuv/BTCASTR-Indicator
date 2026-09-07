@@ -1,8 +1,8 @@
 {
   "forecast_date": "2026-06-02",
   "current_signal": "Neutral",
-  "current_probability": 0.5053358146843915,
-  "current_confidence": 0.2468005551628034,
+  "current_probability": 0.5053358146843914,
+  "current_confidence": 0.2468005551628033,
   "current_taxonomy": "Constructive Drift",
   "market_view": "Balanced consolidation",
   "risk_level": "Moderate",
@@ -23,7 +23,7 @@
     "turning_point_type": "signal_flip",
     "old_signal": "Neutral",
     "new_signal": "Bullish",
-    "confidence": 0.3337965108480485,
+    "confidence": 0.3337965108480484,
     "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5749.",
     "severity": "high"
   },

@@ -32063,3 +32063,6 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-09-08,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
 2028-09-09,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,1.4745,0.5085,0.75,1.15,0.4386,Sideways,Low Volatility,global,1.0,1.0,1.0,0.8771533400744354,0.0,0.0,0.08771533400744354,0.0,0.5262920040446611,0.0
 2028-09-09,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
+2028-09-10,aspect,Moon sentiment trigger,Moon,Asc,square,90.0,0.3317,0.6683,0.85,1.25,0.71,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.17750469331744,0.284007509307904,0.0,0.0,0.0
+2028-09-10,aspect,Jupiter expansion to core points,Jupiter,Jupiter,trine,120.0,1.686,0.438,0.75,1.15,0.3778,Sideways,Low Volatility,global,1.0,1.0,1.0,0.7555307930945403,0.0,0.0,0.07555307930945404,0.0,0.45331847585672413,0.0
+2028-09-10,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5

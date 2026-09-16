@@ -23,7 +23,7 @@
     "turning_point_type": "signal_flip",
     "old_signal": "Neutral",
     "new_signal": "Bullish",
-    "confidence": 0.3337965108480484,
+    "confidence": 0.3337965108480485,
     "explanation": "Signal shifted from Neutral to Bullish as ML probability moved to 0.5749.",
     "severity": "high"
   },

@@ -32086,3 +32086,4 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-09-22,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
 2028-09-23,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
 2028-09-24,house,Neptune in house 2,Neptune,House 2,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
+2028-10-03,aspect,Mars conflict,Mars,MC,square,90.0,1.4666,0.2667,0.85,1.25,0.2834,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.25505530162494566,0.17003686774996377,0.39675269141658215,0.0,0.0,0.0

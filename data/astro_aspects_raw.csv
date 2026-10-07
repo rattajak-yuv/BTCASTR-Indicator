@@ -32089,3 +32089,4 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-10-03,aspect,Mars conflict,Mars,MC,square,90.0,1.4666,0.2667,0.85,1.25,0.2834,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.25505530162494566,0.17003686774996377,0.39675269141658215,0.0,0.0,0.0
 2028-10-04,aspect,Mars conflict,Mars,MC,square,90.0,0.8638,0.5681,0.85,1.25,0.6036,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.5432463987819988,0.3621642658546658,0.845049953660887,0.0,0.0,0.0
 2028-10-05,aspect,Mars conflict,Mars,MC,square,90.0,0.2622,0.8689,0.85,1.25,0.9232,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.8308777166831057,0.553918477788737,1.2924764481737199,0.0,0.0,0.0
+2028-10-06,aspect,Mars conflict,Mars,MC,square,90.0,0.3382,0.8309,0.85,1.25,0.8828,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.794554208175663,0.5297028054504419,1.2359732127176979,0.0,0.0,0.0

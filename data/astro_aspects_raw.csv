@@ -32106,3 +32106,7 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-10-13,aspect,Mars acceleration,Mars,Asc,conjunction,0.0,0.2051,0.8974,1.0,1.25,1.1218,Sideways,Low Volatility,global,1.0,1.0,1.0,0.897432262881523,0.0,0.0,1.1217903286019038,0.0,0.5608951643009519,0.0
 2028-10-13,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,2.7994,0.0669,0.85,1.0,0.0568,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.11368802143891799,0.045475208575567194,0.0,0.06821281286335079,0.0,0.05684401071945899
 2028-10-13,house,Pluto in house 11,Pluto,House 11,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4
+2028-10-14,aspect,Moon sentiment trigger,Moon,Asc,conjunction,0.0,0.1938,0.8062,1.0,1.25,1.0077,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.251923858744032,0.4030781739904512,0.0,0.0,0.0
+2028-10-14,aspect,Mars acceleration,Mars,Asc,conjunction,0.0,0.3854,0.8073,1.0,1.25,1.0091,Sideways,Low Volatility,global,1.0,1.0,1.0,0.8073175457654784,0.0,0.0,1.009146932206848,0.0,0.504573466103424,0.0
+2028-10-14,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,2.7253,0.0916,0.85,1.0,0.0778,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.15567114597514403,0.06226845839005762,0.0,0.09340268758508642,0.0,0.07783557298757202
+2028-10-14,house,Pluto in house 11,Pluto,House 11,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4

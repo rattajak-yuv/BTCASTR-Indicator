@@ -32128,3 +32128,5 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-10-21,aspect,Moon sentiment trigger,Moon,Moon,trine,120.0,0.9588,0.0412,0.75,1.0,0.0309,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.007719474341264743,0.012351158946023589,0.0,0.0,0.0
 2028-10-21,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,2.1883,0.2706,0.85,1.0,0.23,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.45995679964721503,0.18398271985888603,0.0,0.275974079788329,0.0,0.22997839982360752
 2028-10-21,house,Pluto in house 11,Pluto,House 11,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4
+2028-10-22,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,2.1095,0.2968,0.85,1.0,0.2523,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.5046096982367615,0.2018438792947046,0.0,0.3027658189420569,0.0,0.25230484911838075
+2028-10-22,house,Pluto in house 11,Pluto,House 11,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4

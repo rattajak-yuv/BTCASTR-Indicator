@@ -10,7 +10,7 @@
     "label": "30D Outlook",
     "horizon_days": 30,
     "dominant_taxonomy": "Transition / Low Conviction",
-    "average_confidence": 0.32880970763340833,
+    "average_confidence": 0.3288097076334084,
     "average_probability": 0.5670998298210737,
     "window_count": 2,
     "summary": "Dominant state is transition / low conviction with mean confidence 32.88% and mean probability 56.71%. The horizon starts in constructive drift and rotates toward transition / low conviction."
@@ -19,8 +19,8 @@
     "label": "90D Outlook",
     "horizon_days": 90,
     "dominant_taxonomy": "Transition / Low Conviction",
-    "average_confidence": 0.3264898338759949,
-    "average_probability": 0.5651388409828105,
+    "average_confidence": 0.326489833875995,
+    "average_probability": 0.5651388409828106,
     "window_count": 6,
     "summary": "Dominant state is transition / low conviction with mean confidence 32.65% and mean probability 56.51%. The horizon starts in constructive drift and rotates toward transition / low conviction."
   },

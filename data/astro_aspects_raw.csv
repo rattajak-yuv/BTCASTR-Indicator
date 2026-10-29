@@ -32145,3 +32145,6 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-10-27,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,1.7106,0.4298,0.85,1.0,0.3653,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.7306334529896783,0.29225338119587135,0.0,0.43838007179380695,0.0,0.36531672649483915
 2028-10-27,house,Neptune in house 12,Neptune,House 12,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
 2028-10-27,house,Pluto in house 11,Pluto,House 11,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4
+2028-10-28,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,1.6302,0.4566,0.85,1.0,0.3881,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.7762118792486201,0.31048475169944806,0.0,0.46572712754917206,0.0,0.38810593962431006
+2028-10-28,house,Neptune in house 12,Neptune,House 12,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
+2028-10-28,house,Pluto in house 11,Pluto,House 11,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4

@@ -32190,3 +32190,7 @@ date,source,rule_name,transit_planet,target,aspect,aspect_angle,orb,orb_factor,a
 2028-11-09,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,0.6685,0.7772,0.85,1.0,0.6606,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,1.321204520724856,0.5284818082899424,0.0,0.7927227124349135,0.0,0.660602260362428
 2028-11-09,house,Neptune in house 12,Neptune,House 12,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
 2028-11-09,house,Pluto in house 10,Pluto,House 10,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4
+2028-11-10,aspect,Moon sentiment trigger,Moon,MC,square,90.0,0.4498,0.5502,0.85,1.25,0.5845,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.14613711658245654,0.23381938653193046,0.0,0.0,0.0
+2028-11-10,aspect,Saturn hard pressure,Saturn,Moon,square,90.0,0.5899,0.8034,0.85,1.0,0.6829,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,1.3657109779226715,0.5462843911690686,0.0,0.8194265867536029,0.0,0.6828554889613357
+2028-11-10,house,Neptune in house 12,Neptune,House 12,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.5,0.4,0.0,0.0,0.5
+2028-11-10,house,Pluto in house 10,Pluto,House 10,house_position,,,,,,1.0,Sideways,Low Volatility,global,1.0,1.0,1.0,0.0,0.0,0.8,0.5,0.0,0.4,0.4
